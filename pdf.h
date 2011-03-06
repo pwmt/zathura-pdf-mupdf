@@ -7,7 +7,7 @@
 #include <fitz.h>
 #include <mupdf.h>
 
-#include "../document.h"
+#include "../../document.h"
 
 typedef struct pdf_document_s
 {

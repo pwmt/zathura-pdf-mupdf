@@ -5,6 +5,13 @@
 #include "pdf.h"
 #include "../../zathura.h"
 
+void
+plugin_register(zathura_document_plugin_t* plugin)
+{
+  plugin->file_extension = "pdf";
+  plugin->open_function  = pdf_document_open;
+}
+
 bool
 pdf_document_open(zathura_document_t* document)
 {
@@ -214,7 +221,7 @@ pdf_page_render(zathura_page_t* page)
   int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
 
   fz_pixmap* pixmap = fz_newpixmapwithrect(fz_devicergb, bbox);
-  fz_clearpixmap(pixmap, 0xFF);
+  fz_clearpixmapwithcolor(pixmap, 0xFF);
 
   device = fz_newdrawdevice(pdf_document->glyphcache, pixmap);
   fz_executedisplaylist(display_list, device, ctm);
