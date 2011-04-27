@@ -4,10 +4,9 @@
 #define PDF_H
 
 #include <stdbool.h>
+#include <zathura/document.h>
 #include <fitz.h>
 #include <mupdf.h>
-
-#include "../../document.h"
 
 typedef struct pdf_document_s
 {
