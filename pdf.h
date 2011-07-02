@@ -10,7 +10,7 @@
 
 typedef struct pdf_document_s
 {
-	fz_glyphcache *glyphcache;
+	fz_glyph_cache *glyph_cache;
 	pdf_xref *document;
 } pdf_document_t;
 
