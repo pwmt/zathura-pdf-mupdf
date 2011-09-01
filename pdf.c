@@ -34,30 +34,30 @@ pdf_document_open(zathura_document_t* document)
   pdf_document_t* pdf_document = (pdf_document_t*) document->data;
 
   fz_accelerate();
-  pdf_document->glyphcache = fz_newglyphcache();
+  pdf_document->glyph_cache = fz_new_glyph_cache();
 
-  if (pdf_openxref(&(pdf_document->document), document->file_path, NULL)) {
+  if (pdf_open_xref(&(pdf_document->document), document->file_path, NULL)) {
     fprintf(stderr, "error: could not open file\n");
     goto error_free;
   }
 
-  if (pdf_loadpagetree(pdf_document->document)) {
+  if (pdf_load_page_tree(pdf_document->document)) {
     fprintf(stderr, "error: could not open file\n");
     goto error_free;
   }
 
-  document->number_of_pages = pdf_getpagecount(pdf_document->document);
+  document->number_of_pages = pdf_count_pages(pdf_document->document);
 
   return true;
 
 error_free:
 
   if (pdf_document->document) {
-    pdf_freexref(pdf_document->document);
+    pdf_free_xref(pdf_document->document);
   }
 
-  if (pdf_document->glyphcache) {
-    fz_freeglyphcache(pdf_document->glyphcache);
+  if (pdf_document->glyph_cache) {
+    fz_free_glyph_cache(pdf_document->glyph_cache);
   }
 
   free(document->data);
@@ -77,8 +77,8 @@ pdf_document_free(zathura_document_t* document)
 
   if (document->data) {
     pdf_document_t* pdf_document = (pdf_document_t*) document->data;
-    pdf_freexref(pdf_document->document);
-    fz_freeglyphcache(pdf_document->glyphcache);
+    pdf_free_xref(pdf_document->document);
+    fz_free_glyph_cache(pdf_document->glyph_cache);
     free(document->data);
     document->data = NULL;
   }
@@ -109,9 +109,7 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
   document_page->document = document;
   document_page->data     = mupdf_page;
 
-  mupdf_page->page_object = pdf_getpageobject(pdf_document->document, page + 1);
-
-  if (pdf_loadpage(&(mupdf_page->page), pdf_document->document, mupdf_page->page_object)) {
+  if (pdf_load_page(&(mupdf_page->page), pdf_document->document, page)) {
     goto error_free;
   }
 
@@ -123,11 +121,11 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
 error_free:
 
   if (mupdf_page && mupdf_page->page_object) {
-    fz_dropobj(mupdf_page->page_object);
+    fz_drop_obj(mupdf_page->page_object);
   }
 
   if (mupdf_page && mupdf_page->page) {
-    pdf_freepage(mupdf_page->page);
+    pdf_free_page(mupdf_page->page);
   }
 
   free(document_page);
@@ -146,8 +144,8 @@ pdf_page_free(zathura_page_t* page)
   }
 
   mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
-  pdf_freepage(mupdf_page->page);
-  fz_dropobj(mupdf_page->page_object);
+  pdf_free_page(mupdf_page->page);
+  fz_drop_obj(mupdf_page->page_object);
   free(mupdf_page);
   free(page);
 
@@ -201,30 +199,28 @@ pdf_page_render(zathura_page_t* page)
   mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
 
   /* render */
-  fz_displaylist* display_list = fz_newdisplaylist();
-  fz_device* device            = fz_newlistdevice(display_list);
+  fz_display_list* display_list = fz_new_display_list();
+  fz_device* device             = fz_new_list_device(display_list);
 
-  if (pdf_runpage(pdf_document->document, mupdf_page->page, device, fz_identity)) {
+  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_identity)) {
     return NULL;
   }
 
-  fz_freedevice(device);
-
-  pdf_agestore(pdf_document->document->store, 3);
+  fz_free_device(device);
 
   fz_matrix ctm = fz_identity;
   ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
   ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
   ctm           = fz_concat(ctm, fz_rotate(mupdf_page->page->rotate));
   // ctm           = fz_concat(ctm, fz_rotate(page->document->rotate));
-  fz_bbox bbox  = fz_roundrect(fz_transformrect(ctm, mupdf_page->page->mediabox));
+  fz_bbox bbox  = fz_round_rect(fz_transform_rect(ctm, mupdf_page->page->mediabox));
 
-  fz_pixmap* pixmap = fz_newpixmapwithrect(fz_devicergb, bbox);
-  fz_clearpixmapwithcolor(pixmap, 0xFF);
+  fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
+  fz_clear_pixmap_with_color(pixmap, 0xFF);
 
-  device = fz_newdrawdevice(pdf_document->glyphcache, pixmap);
-  fz_executedisplaylist(display_list, device, ctm);
-  fz_freedevice(device);
+  device = fz_new_draw_device(pdf_document->glyph_cache, pixmap);
+  fz_execute_display_list(display_list, device, fz_identity, bbox);
+  fz_free_device(device);
 
   for (unsigned int y = 0; y < pixmap->h; y++) {
     for (unsigned int x = 0; x < pixmap->w; x++) {
@@ -236,8 +232,8 @@ pdf_page_render(zathura_page_t* page)
     }
   }
 
-  fz_droppixmap(pixmap);
-  fz_freedisplaylist(display_list);
+  fz_drop_pixmap(pixmap);
+  fz_free_display_list(display_list);
 
   return image_buffer;
 }
