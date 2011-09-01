@@ -181,12 +181,13 @@ pdf_page_render(zathura_page_t* page)
   unsigned int page_width  = page->document->scale * page->width;
   unsigned int page_height = page->document->scale * page->height;
 
-  if (page->document->rotate == 90 || page->document->rotate == 270) {
+
+  /* if (page->document->rotate == 90 || page->document->rotate == 270) {
       unsigned int dim_temp = 0;
       dim_temp    = page_width;
       page_width  = page_height;
       page_height = dim_temp;
-  }
+  } */
 
   /* create image buffer */
   zathura_image_buffer_t* image_buffer = zathura_image_buffer_create(page_width, page_height);
