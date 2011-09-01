@@ -216,7 +216,7 @@ pdf_page_render(zathura_page_t* page)
   ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
   ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
   ctm           = fz_concat(ctm, fz_rotate(mupdf_page->page->rotate));
-  ctm           = fz_concat(ctm, fz_rotate(page->document->rotate));
+  // ctm           = fz_concat(ctm, fz_rotate(page->document->rotate));
   fz_bbox bbox  = fz_roundrect(fz_transformrect(ctm, mupdf_page->page->mediabox));
 
   fz_pixmap* pixmap = fz_newpixmapwithrect(fz_devicergb, bbox);
