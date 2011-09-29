@@ -243,6 +243,7 @@ pdf_page_render(zathura_page_t* page)
   return image_buffer;
 }
 
+#if HAVE_CAIRO
 bool
 pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
 {
@@ -302,3 +303,4 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
 
   return true;
 }
+#endif
