@@ -289,7 +289,7 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   unsigned char *s = pixmap->samples;
   for (unsigned int y = 0; y < pixmap->h; y++) {
     for (unsigned int x = 0; x < pixmap->w; x++) {
-      guchar* p = image + (pixmap->h - y - 1) * rowstride + x * 3;
+      guchar* p = image + (pixmap->h - y - 1) * rowstride + x * 4;
       p[0] = s[0];
       p[1] = s[1];
       p[2] = s[2];
