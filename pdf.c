@@ -7,7 +7,7 @@
 void
 plugin_register(zathura_document_plugin_t* plugin)
 {
-  plugin->file_extension = "pdf";
+  girara_list_append(plugin->content_types, g_content_type_from_mime_type("application/pdf"));
   plugin->open_function  = pdf_document_open;
 }
 
