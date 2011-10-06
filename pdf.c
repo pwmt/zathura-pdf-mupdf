@@ -7,7 +7,7 @@
 void
 plugin_register(zathura_document_plugin_t* plugin)
 {
-  plugin->file_extension = "pdf";
+  girara_list_append(plugin->content_types, g_content_type_from_mime_type("application/pdf"));
   plugin->open_function  = pdf_document_open;
 }
 
@@ -24,6 +24,9 @@ pdf_document_open(zathura_document_t* document)
   document->functions.page_links_get            = pdf_page_links_get;
   document->functions.page_form_fields_get      = pdf_page_form_fields_get;
   document->functions.page_render               = pdf_page_render;
+#if HAVE_CAIRO
+  document->functions.page_render_cairo         = pdf_page_render_cairo;
+#endif
   document->functions.page_free                 = pdf_page_free;
 
   document->data = malloc(sizeof(pdf_document_t));
@@ -181,7 +184,6 @@ pdf_page_render(zathura_page_t* page)
   unsigned int page_width  = page->document->scale * page->width;
   unsigned int page_height = page->document->scale * page->height;
 
-
   /* if (page->document->rotate == 90 || page->document->rotate == 270) {
       unsigned int dim_temp = 0;
       dim_temp    = page_width;
@@ -223,13 +225,15 @@ pdf_page_render(zathura_page_t* page)
   fz_execute_display_list(display_list, device, fz_identity, bbox);
   fz_free_device(device);
 
+  unsigned char* s = pixmap->samples;
   for (unsigned int y = 0; y < pixmap->h; y++) {
     for (unsigned int x = 0; x < pixmap->w; x++) {
-      unsigned char *s = pixmap->samples + y * pixmap->w * 4 + x * 4;
-      guchar* p = image_buffer->data + y * image_buffer->rowstride + x * 3;
+      guchar* p = image_buffer->data + (pixmap->h - y - 1) *
+        image_buffer->rowstride + x * 3;
       p[0] = s[0];
       p[1] = s[1];
       p[2] = s[2];
+      s += pixmap->n;
     }
   }
 
@@ -238,3 +242,65 @@ pdf_page_render(zathura_page_t* page)
 
   return image_buffer;
 }
+
+#if HAVE_CAIRO
+bool
+pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
+{
+  if (page == NULL || page->data == NULL || page->document == NULL) {
+    return false;
+  }
+
+  pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
+  mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
+
+  /* render */
+  fz_display_list* display_list = fz_new_display_list();
+  fz_device* device             = fz_new_list_device(display_list);
+
+  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_identity)) {
+    return false;
+  }
+
+  fz_free_device(device);
+
+  fz_matrix ctm = fz_identity;
+  ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
+  ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
+  ctm           = fz_concat(ctm, fz_rotate(mupdf_page->page->rotate));
+  fz_bbox bbox  = fz_round_rect(fz_transform_rect(ctm, mupdf_page->page->mediabox));
+
+  fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
+  fz_clear_pixmap_with_color(pixmap, 0xFF);
+
+  device = fz_new_draw_device(pdf_document->glyph_cache, pixmap);
+  fz_execute_display_list(display_list, device, fz_identity, bbox);
+  fz_free_device(device);
+
+  cairo_surface_t* surface = cairo_get_target(cairo);
+  if (surface == NULL) {
+    fz_drop_pixmap(pixmap);
+    fz_free_display_list(display_list);
+    return false;
+  }
+
+  int rowstride        = cairo_image_surface_get_stride(surface);
+  unsigned char* image = cairo_image_surface_get_data(surface);
+
+  unsigned char *s = pixmap->samples;
+  for (unsigned int y = 0; y < pixmap->h; y++) {
+    for (unsigned int x = 0; x < pixmap->w; x++) {
+      guchar* p = image + (pixmap->h - y - 1) * rowstride + x * 4;
+      p[0] = s[0];
+      p[1] = s[1];
+      p[2] = s[2];
+      s += pixmap->n;
+    }
+  }
+
+  fz_drop_pixmap(pixmap);
+  fz_free_display_list(display_list);
+
+  return true;
+}
+#endif

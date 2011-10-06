@@ -7,6 +7,10 @@ SOURCE   = pdf.c
 OBJECTS  = ${SOURCE:.c=.o}
 DOBJECTS = ${SOURCE:.c=.do}
 
+ifneq "$(WITH_CAIRO)" "0"
+CFLAGS += -DHAVE_CAIRO
+endif
+
 all: options ${PLUGIN}
 
 options:
