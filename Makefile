@@ -50,7 +50,7 @@ install: all
 uninstall:
 	@echo uninstalling ${PLUGIN} plugin
 	@rm -f ${DESTDIR}${PREFIX}/lib/zathura/${PLUGIN}.so
-	@rm -rf ${DESTDIR}${PREFIX}/lib/zathura
+	@rmdir ${DESTDIR}${PREFIX}/lib/zathura 2> /dev/null || /bin/true
 
 -include $(wildcard .depend/*.dep)
 
