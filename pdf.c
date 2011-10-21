@@ -155,19 +155,19 @@ pdf_page_free(zathura_page_t* page)
   return true;
 }
 
-zathura_list_t*
+girara_list_t*
 pdf_page_search_text(zathura_page_t* page, const char* text)
 {
   return NULL;
 }
 
-zathura_list_t*
+girara_list_t*
 pdf_page_links_get(zathura_page_t* page)
 {
   return NULL;
 }
 
-zathura_list_t*
+girara_list_t*
 pdf_page_form_fields_get(zathura_page_t* page)
 {
   return NULL;
