@@ -7,7 +7,10 @@ PREFIX ?= /usr
 GTK_INC ?= $(shell pkg-config --cflags gtk+-2.0)
 GTK_LIB ?= $(shell pkg-config --libs gtk+-2.0)
 
-INCS = -I. -I/usr/include ${GTK_INC}
+GIRARA_INC ?= $(shell pkg-config --cflags girara-gtk2)
+ZATHURA_INC ?= $(shell pkg-config --cflags zathura)
+
+INCS = -I. -I/usr/include ${GTK_INC} ${ZATHURA_INC} ${GIRARA_INC}
 LIBS = -lc ${GTK_LIB} -lmupdf -ljbig2dec -ljpeg -lopenjpeg -lfitz
 
 # flags
