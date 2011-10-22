@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <zathura/document.h>
+#include <girara.h>
 #include <fitz.h>
 #include <mupdf.h>
 
@@ -29,9 +30,9 @@ typedef struct mupdf_page_s
 bool pdf_document_open(zathura_document_t* document);
 bool pdf_document_free(zathura_document_t* document);
 zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page);
-zathura_list_t* pdf_page_search_text(zathura_page_t* page, const char* text);
-zathura_list_t* pdf_page_links_get(zathura_page_t* page);
-zathura_list_t* pdf_page_form_fields_get(zathura_page_t* page);
+girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text);
+girara_list_t* pdf_page_links_get(zathura_page_t* page);
+girara_list_t* pdf_page_form_fields_get(zathura_page_t* page);
 zathura_image_buffer_t* pdf_page_render(zathura_page_t* page);
 #if HAVE_CAIRO
 bool pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo);
