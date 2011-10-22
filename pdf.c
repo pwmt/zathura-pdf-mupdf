@@ -101,7 +101,7 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
     goto error_ret;
   }
 
-  mupdf_page_t* mupdf_page = malloc(sizeof(mupdf_page_t));
+  mupdf_page_t* mupdf_page = calloc(1, sizeof(mupdf_page_t));
 
   if (mupdf_page == NULL) {
     goto error_free;
@@ -110,10 +110,12 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
   document_page->document = document;
   document_page->data     = mupdf_page;
 
+  /* load page */
   if (pdf_load_page(&(mupdf_page->page), pdf_document->document, page) != fz_okay) {
     goto error_free;
   }
 
+  /* get page dimensions */
   document_page->width  = mupdf_page->page->mediabox.x1 - mupdf_page->page->mediabox.x0;
   document_page->height = mupdf_page->page->mediabox.y1 - mupdf_page->page->mediabox.y0;
 
@@ -122,10 +124,6 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
 error_free:
 
   if (mupdf_page != NULL) {
-    if (mupdf_page->page_object != NULL) {
-      fz_drop_obj(mupdf_page->page_object);
-    }
-
     if (mupdf_page->page != NULL) {
       pdf_free_page(mupdf_page->page);
     }
