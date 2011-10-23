@@ -5,15 +5,12 @@
 
 #include <stdbool.h>
 #include <zathura/document.h>
-#include <girara.h>
 #include <fitz.h>
 #include <mupdf.h>
 
 #if HAVE_CAIRO
 #include <cairo.h>
 #endif
-
-#include <zathura/document.h>
 
 typedef struct pdf_document_s
 {

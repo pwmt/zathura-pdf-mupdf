@@ -1,6 +1,7 @@
 /* See LICENSE file for license and copyright information */
 
 #include <stdlib.h>
+#include <girara/datastructures.h>
 
 #include "pdf.h"
 
