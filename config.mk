@@ -10,8 +10,8 @@ GTK_LIB ?= $(shell pkg-config --libs gtk+-2.0)
 GIRARA_INC ?= $(shell pkg-config --cflags girara-gtk2)
 ZATHURA_INC ?= $(shell pkg-config --cflags zathura)
 
-INCS = -I. -I/usr/include ${GTK_INC} ${ZATHURA_INC} ${GIRARA_INC}
-LIBS = -lc ${GTK_LIB} -lmupdf -ljbig2dec -ljpeg -lopenjpeg -lfitz
+INCS = ${GTK_INC} ${ZATHURA_INC} ${GIRARA_INC}
+LIBS = ${GTK_LIB} -lmupdf -lfitz -ljbig2dec -lopenjpeg -ljpeg
 
 # flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)
