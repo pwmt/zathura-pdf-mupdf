@@ -149,7 +149,6 @@ pdf_page_free(zathura_page_t* page)
 
   mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
   pdf_free_page(mupdf_page->page);
-  fz_drop_obj(mupdf_page->page_object);
   free(mupdf_page);
   free(page);
 
@@ -163,7 +162,7 @@ pdf_page_search_text(zathura_page_t* page, const char* text)
     goto error_ret;
   }
 
-  mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
+  /* mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data; */
 
 error_ret:
 
