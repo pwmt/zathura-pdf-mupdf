@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <zathura/document.h>
+#include <girara.h>
 #include <fitz.h>
 #include <mupdf.h>
 
@@ -22,7 +23,6 @@ typedef struct pdf_document_s
 
 typedef struct mupdf_page_s
 {
-  fz_obj* page_object;
   pdf_page* page;
 } mupdf_page_t;
 
