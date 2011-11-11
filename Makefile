@@ -8,7 +8,7 @@ OBJECTS  = ${SOURCE:.c=.o}
 DOBJECTS = ${SOURCE:.c=.do}
 
 ifneq "$(WITH_CAIRO)" "0"
-CFLAGS += -DHAVE_CAIRO
+CPPFLAGS += -DHAVE_CAIRO
 endif
 
 all: options ${PLUGIN}
@@ -23,12 +23,12 @@ options:
 %.o: %.c
 	@echo CC $<
 	@mkdir -p .depend
-	@${CC} -c ${CFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
+	@${CC} -c ${CPPFLAGS} ${CFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
 
 %.do: %.c
 	@echo CC $<
 	@mkdir -p .depend
-	@${CC} -c ${CFLAGS} ${DFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
+	@${CC} -c ${CPPFLAGS} ${CFLAGS} ${DFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
 
 ${OBJECTS}:  config.mk
 ${DOBJECTS}: config.mk
