@@ -216,7 +216,6 @@ pdf_page_render(zathura_page_t* page)
   fz_matrix ctm = fz_identity;
   ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
   ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
-  ctm           = fz_concat(ctm, fz_rotate(mupdf_page->page->rotate));
   fz_bbox bbox  = fz_round_rect(fz_transform_rect(ctm, mupdf_page->page->mediabox));
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
@@ -268,7 +267,6 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   fz_matrix ctm = fz_identity;
   ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
   ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
-  ctm           = fz_concat(ctm, fz_rotate(mupdf_page->page->rotate));
   fz_bbox bbox  = fz_round_rect(fz_transform_rect(ctm, mupdf_page->page->mediabox));
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
