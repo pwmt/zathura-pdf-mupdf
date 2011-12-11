@@ -213,7 +213,7 @@ pdf_page_render(zathura_page_t* page)
 
   fz_free_device(device);
 
-  fz_bbox bbox  = { .x1 = page_width, .y1 = page_height };
+  fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
   fz_clear_pixmap_with_color(pixmap, 0xFF);
@@ -269,10 +269,7 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
 
   unsigned int page_width  = cairo_image_surface_get_width(surface);
   unsigned int page_height = cairo_image_surface_get_height(surface);
-
-  fz_bbox bbox  = {0, 0, 0, 0};
-  bbox.x1 = page_width;
-  bbox.y1 = page_height;
+  fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
   fz_clear_pixmap_with_color(pixmap, 0xFF);
