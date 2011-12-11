@@ -207,16 +207,13 @@ pdf_page_render(zathura_page_t* page)
   fz_display_list* display_list = fz_new_display_list();
   fz_device* device             = fz_new_list_device(display_list);
 
-  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_identity) != fz_okay) {
+  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_scale(page->document->scale, page->document->scale)) != fz_okay) {
     return NULL;
   }
 
   fz_free_device(device);
 
-  fz_matrix ctm = fz_identity;
-  ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
-  ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
-  fz_bbox bbox  = fz_round_rect(fz_transform_rect(ctm, mupdf_page->page->mediabox));
+  fz_bbox bbox  = { .x1 = page_width, .y1 = page_height };
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
   fz_clear_pixmap_with_color(pixmap, 0xFF);
@@ -258,16 +255,24 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   fz_display_list* display_list = fz_new_display_list();
   fz_device* device             = fz_new_list_device(display_list);
 
-  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_identity) != fz_okay) {
+  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_scale(page->document->scale, page->document->scale)) != fz_okay) {
     return false;
   }
 
   fz_free_device(device);
 
-  fz_matrix ctm = fz_identity;
-  ctm           = fz_concat(ctm, fz_translate(0, -mupdf_page->page->mediabox.y1));
-  ctm           = fz_concat(ctm, fz_scale(page->document->scale, -page->document->scale));
-  fz_bbox bbox  = fz_round_rect(fz_transform_rect(ctm, mupdf_page->page->mediabox));
+  cairo_surface_t* surface = cairo_get_target(cairo);
+  if (surface == NULL) {
+    fz_free_display_list(display_list);
+    return false;
+  }
+
+  unsigned int page_width  = cairo_image_surface_get_width(surface);
+  unsigned int page_height = cairo_image_surface_get_height(surface);
+
+  fz_bbox bbox  = {0, 0, 0, 0};
+  bbox.x1 = page_width;
+  bbox.y1 = page_height;
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(fz_device_rgb, bbox);
   fz_clear_pixmap_with_color(pixmap, 0xFF);
@@ -275,13 +280,6 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   device = fz_new_draw_device(pdf_document->glyph_cache, pixmap);
   fz_execute_display_list(display_list, device, fz_identity, bbox);
   fz_free_device(device);
-
-  cairo_surface_t* surface = cairo_get_target(cairo);
-  if (surface == NULL) {
-    fz_drop_pixmap(pixmap);
-    fz_free_display_list(display_list);
-    return false;
-  }
 
   int rowstride        = cairo_image_surface_get_stride(surface);
   unsigned char* image = cairo_image_surface_get_data(surface);
