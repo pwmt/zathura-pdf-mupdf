@@ -14,13 +14,14 @@
 
 typedef struct pdf_document_s
 {
-	fz_glyph_cache *glyph_cache; /* Glyph cache */
-	pdf_xref *document; /* mupdf document */
+  fz_context* ctx; /**< Context */
+  pdf_xref *document; /* mupdf document */
 } pdf_document_t;
 
 typedef struct mupdf_page_s
 {
   pdf_page* page; /* Reference to the mupdf page */
+  fz_context* ctx; /**< Context */
 } mupdf_page_t;
 
 /**
