@@ -40,7 +40,7 @@ pdf_document_open(zathura_document_t* document)
   fz_accelerate();
   pdf_document->glyph_cache = fz_new_glyph_cache();
 
-  if (pdf_open_xref(&(pdf_document->document), document->file_path, NULL) != fz_okay) {
+  if (pdf_open_xref(&(pdf_document->document), document->file_path, (char*) document->password) != fz_okay) {
     fprintf(stderr, "error: could not open file\n");
     goto error_free;
   }
