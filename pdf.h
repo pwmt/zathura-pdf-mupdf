@@ -12,16 +12,17 @@
 #include <cairo.h>
 #endif
 
-typedef struct pdf_document_s
+typedef struct mupdf_document_s
 {
   fz_context* ctx; /**< Context */
-  pdf_xref *document; /* mupdf document */
-} pdf_document_t;
+  fz_document *document; /**< mupdf document */
+} mupdf_document_t;
 
 typedef struct mupdf_page_s
 {
-  pdf_page* page; /* Reference to the mupdf page */
+  pdf_page* page; /**< Reference to the mupdf page */
   fz_context* ctx; /**< Context */
+  fz_document* document; /**< mupdf document */
 } mupdf_page_t;
 
 /**

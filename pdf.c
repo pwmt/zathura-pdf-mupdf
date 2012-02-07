@@ -30,31 +30,38 @@ pdf_document_open(zathura_document_t* document)
 #endif
   document->functions.page_free                 = pdf_page_free;
 
-  document->data = malloc(sizeof(pdf_document_t));
+  document->data = malloc(sizeof(mupdf_document_t));
   if (document->data == NULL) {
     goto error_ret;
   }
 
-  pdf_document_t* pdf_document = (pdf_document_t*) document->data;
+  mupdf_document_t* mupdf_document = (mupdf_document_t*) document->data;
 
-  pdf_document->ctx = fz_new_context(NULL, FZ_STORE_DEFAULT);
-  if (pdf_document->ctx == NULL) {
+  mupdf_document->ctx = fz_new_context(NULL, FZ_STORE_DEFAULT);
+  if (mupdf_document->ctx == NULL) {
     goto error_free;
   }
 
-  if ((pdf_document->document = pdf_open_xref(pdf_document->ctx, document->file_path, (char*) document->password)) == NULL) {
-    fprintf(stderr, "error: could not open file\n");
+  /* open document */
+  if ((mupdf_document->document = (fz_document*) pdf_open_document(mupdf_document->ctx, document->file_path)) == NULL) {
     goto error_free;
   }
 
-  document->number_of_pages = pdf_count_pages(pdf_document->document);
+  /* authenticate if password is required and given */
+  if (fz_needs_password(mupdf_document->document) != 0) {
+    if (document->password == NULL || fz_authenticate_password(mupdf_document->document, (char*) document->password) != 0) {
+      goto error_free;
+    }
+  }
+
+  document->number_of_pages = pdf_count_pages((pdf_document*) mupdf_document->document);
 
   return true;
 
 error_free:
 
-  if (pdf_document->document != NULL) {
-    pdf_free_xref(pdf_document->document);
+  if (mupdf_document->document != NULL) {
+    fz_close_document(mupdf_document->document);
   }
 
   free(document->data);
@@ -72,8 +79,8 @@ pdf_document_free(zathura_document_t* document)
     return false;
   }
 
-  pdf_document_t* pdf_document = (pdf_document_t*) document->data;
-  pdf_free_xref(pdf_document->document);
+  mupdf_document_t* mupdf_document = (mupdf_document_t*) document->data;
+  fz_close_document(mupdf_document->document);
   free(document->data);
   document->data = NULL;
 
@@ -87,7 +94,7 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
     return NULL;
   }
 
-  pdf_document_t* pdf_document  = (pdf_document_t*) document->data;
+  mupdf_document_t* mupdf_document  = (mupdf_document_t*) document->data;
   zathura_page_t* document_page = malloc(sizeof(zathura_page_t));
 
   if (document_page == NULL) {
@@ -102,11 +109,11 @@ pdf_page_get(zathura_document_t* document, unsigned int page)
 
   document_page->document = document;
   document_page->data     = mupdf_page;
-  mupdf_page->ctx         = pdf_document->ctx;
+  mupdf_page->ctx         = mupdf_document->ctx;
 
   /* load page */
   fz_try (mupdf_page->ctx) {
-    mupdf_page->page = pdf_load_page(pdf_document->document, page);
+    mupdf_page->page = pdf_load_page((pdf_document*) mupdf_document->document, page);
   } fz_catch (mupdf_page->ctx) {
     goto error_free;
   }
@@ -121,7 +128,7 @@ error_free:
 
   if (mupdf_page != NULL) {
     if (mupdf_page->page != NULL) {
-      pdf_free_page(mupdf_page->ctx, mupdf_page->page);
+      pdf_free_page((pdf_document*) mupdf_document->document, mupdf_page->page);
     }
 
     free(mupdf_page);
@@ -143,14 +150,20 @@ pdf_page_free(zathura_page_t* page)
     return false;
   }
 
-  mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
-  pdf_free_page(mupdf_page->ctx, mupdf_page->page);
-  free(mupdf_page);
+  if (page->data != NULL) {
+    mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
+    if (mupdf_page->document != NULL) {
+      pdf_free_page((pdf_document*) mupdf_page->document, mupdf_page->page);
+    }
+    free(mupdf_page);
+  }
+
   free(page);
 
   return true;
 }
 
+#if 0
 static int textlen(fz_text_span *span) {
   int text_length = 0;
   while (span != NULL) {
@@ -163,6 +176,7 @@ static int textlen(fz_text_span *span) {
 
   return text_length;
 }
+#endif
 
 girara_list_t*
 pdf_page_search_text(zathura_page_t* page, const char* text)
@@ -181,7 +195,7 @@ pdf_page_search_text(zathura_page_t* page, const char* text)
   fz_device* text_device     = fz_new_text_device(mupdf_page->ctx, page_text);
   fz_display_list* page_list = fz_new_display_list(mupdf_page->ctx);
 
-  fz_execute_display_list(page_list, text_device, fz_identity, fz_infinite_bbox, NULL);
+  fz_run_display_list(page_list, text_device, fz_identity, fz_infinite_bbox, NULL);
 
   fz_free_display_list(mupdf_page->ctx, page_list);
   fz_free_device(text_device);
@@ -222,16 +236,16 @@ pdf_page_render(zathura_page_t* page)
     return NULL;
   }
 
-  pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
-  mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
+  mupdf_document_t* mupdf_document = (mupdf_document_t*) page->document->data;
+  mupdf_page_t* mupdf_page         = (mupdf_page_t*) page->data;
 
   /* render */
   fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx);
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
-  fz_try (pdf_document->ctx) {
-    pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_scale(page->document->scale, page->document->scale), NULL);
-  } fz_catch (pdf_document->ctx) {
+  fz_try (mupdf_document->ctx) {
+    pdf_run_page((pdf_document*) mupdf_document->document, mupdf_page->page, device, fz_scale(page->document->scale, page->document->scale), NULL);
+  } fz_catch (mupdf_document->ctx) {
     return NULL;
   }
 
@@ -240,10 +254,10 @@ pdf_page_render(zathura_page_t* page)
   fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(mupdf_page->ctx, fz_device_rgb, bbox);
-  fz_clear_pixmap_with_color(pixmap, 0xFF);
+  fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
-  fz_execute_display_list(display_list, device, fz_identity, bbox, NULL);
+  fz_run_display_list(display_list, device, fz_identity, bbox, NULL);
   fz_free_device(device);
 
   unsigned char* s = pixmap->samples;
@@ -279,13 +293,13 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
 
   unsigned int page_width  = cairo_image_surface_get_width(surface);
   unsigned int page_height = cairo_image_surface_get_height(surface);
-  double scalex = ((double)page_width) / page->width,
-         scaley = ((double)page_height) / page->height;
+  double scalex = ((double) page_width)  / page->width;
+  double scaley = ((double) page_height) / page->height;
 
-  pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
-  mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
+  mupdf_document_t* mupdf_document = (mupdf_document_t*) page->document->data;
+  mupdf_page_t* mupdf_page         = (mupdf_page_t*) page->data;
 
-  if (pdf_document->ctx == NULL) {
+  if (mupdf_document->ctx == NULL) {
     return false;
   }
 
@@ -293,9 +307,9 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx);
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
-  fz_try (pdf_document->ctx) {
-    pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_scale(scalex, scaley), NULL);
-  } fz_catch (pdf_document->ctx) {
+  fz_try (mupdf_document->ctx) {
+    pdf_run_page((pdf_document*) mupdf_document->document, mupdf_page->page, device, fz_scale(scalex, scaley), NULL);
+  } fz_catch (mupdf_document->ctx) {
     return false;
   }
 
@@ -304,10 +318,13 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
 
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(mupdf_page->ctx, fz_device_rgb, bbox);
-  fz_clear_pixmap_with_color(pixmap, 0xFF);
+  fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
+
+  fz_matrix ctm = fz_identity;
+  ctm = fz_concat(ctm, fz_rotate(180.0));
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
-  fz_execute_display_list(display_list, device, fz_identity, bbox, NULL);
+  fz_run_display_list(display_list, device, ctm, bbox, NULL);
   fz_free_device(device);
 
   int rowstride        = cairo_image_surface_get_stride(surface);
