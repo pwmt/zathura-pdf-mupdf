@@ -263,8 +263,7 @@ pdf_page_render(zathura_page_t* page)
   unsigned char* s = pixmap->samples;
   for (unsigned int y = 0; y < pixmap->h; y++) {
     for (unsigned int x = 0; x < pixmap->w; x++) {
-      guchar* p = image_buffer->data + (pixmap->h - y - 1) *
-        image_buffer->rowstride - x * 3;
+      guchar* p = image_buffer->data + y * image_buffer->rowstride + x * 3;
       p[0] = s[0];
       p[1] = s[1];
       p[2] = s[2];
@@ -320,11 +319,8 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   fz_pixmap* pixmap = fz_new_pixmap_with_rect(mupdf_page->ctx, fz_device_rgb, bbox);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
-  fz_matrix ctm = fz_identity;
-  ctm = fz_concat(ctm, fz_rotate(180.0));
-
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
-  fz_run_display_list(display_list, device, ctm, bbox, NULL);
+  fz_run_display_list(display_list, device, fz_identity, bbox, NULL);
   fz_free_device(device);
 
   int rowstride        = cairo_image_surface_get_stride(surface);
@@ -333,7 +329,7 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
   unsigned char *s = pixmap->samples;
   for (unsigned int y = 0; y < pixmap->h; y++) {
     for (unsigned int x = 0; x < pixmap->w; x++) {
-      guchar* p = image + (pixmap->h - y - 1) * rowstride + (pixmap->w - x - 1) * 4;
+      guchar* p = image + y * rowstride + x * 4;
       p[0] = s[0];
       p[1] = s[1];
       p[2] = s[2];
