@@ -242,7 +242,7 @@ pdf_page_render(zathura_page_t* page)
 
 #if HAVE_CAIRO
 bool
-pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo)
+pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(printing))
 {
   if (page == NULL || page->data == NULL || page->document == NULL) {
     return false;
