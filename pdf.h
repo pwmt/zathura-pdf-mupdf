@@ -31,7 +31,7 @@ typedef struct mupdf_page_s
  * @param document Zathura document
  * @return true if no error occured, otherwise false
  */
-bool pdf_document_open(zathura_document_t* document);
+zathura_plugin_error_t pdf_document_open(zathura_document_t* document);
 
 /**
  * Closes and frees the internal document structure
@@ -39,7 +39,7 @@ bool pdf_document_open(zathura_document_t* document);
  * @param document Zathura document
  * @return true if no error occured, otherwise false
  */
-bool pdf_document_free(zathura_document_t* document);
+zathura_plugin_error_t pdf_document_free(zathura_document_t* document);
 
 /**
  * Returns a reference to a page
@@ -48,7 +48,7 @@ bool pdf_document_free(zathura_document_t* document);
  * @param page Page number
  * @return A page object or NULL if an error occured
  */
-zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page);
+zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page, zathura_plugin_error_t* error);
 
 /**
  * Frees a pdf page
@@ -56,7 +56,7 @@ zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page);
  * @param page Page
  * @return true if no error occured, otherwise false
  */
-bool pdf_page_free(zathura_page_t* page);
+zathura_plugin_error_t pdf_page_free(zathura_page_t* page);
 
 /**
  * Searches for a specific text on a page and returns a list of results
@@ -65,7 +65,7 @@ bool pdf_page_free(zathura_page_t* page);
  * @param text Search item
  * @return List of search results or NULL if an error occured
  */
-girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text);
+girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text, zathura_plugin_error_t* error);
 
 /**
  * Returns a list of internal/external links that are shown on the given page
@@ -73,7 +73,7 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text);
  * @param page Page
  * @return List of links or NULL if an error occured
  */
-girara_list_t* pdf_page_links_get(zathura_page_t* page);
+girara_list_t* pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error);
 
 /**
  * Returns a list of form fields available on the given page
@@ -81,7 +81,7 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page);
  * @param page Page
  * @return List of form fields or NULL if an error occured
  */
-girara_list_t* pdf_page_form_fields_get(zathura_page_t* page);
+girara_list_t* pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_error_t* error);
 
 /**
  * Renders a page and returns a allocated image buffer which has to be freed
@@ -90,7 +90,7 @@ girara_list_t* pdf_page_form_fields_get(zathura_page_t* page);
  * @param page Page
  * @return Image buffer or NULL if an error occured
  */
-zathura_image_buffer_t* pdf_page_render(zathura_page_t* page);
+zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, zathura_plugin_error_t* error);
 
 #if HAVE_CAIRO
 /**
@@ -100,7 +100,7 @@ zathura_image_buffer_t* pdf_page_render(zathura_page_t* page);
  * @param cairo Cairo object
  * @return  true if no error occured, otherwise false
  */
-bool pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo);
+zathura_plugin_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool printing);
 #endif
 
 #endif // PDF_H
