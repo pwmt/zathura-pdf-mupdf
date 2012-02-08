@@ -46,6 +46,9 @@ clean:
 
 debug: options ${PLUGIN}-debug
 
+doc: clean
+	$(QUIET)doxygen Doxyfile
+
 install: all
 	@echo installing ${PLUGIN} plugin
 	@mkdir -p ${DESTDIR}${PREFIX}/lib/zathura
@@ -58,4 +61,4 @@ uninstall:
 
 -include $(wildcard .depend/*.dep)
 
-.PHONY: all options clean debug install uninstall
+.PHONY: all options clean debug doc dist install uninstall
