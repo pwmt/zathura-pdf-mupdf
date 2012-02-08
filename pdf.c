@@ -318,7 +318,7 @@ pdf_page_render(zathura_page_t* page, zathura_plugin_error_t* error)
 
 #if HAVE_CAIRO
 zathura_plugin_error_t
-pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool UNUSED(printing))
+pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(printing))
 {
   if (page == NULL || page->data == NULL || page->document == NULL) {
     return ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
