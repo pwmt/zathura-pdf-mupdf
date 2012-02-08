@@ -1,5 +1,7 @@
 # See LICENSE file for license and copyright information
 
+VERSION = 0.0.1
+
 # paths
 PREFIX ?= /usr
 
@@ -25,3 +27,6 @@ WITH_CAIRO ?= 1
 # compiler
 CC ?= gcc
 LD ?= ld
+
+# set to something != 0 if you want verbose build output
+VERBOSE ?= 0
