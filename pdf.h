@@ -46,6 +46,8 @@ zathura_plugin_error_t pdf_document_free(zathura_document_t* document);
  *
  * @param document Zathura document
  * @param page Page number
+ * @param error Set to an error value (see zathura_plugin_error_t) if an
+ *   error occured
  * @return A page object or NULL if an error occured
  */
 zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page, zathura_plugin_error_t* error);
@@ -63,6 +65,8 @@ zathura_plugin_error_t pdf_page_free(zathura_page_t* page);
  *
  * @param page Page
  * @param text Search item
+ * @param error Set to an error value (see zathura_plugin_error_t) if an
+ *   error occured
  * @return List of search results or NULL if an error occured
  */
 girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text, zathura_plugin_error_t* error);
@@ -71,6 +75,8 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text, zath
  * Returns a list of internal/external links that are shown on the given page
  *
  * @param page Page
+ * @param error Set to an error value (see zathura_plugin_error_t) if an
+ *   error occured
  * @return List of links or NULL if an error occured
  */
 girara_list_t* pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error);
@@ -79,6 +85,8 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* 
  * Returns a list of form fields available on the given page
  *
  * @param page Page
+ * @param error Set to an error value (see zathura_plugin_error_t) if an
+ *   error occured
  * @return List of form fields or NULL if an error occured
  */
 girara_list_t* pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_error_t* error);
@@ -88,6 +96,8 @@ girara_list_t* pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_err
  * with zathura_image_buffer_free
  *
  * @param page Page
+ * @param error Set to an error value (see zathura_plugin_error_t) if an
+ *   error occured
  * @return Image buffer or NULL if an error occured
  */
 zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, zathura_plugin_error_t* error);
