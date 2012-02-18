@@ -40,7 +40,7 @@ pdf_document_open(zathura_document_t* document)
 
   mupdf_document_t* mupdf_document = (mupdf_document_t*) document->data;
 
-  mupdf_document->ctx = fz_new_context(NULL, FZ_STORE_DEFAULT);
+  mupdf_document->ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
   if (mupdf_document->ctx == NULL) {
     error = ZATHURA_PLUGIN_ERROR_UNKNOWN;
     goto error_free;
