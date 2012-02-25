@@ -90,6 +90,16 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* 
 girara_list_t* pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_error_t* error);
 
 /**
+ * Returns a list of images included on the zathura page
+ *
+ * @param page The page
+ * @param error Set to an error value (see zathura_plugin_error_t) if an
+ *   error occured
+ * @return List of images
+ */
+girara_list_t* pdf_page_images_get(zathura_page_t* page, zathura_plugin_error_t* error);
+
+/**
  * Renders a page and returns a allocated image buffer which has to be freed
  * with zathura_image_buffer_free
  *

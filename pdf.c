@@ -5,6 +5,85 @@
 
 #include "pdf.h"
 
+static void
+pdf_zathura_image_free(zathura_image_t* image)
+{
+  if (image == NULL) {
+    return;
+  }
+
+  g_free(image);
+}
+
+static void
+get_images(fz_obj* dict, girara_list_t* list)
+{
+  if (dict == NULL || list == NULL) {
+    return;
+  }
+
+  for (int i = 0; i < fz_dict_len(dict); i++) {
+    fz_obj* image_dict = fz_dict_get_val(dict, i);
+    if (fz_is_dict(image_dict) == 0) {
+      continue;
+    }
+
+    fz_obj* type = fz_dict_gets(image_dict, "Subtype");
+    if (strcmp(fz_to_name(type), "Image") != 0) {
+      continue;
+    }
+
+    bool duplicate = false;
+    GIRARA_LIST_FOREACH(list, zathura_image_t*, iter, image)
+      if (image->data == image_dict) {
+        duplicate = true;
+        break;
+      }
+    GIRARA_LIST_FOREACH_END(list, zathura_image_t*, iter, image);
+
+    if (duplicate == true) {
+      continue;
+    }
+
+    fz_obj* width  = fz_dict_gets(image_dict, "Width");
+    fz_obj* height = fz_dict_gets(image_dict, "Height");
+
+    zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
+
+    // FIXME: Get correct image coordinates
+    zathura_image->data        = image_dict;
+    zathura_image->position.x1 = 0;
+    zathura_image->position.x2 = fz_to_int(width);
+    zathura_image->position.y1 = 0;
+    zathura_image->position.y2 = fz_to_int(height);
+
+    girara_list_append(list, zathura_image);
+  }
+}
+
+static void
+get_resources(fz_obj* resource, girara_list_t* list)
+{
+  if (resource == NULL || list == NULL) {
+    return;
+  }
+
+  fz_obj* x_object = fz_dict_gets(resource, "XObject");
+  if (x_object == NULL) {
+    return;
+  }
+
+  get_images(x_object, list);
+
+  for (int i = 0; i < fz_dict_len(x_object); i++) {
+    fz_obj* obj = fz_dict_get_val(x_object, i);
+    fz_obj* subsrc = fz_dict_gets(obj, "Resources");
+    if (subsrc != NULL && fz_objcmp(resource, subsrc)) {
+      get_resources(subsrc, list);
+    }
+  }
+}
+
 void
 plugin_register(zathura_document_plugin_t* plugin)
 {
@@ -26,6 +105,7 @@ pdf_document_open(zathura_document_t* document)
   document->functions.page_search_text          = pdf_page_search_text;
   document->functions.page_links_get            = pdf_page_links_get;
   document->functions.page_form_fields_get      = pdf_page_form_fields_get;
+  document->functions.page_images_get           = pdf_page_images_get;
   document->functions.page_render               = pdf_page_render;
 #if HAVE_CAIRO
   document->functions.page_render_cairo         = pdf_page_render_cairo;
@@ -204,6 +284,58 @@ pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error)
 girara_list_t*
 pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_error_t* error)
 {
+  return NULL;
+}
+
+girara_list_t*
+pdf_page_images_get(zathura_page_t* page, zathura_plugin_error_t* error)
+{
+  if (page == NULL || page->data == NULL || page->document == NULL ||
+      page->document->data == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
+    }
+    goto error_ret;
+  }
+
+  pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
+
+  fz_obj* page_object = pdf_document->document->page_objs[page->number];
+  if (page_object == NULL) {
+    goto error_free;
+  }
+
+  fz_obj* resource = fz_dict_gets(page_object, "Resources");
+  if (resource == NULL) {
+    goto error_free;
+  }
+
+  girara_list_t* list = girara_list_new();
+  if (list == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_OUT_OF_MEMORY;
+    }
+    goto error_free;
+  }
+
+  girara_list_set_free_function(list, (girara_free_function_t) pdf_zathura_image_free);
+
+  get_resources(resource, list);
+
+  return list;
+
+error_free:
+
+  if (error != NULL && *error == ZATHURA_PLUGIN_ERROR_OK) {
+    *error = ZATHURA_PLUGIN_ERROR_UNKNOWN;
+  }
+
+  if (list != NULL) {
+    girara_list_free(list);
+  }
+
+error_ret:
+
   return NULL;
 }
 
