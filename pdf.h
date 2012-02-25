@@ -22,6 +22,7 @@ typedef struct mupdf_page_s
 {
   pdf_page* page; /* Reference to the mupdf page */
   fz_text_span* text; /* Page text */
+  bool extracted_text; /* Text has been extracted */
 } mupdf_page_t;
 
 /**

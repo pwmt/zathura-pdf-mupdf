@@ -16,6 +16,8 @@ static void get_images(fz_obj* dict, girara_list_t* list);
 static void get_resources(fz_obj* resource, girara_list_t* list);
 static void search_result_add_char(zathura_rectangle_t* rectangle,
     fz_text_span* span, int n);
+static void mupdf_page_extract_text(pdf_xref* document,
+    mupdf_page_t* mupdf_page);
 
 void
 plugin_register(zathura_document_plugin_t* plugin)
@@ -155,28 +157,12 @@ pdf_page_get(zathura_document_t* document, unsigned int page, zathura_plugin_err
   document_page->width  = mupdf_page->page->mediabox.x1 - mupdf_page->page->mediabox.x0;
   document_page->height = mupdf_page->page->mediabox.y1 - mupdf_page->page->mediabox.y0;
 
-  /* extract text */
+  /* setup text */
+  mupdf_page->extracted_text = false;
   mupdf_page->text = fz_new_text_span();
   if (mupdf_page->text == NULL) {
     goto error_free;
   }
-
-  fz_device* text_device = fz_new_text_device(mupdf_page->text);
-  if (text_device == NULL) {
-    goto error_free;
-  }
-
-  fz_display_list* display_list = fz_new_display_list();
-  fz_device* device             = fz_new_list_device(display_list);
-
-  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_identity) != fz_okay) {
-    goto error_free;
-  }
-
-  fz_free_device(device);
-  fz_execute_display_list(display_list, text_device, fz_identity, fz_infinite_bbox);
-  fz_free_device(text_device);
-  fz_free_display_list(display_list);
 
   return document_page;
 
@@ -491,6 +477,11 @@ pdf_page_render(zathura_page_t* page, zathura_plugin_error_t* error)
   pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
   mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
 
+  /* extract text (only once) */
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(pdf_document->document, mupdf_page);
+  }
+
   /* render */
   fz_display_list* display_list = fz_new_display_list();
   fz_device* device             = fz_new_list_device(display_list);
@@ -552,6 +543,11 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(p
   pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
   mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
 
+  /* extract text (only once) */
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(pdf_document->document, mupdf_page);
+  }
+
   /* render */
   fz_display_list* display_list = fz_new_display_list();
   fz_device* device             = fz_new_list_device(display_list);
@@ -561,6 +557,7 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(p
   }
 
   fz_free_device(device);
+
 
   fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
 
@@ -779,4 +776,27 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
 
     offset += span->len;
   }
+}
+
+static void
+mupdf_page_extract_text(pdf_xref* document, mupdf_page_t* mupdf_page)
+{
+  if (document == NULL || mupdf_page == NULL || mupdf_page->extracted_text == true) {
+    return;
+  }
+
+  fz_display_list* display_list = fz_new_display_list();
+  fz_device* device             = fz_new_list_device(display_list);
+  fz_device* text_device        = fz_new_text_device(mupdf_page->text);
+
+  if (pdf_run_page(document, mupdf_page->page, device, fz_identity) != fz_okay) {
+    return;
+  }
+
+  fz_execute_display_list(display_list, text_device, fz_identity, fz_infinite_bbox);
+  mupdf_page->extracted_text = true;
+
+  fz_free_device(text_device);
+  fz_free_device(device);
+  fz_free_display_list(display_list);
 }
