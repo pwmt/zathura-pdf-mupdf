@@ -80,16 +80,6 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, const char* text, zath
 girara_list_t* pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error);
 
 /**
- * Returns a list of form fields available on the given page
- *
- * @param page Page
- * @param error Set to an error value (see zathura_plugin_error_t) if an
- *   error occured
- * @return List of form fields or NULL if an error occured
- */
-girara_list_t* pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_error_t* error);
-
-/**
  * Returns a list of images included on the zathura page
  *
  * @param page The page

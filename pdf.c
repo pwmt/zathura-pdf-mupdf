@@ -104,7 +104,6 @@ pdf_document_open(zathura_document_t* document)
   document->functions.page_get                  = pdf_page_get;
   document->functions.page_search_text          = pdf_page_search_text;
   document->functions.page_links_get            = pdf_page_links_get;
-  document->functions.page_form_fields_get      = pdf_page_form_fields_get;
   document->functions.page_images_get           = pdf_page_images_get;
   document->functions.page_render               = pdf_page_render;
 #if HAVE_CAIRO
@@ -277,12 +276,6 @@ error_ret:
 
 girara_list_t*
 pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error)
-{
-  return NULL;
-}
-
-girara_list_t*
-pdf_page_form_fields_get(zathura_page_t* page, zathura_plugin_error_t* error)
 {
   return NULL;
 }
