@@ -7,12 +7,15 @@
 #include "pdf.h"
 
 /* forward declarations */
-static inline int charat(fz_text_span *span, int index);
+static inline int text_span_char_at(fz_text_span *span, int index);
 static unsigned int text_span_length(fz_text_span *span);
-static int text_span_match_string_n(fz_text_span* span, const char* string, int n);
+static int text_span_match_string_n(fz_text_span* span, const char* string,
+    int n, zathura_rectangle_t* rectangle);
 static void pdf_zathura_image_free(zathura_image_t* image);
 static void get_images(fz_obj* dict, girara_list_t* list);
 static void get_resources(fz_obj* resource, girara_list_t* list);
+static void search_result_add_char(zathura_rectangle_t* rectangle,
+    fz_text_span* span, int n);
 
 void
 plugin_register(zathura_document_plugin_t* plugin)
@@ -241,21 +244,22 @@ pdf_page_search_text(zathura_page_t* page, const char* text, zathura_plugin_erro
 
   unsigned int length = text_span_length(mupdf_page->text);
   for (int i = 0; i < length; i++) {
-    int match = text_span_match_string_n(mupdf_page->text, text, i);
+    zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));
+
+    /* search for string */
+    int match = text_span_match_string_n(mupdf_page->text, text, i, rectangle);
     if (match == 0) {
+      g_free(rectangle);
       continue;
     }
 
-    zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));
-
-    // FIXME: Get correct coordinates
-    rectangle->x1 = 0;
-    rectangle->x2 = 0;
-    rectangle->y1 = 0;
-    rectangle->y2 = 0;
+    rectangle->y1 = page->height - rectangle->y1;
+    rectangle->y2 = page->height - rectangle->y2;
 
     girara_list_append(list, rectangle);
   }
+
+  return list;
 
 error_free:
 
@@ -589,7 +593,7 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(p
 #endif
 
 static inline int
-charat(fz_text_span *span, int index)
+text_span_char_at(fz_text_span *span, int index)
 {
   int offset = 0;
   while (span != NULL) {
@@ -630,9 +634,10 @@ text_span_length(fz_text_span *span)
 }
 
 static int
-text_span_match_string_n(fz_text_span* span, const char* string, int n)
+text_span_match_string_n(fz_text_span* span, const char* string, int n,
+    zathura_rectangle_t* rectangle)
 {
-  if (span == NULL || string == NULL) {
+  if (span == NULL || string == NULL || rectangle == NULL) {
     return 0;
   }
 
@@ -640,14 +645,16 @@ text_span_match_string_n(fz_text_span* span, const char* string, int n)
   int c;
 
   while ((c = *string++)) {
-    if (c == ' ' && charat(span, n) == ' ') {
-      while (charat(span, n) == ' ') {
+    if (c == ' ' && text_span_char_at(span, n) == ' ') {
+      while (text_span_char_at(span, n) == ' ') {
+        search_result_add_char(rectangle, span, n);
         n++;
       }
     } else {
-      if (tolower(c) != tolower(charat(span, n))) {
+      if (tolower(c) != tolower(text_span_char_at(span, n))) {
         return 0;
       }
+      search_result_add_char(rectangle, span, n);
       n++;
     }
   }
@@ -731,5 +738,44 @@ get_resources(fz_obj* resource, girara_list_t* list)
     if (subsrc != NULL && fz_objcmp(resource, subsrc)) {
       get_resources(subsrc, list);
     }
+  }
+}
+
+static void
+search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
+    int index)
+{
+  if (rectangle == NULL || span == NULL) {
+    return;
+  }
+
+  int offset = 0;
+  while (span != NULL) {
+    if (index < offset + span->len) {
+      fz_bbox coordinates = span->text[index - offset].bbox;
+
+      if (rectangle->x1 == 0 || coordinates.x0 < rectangle->x1) {
+        rectangle->x1 = coordinates.x0;
+      }
+
+      if (coordinates.x1 > rectangle->x2) {
+        rectangle->x2 = coordinates.x1;
+      }
+
+      if (coordinates.y0 > rectangle->y2) {
+        rectangle->y2 = coordinates.y0;
+      }
+
+      if (rectangle->y1 == 0 || coordinates.y1 < rectangle->y1) {
+        rectangle->y1 = coordinates.y1;
+      }
+    }
+
+    if (span->eol != 0) {
+      offset++;
+    }
+
+    offset += span->len;
+    span    = span->next;
   }
 }
