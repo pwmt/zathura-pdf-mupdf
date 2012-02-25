@@ -754,7 +754,7 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
     if (index < offset + span->len) {
       fz_bbox coordinates = span->text[index - offset].bbox;
 
-      if (rectangle->x1 == 0 || coordinates.x0 < rectangle->x1) {
+      if (rectangle->x1 == 0) {
         rectangle->x1 = coordinates.x0;
       }
 
@@ -766,7 +766,7 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
         rectangle->y2 = coordinates.y0;
       }
 
-      if (rectangle->y1 == 0 || coordinates.y1 < rectangle->y1) {
+      if (rectangle->y1 == 0 || coordinates.y1 >= rectangle->y1) {
         rectangle->y1 = coordinates.y1;
       }
     }
