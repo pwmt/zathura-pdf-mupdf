@@ -39,7 +39,9 @@ pdf_document_open(zathura_document_t* document)
   document->functions.page_get                  = pdf_page_get;
   document->functions.page_search_text          = pdf_page_search_text;
   document->functions.page_links_get            = pdf_page_links_get;
+#if 0
   document->functions.page_images_get           = pdf_page_images_get;
+#endif
   document->functions.page_get_text             = pdf_page_get_text;
   document->functions.document_meta_get         = pdf_document_meta_get;
   document->functions.page_render               = pdf_page_render;
