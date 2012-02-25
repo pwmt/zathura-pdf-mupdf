@@ -1,9 +1,76 @@
 /* See LICENSE file for license and copyright information */
 
 #include <stdlib.h>
+#include <ctype.h>
 #include <girara/datastructures.h>
 
 #include "pdf.h"
+
+static inline int charat(fz_text_span *span, int index)
+{
+  int offset = 0;
+  while (span != NULL) {
+    if (index < offset + span->len) {
+      return span->text[index - offset].c;
+    }
+
+    if (span->eol != 0) {
+      if (index == offset + span->len) {
+        return ' ';
+      }
+      offset++;
+    }
+
+    offset += span->len;
+    span = span->next;
+  }
+
+  return 0;
+}
+
+static unsigned int
+text_span_length(fz_text_span *span)
+{
+  unsigned int length = 0;
+
+  while (span != NULL) {
+    length += span->len;
+
+    if (span->eol != 0) {
+      length++;
+    }
+
+    span = span->next;
+  }
+
+  return length;
+}
+
+static int
+text_span_match_string_n(fz_text_span* span, const char* string, int n)
+{
+  if (span == NULL || string == NULL) {
+    return 0;
+  }
+
+  int o = n;
+  int c;
+
+  while ((c = *string++)) {
+    if (c == ' ' && charat(span, n) == ' ') {
+      while (charat(span, n) == ' ') {
+        n++;
+      }
+    } else {
+      if (tolower(c) != tolower(charat(span, n))) {
+        return 0;
+      }
+      n++;
+    }
+  }
+
+  return n - o;
+}
 
 static void
 pdf_zathura_image_free(zathura_image_t* image)
@@ -221,6 +288,29 @@ pdf_page_get(zathura_document_t* document, unsigned int page, zathura_plugin_err
   document_page->width  = mupdf_page->page->mediabox.x1 - mupdf_page->page->mediabox.x0;
   document_page->height = mupdf_page->page->mediabox.y1 - mupdf_page->page->mediabox.y0;
 
+  /* extract text */
+  mupdf_page->text = fz_new_text_span();
+  if (mupdf_page->text == NULL) {
+    goto error_free;
+  }
+
+  fz_device* text_device = fz_new_text_device(mupdf_page->text);
+  if (text_device == NULL) {
+    goto error_free;
+  }
+
+  fz_display_list* display_list = fz_new_display_list();
+  fz_device* device             = fz_new_list_device(display_list);
+
+  if (pdf_run_page(pdf_document->document, mupdf_page->page, device, fz_identity) != fz_okay) {
+    goto error_free;
+  }
+
+  fz_free_device(device);
+  fz_execute_display_list(display_list, text_device, fz_identity, fz_infinite_bbox);
+  fz_free_device(text_device);
+  fz_free_display_list(display_list);
+
   return document_page;
 
 error_free:
@@ -228,6 +318,10 @@ error_free:
   if (mupdf_page != NULL) {
     if (mupdf_page->page != NULL) {
       pdf_free_page(mupdf_page->page);
+    }
+
+    if (mupdf_page->text != NULL) {
+      fz_free_text_span(mupdf_page->text);
     }
 
     free(mupdf_page);
@@ -267,9 +361,49 @@ pdf_page_search_text(zathura_page_t* page, const char* text, zathura_plugin_erro
     goto error_ret;
   }
 
-  /* mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data; */
+  mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
+
+  if (mupdf_page->text == NULL) {
+    goto error_ret;
+  }
+
+  girara_list_t* list = girara_list_new2((girara_free_function_t) zathura_link_free);
+  if (list == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_OUT_OF_MEMORY;
+    }
+    goto error_free;
+  }
+
+  unsigned int length = text_span_length(mupdf_page->text);
+  for (int i = 0; i < length; i++) {
+    int match = text_span_match_string_n(mupdf_page->text, text, i);
+    if (match == 0) {
+      continue;
+    }
+
+    zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));
+
+    // FIXME: Get correct coordinates
+    rectangle->x1 = 0;
+    rectangle->x2 = 0;
+    rectangle->y1 = 0;
+    rectangle->y2 = 0;
+
+    girara_list_append(list, rectangle);
+  }
+
+error_free:
+
+  if (list != NULL ) {
+    girara_list_free(list);
+  }
 
 error_ret:
+
+  if (error != NULL && *error == ZATHURA_PLUGIN_ERROR_OK) {
+    *error = ZATHURA_PLUGIN_ERROR_UNKNOWN;
+  }
 
   return NULL;
 }

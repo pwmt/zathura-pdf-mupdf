@@ -21,6 +21,7 @@ typedef struct pdf_document_s
 typedef struct mupdf_page_s
 {
   pdf_page* page; /* Reference to the mupdf page */
+  fz_text_span* text; /* Page text */
 } mupdf_page_t;
 
 /**
