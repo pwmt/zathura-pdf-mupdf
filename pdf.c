@@ -35,6 +35,7 @@ pdf_document_open(zathura_document_t* document)
   document->functions.page_search_text          = pdf_page_search_text;
   document->functions.page_links_get            = pdf_page_links_get;
   document->functions.page_images_get           = pdf_page_images_get;
+  document->functions.page_get_text             = pdf_page_get_text;
   document->functions.page_render               = pdf_page_render;
 #if HAVE_CAIRO
   document->functions.page_render_cairo         = pdf_page_render_cairo;
@@ -342,6 +343,67 @@ error_free:
   }
 
 error_ret:
+
+  return NULL;
+}
+
+char*
+pdf_page_get_text(zathura_page_t* page, zathura_rectangle_t rectangle, zathura_plugin_error_t* error)
+{
+  if (page == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
+    }
+    goto error_ret;
+  }
+
+  mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
+
+  if (mupdf_page->text == NULL) {
+    goto error_ret;
+  }
+
+  GString* text = g_string_new(NULL);
+
+  for (fz_text_span* span = mupdf_page->text; span != NULL; span = span->next) {
+    bool seen = false;
+
+    for (int i = 0; i < span->len; i++) {
+      fz_bbox hitbox = fz_transform_bbox(fz_identity, span->text[i].bbox);
+      int c = span->text[i].c;
+
+      if (c < 32) {
+        c = '?';
+      }
+
+      if (hitbox.x1 >= rectangle.x1
+          && hitbox.x0 <= rectangle.x2
+          && (page->height - hitbox.y1) >= rectangle.y1
+          && (page->height - hitbox.y0) <= rectangle.y2) {
+        g_string_append_c(text, c);
+        seen = true;
+      }
+    }
+
+    if (seen == true && span->eol != 0) {
+      g_string_append_c(text, '\n');
+    }
+  }
+
+  if (text->len == 0) {
+    g_string_free(text, TRUE);
+    return NULL;
+  } else {
+    char* t = text->str;
+    g_string_free(text, FALSE);
+    return t;
+  }
+
+error_ret:
+
+  if (error != NULL && *error == ZATHURA_PLUGIN_ERROR_OK) {
+    *error = ZATHURA_PLUGIN_ERROR_UNKNOWN;
+  }
 
   return NULL;
 }

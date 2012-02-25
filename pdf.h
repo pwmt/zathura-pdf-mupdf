@@ -91,6 +91,16 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* 
 girara_list_t* pdf_page_images_get(zathura_page_t* page, zathura_plugin_error_t* error);
 
 /**
+ * Get text for selection
+ * @param page Page
+ * @param rectangle Selection
+ * @error Set to an error value (see \ref zathura_plugin_error_t) if an error
+ * occured
+ * @return The selected text (needs to be deallocated with g_free)
+ */
+char* pdf_page_get_text(zathura_page_t* page, zathura_rectangle_t rectangle, zathura_plugin_error_t* error);
+
+/**
  * Renders a page and returns a allocated image buffer which has to be freed
  * with zathura_image_buffer_free
  *
