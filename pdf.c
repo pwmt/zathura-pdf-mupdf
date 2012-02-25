@@ -750,7 +750,7 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
   }
 
   int offset = 0;
-  while (span != NULL) {
+  for (; span != NULL; span = span->next) {
     if (index < offset + span->len) {
       fz_bbox coordinates = span->text[index - offset].bbox;
 
@@ -762,12 +762,12 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
         rectangle->x2 = coordinates.x1;
       }
 
-      if (coordinates.y0 > rectangle->y2) {
-        rectangle->y2 = coordinates.y0;
+      if (coordinates.y1 > rectangle->y1) {
+        rectangle->y1 = coordinates.y1;
       }
 
-      if (rectangle->y1 == 0 || coordinates.y1 >= rectangle->y1) {
-        rectangle->y1 = coordinates.y1;
+      if (rectangle->y2 == 0) {
+        rectangle->y2 = coordinates.y0;
       }
     }
 
@@ -776,6 +776,5 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
     }
 
     offset += span->len;
-    span    = span->next;
   }
 }
