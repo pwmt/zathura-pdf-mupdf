@@ -277,6 +277,75 @@ error_ret:
 girara_list_t*
 pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error)
 {
+  if (page == NULL || page->data == NULL || page->document->data == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
+    }
+    goto error_ret;
+  }
+
+  pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
+  mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
+
+  if (mupdf_page->page == NULL) {
+    goto error_ret;
+  }
+
+  girara_list_t* list = girara_list_new2((girara_free_function_t) zathura_link_free);
+  if (list == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_OUT_OF_MEMORY;
+    }
+    goto error_free;
+  }
+
+  pdf_link* link = mupdf_page->page->links;
+
+  for (; link != NULL; link = link->next) {
+    zathura_link_t* zathura_link = g_malloc0(sizeof(zathura_link_t));
+    if (zathura_link == NULL) {
+      if (error != NULL) {
+        *error = ZATHURA_PLUGIN_ERROR_OUT_OF_MEMORY;
+      }
+      goto error_free;
+    }
+
+    /* extract position */
+    zathura_link->position.x1 = link->rect.x0;
+    zathura_link->position.x2 = link->rect.x1;
+    zathura_link->position.y1 = page->height - link->rect.y1;
+    zathura_link->position.y2 = page->height - link->rect.y0;
+
+    if (link->kind == PDF_LINK_URI) {
+      char* buffer = g_malloc0(sizeof(char) * (fz_to_str_len(link->dest) + 1));
+      memcpy(buffer, fz_to_str_buf(link->dest), fz_to_str_len(link->dest));
+      buffer[fz_to_str_len(link->dest)] = '\0';
+
+      zathura_link->type         = ZATHURA_LINK_EXTERNAL;
+      zathura_link->target.value = buffer;
+    } else if (link->kind == PDF_LINK_GOTO) {
+      int page_number = pdf_find_page_number(pdf_document->document, fz_array_get(link->dest, 0));
+
+      zathura_link->type               = ZATHURA_LINK_TO_PAGE;
+      zathura_link->target.page_number = page_number;
+    } else {
+      g_free(zathura_link);
+      continue;
+    }
+
+    girara_list_append(list, zathura_link);
+  }
+
+  return list;
+
+error_free:
+
+  if (list != NULL) {
+    girara_list_free(list);
+  }
+
+error_ret:
+
   return NULL;
 }
 
