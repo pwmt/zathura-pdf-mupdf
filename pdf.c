@@ -752,11 +752,6 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
   int offset = 0;
   for (; span != NULL; span = span->next) {
     if (index < offset + span->len) {
-      int c = span->text[index - offset].c;
-      if (c < 32 || c > 127) {
-        continue;
-      }
-
       fz_bbox coordinates = span->text[index - offset].bbox;
 
       if (rectangle->x1 == 0) {
@@ -774,6 +769,8 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_span* span,
       if (rectangle->y2 == 0) {
         rectangle->y2 = coordinates.y0;
       }
+
+      return;
     }
 
     if (span->eol != 0) {
