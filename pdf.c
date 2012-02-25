@@ -207,18 +207,26 @@ pdf_page_free(zathura_page_t* page)
 girara_list_t*
 pdf_page_search_text(zathura_page_t* page, const char* text, zathura_plugin_error_t* error)
 {
-  if (page == NULL || page->data == NULL || text == NULL) {
+  if (page == NULL || page->data == NULL || page->document == NULL ||
+      page->document->data == NULL || text == NULL) {
     if (error != NULL) {
       *error = ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
     }
     goto error_ret;
   }
 
-  mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
+  mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
+  pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
 
   if (mupdf_page->text == NULL) {
     goto error_ret;
   }
+
+  /* extract text (only once) */
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(pdf_document->document, mupdf_page);
+  }
+
 
   girara_list_t* list = girara_list_new2((girara_free_function_t) zathura_link_free);
   if (list == NULL) {
@@ -477,11 +485,6 @@ pdf_page_render(zathura_page_t* page, zathura_plugin_error_t* error)
   pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
   mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
 
-  /* extract text (only once) */
-  if (mupdf_page->extracted_text == false) {
-    mupdf_page_extract_text(pdf_document->document, mupdf_page);
-  }
-
   /* render */
   fz_display_list* display_list = fz_new_display_list();
   fz_device* device             = fz_new_list_device(display_list);
@@ -542,11 +545,6 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(p
 
   pdf_document_t* pdf_document = (pdf_document_t*) page->document->data;
   mupdf_page_t* mupdf_page     = (mupdf_page_t*) page->data;
-
-  /* extract text (only once) */
-  if (mupdf_page->extracted_text == false) {
-    mupdf_page_extract_text(pdf_document->document, mupdf_page);
-  }
 
   /* render */
   fz_display_list* display_list = fz_new_display_list();
