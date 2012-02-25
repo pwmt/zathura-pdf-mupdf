@@ -6,150 +6,13 @@
 
 #include "pdf.h"
 
-static inline int charat(fz_text_span *span, int index)
-{
-  int offset = 0;
-  while (span != NULL) {
-    if (index < offset + span->len) {
-      return span->text[index - offset].c;
-    }
-
-    if (span->eol != 0) {
-      if (index == offset + span->len) {
-        return ' ';
-      }
-      offset++;
-    }
-
-    offset += span->len;
-    span = span->next;
-  }
-
-  return 0;
-}
-
-static unsigned int
-text_span_length(fz_text_span *span)
-{
-  unsigned int length = 0;
-
-  while (span != NULL) {
-    length += span->len;
-
-    if (span->eol != 0) {
-      length++;
-    }
-
-    span = span->next;
-  }
-
-  return length;
-}
-
-static int
-text_span_match_string_n(fz_text_span* span, const char* string, int n)
-{
-  if (span == NULL || string == NULL) {
-    return 0;
-  }
-
-  int o = n;
-  int c;
-
-  while ((c = *string++)) {
-    if (c == ' ' && charat(span, n) == ' ') {
-      while (charat(span, n) == ' ') {
-        n++;
-      }
-    } else {
-      if (tolower(c) != tolower(charat(span, n))) {
-        return 0;
-      }
-      n++;
-    }
-  }
-
-  return n - o;
-}
-
-static void
-pdf_zathura_image_free(zathura_image_t* image)
-{
-  if (image == NULL) {
-    return;
-  }
-
-  g_free(image);
-}
-
-static void
-get_images(fz_obj* dict, girara_list_t* list)
-{
-  if (dict == NULL || list == NULL) {
-    return;
-  }
-
-  for (int i = 0; i < fz_dict_len(dict); i++) {
-    fz_obj* image_dict = fz_dict_get_val(dict, i);
-    if (fz_is_dict(image_dict) == 0) {
-      continue;
-    }
-
-    fz_obj* type = fz_dict_gets(image_dict, "Subtype");
-    if (strcmp(fz_to_name(type), "Image") != 0) {
-      continue;
-    }
-
-    bool duplicate = false;
-    GIRARA_LIST_FOREACH(list, zathura_image_t*, iter, image)
-      if (image->data == image_dict) {
-        duplicate = true;
-        break;
-      }
-    GIRARA_LIST_FOREACH_END(list, zathura_image_t*, iter, image);
-
-    if (duplicate == true) {
-      continue;
-    }
-
-    fz_obj* width  = fz_dict_gets(image_dict, "Width");
-    fz_obj* height = fz_dict_gets(image_dict, "Height");
-
-    zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
-
-    // FIXME: Get correct image coordinates
-    zathura_image->data        = image_dict;
-    zathura_image->position.x1 = 0;
-    zathura_image->position.x2 = fz_to_int(width);
-    zathura_image->position.y1 = 0;
-    zathura_image->position.y2 = fz_to_int(height);
-
-    girara_list_append(list, zathura_image);
-  }
-}
-
-static void
-get_resources(fz_obj* resource, girara_list_t* list)
-{
-  if (resource == NULL || list == NULL) {
-    return;
-  }
-
-  fz_obj* x_object = fz_dict_gets(resource, "XObject");
-  if (x_object == NULL) {
-    return;
-  }
-
-  get_images(x_object, list);
-
-  for (int i = 0; i < fz_dict_len(x_object); i++) {
-    fz_obj* obj = fz_dict_get_val(x_object, i);
-    fz_obj* subsrc = fz_dict_gets(obj, "Resources");
-    if (subsrc != NULL && fz_objcmp(resource, subsrc)) {
-      get_resources(subsrc, list);
-    }
-  }
-}
+/* forward declarations */
+static inline int charat(fz_text_span *span, int index);
+static unsigned int text_span_length(fz_text_span *span);
+static int text_span_match_string_n(fz_text_span* span, const char* string, int n);
+static void pdf_zathura_image_free(zathura_image_t* image);
+static void get_images(fz_obj* dict, girara_list_t* list);
+static void get_resources(fz_obj* resource, girara_list_t* list);
 
 void
 plugin_register(zathura_document_plugin_t* plugin)
@@ -662,3 +525,149 @@ pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, bool GIRARA_UNUSED(p
   return ZATHURA_PLUGIN_ERROR_OK;;
 }
 #endif
+
+static inline int
+charat(fz_text_span *span, int index)
+{
+  int offset = 0;
+  while (span != NULL) {
+    if (index < offset + span->len) {
+      return span->text[index - offset].c;
+    }
+
+    if (span->eol != 0) {
+      if (index == offset + span->len) {
+        return ' ';
+      }
+      offset++;
+    }
+
+    offset += span->len;
+    span = span->next;
+  }
+
+  return 0;
+}
+
+static unsigned int
+text_span_length(fz_text_span *span)
+{
+  unsigned int length = 0;
+
+  while (span != NULL) {
+    length += span->len;
+
+    if (span->eol != 0) {
+      length++;
+    }
+
+    span = span->next;
+  }
+
+  return length;
+}
+
+static int
+text_span_match_string_n(fz_text_span* span, const char* string, int n)
+{
+  if (span == NULL || string == NULL) {
+    return 0;
+  }
+
+  int o = n;
+  int c;
+
+  while ((c = *string++)) {
+    if (c == ' ' && charat(span, n) == ' ') {
+      while (charat(span, n) == ' ') {
+        n++;
+      }
+    } else {
+      if (tolower(c) != tolower(charat(span, n))) {
+        return 0;
+      }
+      n++;
+    }
+  }
+
+  return n - o;
+}
+
+static void
+pdf_zathura_image_free(zathura_image_t* image)
+{
+  if (image == NULL) {
+    return;
+  }
+
+  g_free(image);
+}
+
+static void
+get_images(fz_obj* dict, girara_list_t* list)
+{
+  if (dict == NULL || list == NULL) {
+    return;
+  }
+
+  for (int i = 0; i < fz_dict_len(dict); i++) {
+    fz_obj* image_dict = fz_dict_get_val(dict, i);
+    if (fz_is_dict(image_dict) == 0) {
+      continue;
+    }
+
+    fz_obj* type = fz_dict_gets(image_dict, "Subtype");
+    if (strcmp(fz_to_name(type), "Image") != 0) {
+      continue;
+    }
+
+    bool duplicate = false;
+    GIRARA_LIST_FOREACH(list, zathura_image_t*, iter, image)
+      if (image->data == image_dict) {
+        duplicate = true;
+        break;
+      }
+    GIRARA_LIST_FOREACH_END(list, zathura_image_t*, iter, image);
+
+    if (duplicate == true) {
+      continue;
+    }
+
+    fz_obj* width  = fz_dict_gets(image_dict, "Width");
+    fz_obj* height = fz_dict_gets(image_dict, "Height");
+
+    zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
+
+    // FIXME: Get correct image coordinates
+    zathura_image->data        = image_dict;
+    zathura_image->position.x1 = 0;
+    zathura_image->position.x2 = fz_to_int(width);
+    zathura_image->position.y1 = 0;
+    zathura_image->position.y2 = fz_to_int(height);
+
+    girara_list_append(list, zathura_image);
+  }
+}
+
+static void
+get_resources(fz_obj* resource, girara_list_t* list)
+{
+  if (resource == NULL || list == NULL) {
+    return;
+  }
+
+  fz_obj* x_object = fz_dict_gets(resource, "XObject");
+  if (x_object == NULL) {
+    return;
+  }
+
+  get_images(x_object, list);
+
+  for (int i = 0; i < fz_dict_len(x_object); i++) {
+    fz_obj* obj = fz_dict_get_val(x_object, i);
+    fz_obj* subsrc = fz_dict_gets(obj, "Resources");
+    if (subsrc != NULL && fz_objcmp(resource, subsrc)) {
+      get_resources(subsrc, list);
+    }
+  }
+}
