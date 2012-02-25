@@ -41,6 +41,7 @@ pdf_document_open(zathura_document_t* document)
   document->functions.page_links_get            = pdf_page_links_get;
   document->functions.page_images_get           = pdf_page_images_get;
   document->functions.page_get_text             = pdf_page_get_text;
+  document->functions.document_meta_get         = pdf_document_meta_get;
   document->functions.page_render               = pdf_page_render;
 #if HAVE_CAIRO
   document->functions.page_render_cairo         = pdf_page_render_cairo;
@@ -454,6 +455,53 @@ error_free:
   }
 
 error_ret:
+
+  return NULL;
+}
+
+char*
+pdf_document_meta_get(zathura_document_t* document,
+    zathura_document_meta_t meta, zathura_plugin_error_t* error)
+{
+  if (document == NULL || document->data == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
+    }
+    return NULL;
+  }
+
+  pdf_document_t* pdf_document  = (pdf_document_t*) document->data;
+
+  fz_obj* object = fz_dict_gets(pdf_document->document->trailer, "Info");
+  fz_obj* info   = fz_resolve_indirect(object);
+
+  for (int i = 0; i < fz_dict_len(info); i++) {
+    fz_obj* key = fz_dict_get_key(info, i);
+    fz_obj* val = fz_dict_get_val(info, i);
+
+    if (fz_is_name(key) == 0 || fz_is_string(val) == 0) {
+      continue;
+    }
+
+    char* name  = fz_to_name(key);
+    char* value = fz_to_str_buf(val);
+
+    if (meta == ZATHURA_DOCUMENT_AUTHOR && strcmp(name, "Author") == 0) {
+      return g_strdup(value);
+    } else if (meta == ZATHURA_DOCUMENT_TITLE && strcmp(name, "Title") == 0) {
+      return g_strdup(value);
+    } else if (meta == ZATHURA_DOCUMENT_SUBJECT && strcmp(name, "Subject") == 0) {
+      return g_strdup(value);
+    } else if (meta == ZATHURA_DOCUMENT_CREATOR && strcmp(name, "Creator") == 0) {
+      return g_strdup(value);
+    } else if (meta == ZATHURA_DOCUMENT_PRODUCER && strcmp(name, "Producer") == 0) {
+      return g_strdup(value);
+    } else if (meta == ZATHURA_DOCUMENT_CREATION_DATE && strcmp(name, "CreationDate") == 0) {
+      return g_strdup(value);
+    } else if (meta == ZATHURA_DOCUMENT_MODIFICATION_DATE && strcmp(name, "ModDate") == 0) {
+      return g_strdup(value);
+    }
+  }
 
   return NULL;
 }
