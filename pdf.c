@@ -199,9 +199,20 @@ pdf_page_free(zathura_page_t* page)
     return ZATHURA_PLUGIN_ERROR_INVALID_ARGUMENTS;
   }
 
-  mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
-  pdf_free_page(mupdf_page->page);
-  free(mupdf_page);
+  if (page->data != NULL) {
+    mupdf_page_t* mupdf_page = (mupdf_page_t*) page->data;
+
+    if (mupdf_page->text != NULL) {
+      fz_free_text_span(mupdf_page->text);
+    }
+
+    if (mupdf_page->page != NULL) {
+      pdf_free_page(mupdf_page->page);
+    }
+
+    free(mupdf_page);
+  }
+
   free(page);
 
   return ZATHURA_PLUGIN_ERROR_OK;
