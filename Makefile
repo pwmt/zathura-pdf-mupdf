@@ -14,7 +14,7 @@ ifneq "$(WITH_CAIRO)" "0"
 CPPFLAGS += -DHAVE_CAIRO
 endif
 
-all: options ${PLUGIN}
+all: options ${PLUGIN}.so
 
 options:
 	$(ECHO) ${PLUGIN} build options:
@@ -36,19 +36,19 @@ options:
 ${OBJECTS}:  config.mk
 ${DOBJECTS}: config.mk
 
-${PLUGIN}: ${OBJECTS}
+${PLUGIN}.so: ${OBJECTS}
 	$(ECHO) LD $@
-	$(QUIET)${CC} -shared ${LDFLAGS} -o ${PLUGIN}.so $(OBJECTS) ${LIBS}
+	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(OBJECTS) ${LIBS}
 
-${PLUGIN}-debug: ${DOBJECTS}
+${PLUGIN}-debug.so: ${DOBJECTS}
 	$(ECHO) LD $@
-	$(QUIET)${CC} -shared ${LDFLAGS} -o ${PLUGIN}.so $(DOBJECTS) ${LIBS}
+	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(DOBJECTS) ${LIBS}
 
 clean:
-	$(QUIET)rm -rf ${OBJECTS} ${DOBJECTS} $(PLUGIN).so doc .depend \
-		${PROJECT}-${VERSION}.tar.gz
+	$(QUIET)rm -rf ${OBJECTS} ${DOBJECTS} $(PLUGIN).so $(PLUGIN)-debug.so \
+		doc .depend ${PROJECT}-${VERSION}.tar.gz
 
-debug: options ${PLUGIN}-debug
+debug: options ${PLUGIN}-debug.so
 
 dist: clean
 	$(QUIET)mkdir -p ${PROJECT}-${VERSION}
