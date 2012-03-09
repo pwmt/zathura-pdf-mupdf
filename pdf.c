@@ -19,12 +19,7 @@ static void search_result_add_char(zathura_rectangle_t* rectangle,
 static void mupdf_page_extract_text(pdf_xref* document,
     mupdf_page_t* mupdf_page);
 
-void
-plugin_register(zathura_document_plugin_t* plugin)
-{
-  girara_list_append(plugin->content_types, g_content_type_from_mime_type("application/pdf"));
-  plugin->open_function  = pdf_document_open;
-}
+PLUGIN_REGISTER("pdf-mupdf", 0, 1, 0, pdf_document_open, { "application/pdf" })
 
 zathura_plugin_error_t
 pdf_document_open(zathura_document_t* document)
