@@ -16,6 +16,11 @@ endif
 
 all: options ${PLUGIN}.so
 
+zathura-version-check:
+ifneq ($(ZATHURA_VERSION_CHECK), 0)
+	$(error "The minimum required version of zathura is ${ZATHURA_MIN_VERSION}")
+endif
+
 options:
 	$(ECHO) ${PLUGIN} build options:
 	$(ECHO) "CFLAGS  = ${CFLAGS}"
@@ -36,11 +41,11 @@ options:
 ${OBJECTS}:  config.mk
 ${DOBJECTS}: config.mk
 
-${PLUGIN}.so: ${OBJECTS}
+${PLUGIN}.so: zathura-version-check ${OBJECTS}
 	$(ECHO) LD $@
 	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(OBJECTS) ${LIBS}
 
-${PLUGIN}-debug.so: ${DOBJECTS}
+${PLUGIN}-debug.so: zathura-version-check ${DOBJECTS}
 	$(ECHO) LD $@
 	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(DOBJECTS) ${LIBS}
 

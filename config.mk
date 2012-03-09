@@ -2,6 +2,10 @@
 
 VERSION = 0.0.1
 
+# minimum required zathura version
+ZATHURA_MIN_VERSION = 0.1.1
+ZATHURA_VERSION_CHECK ?= $(shell pkg-config --atleast-version=$(ZATHURA_MIN_VERSION) zathura; echo $$?)
+
 # paths
 PREFIX ?= /usr
 
