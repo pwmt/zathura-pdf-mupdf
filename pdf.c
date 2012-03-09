@@ -19,7 +19,14 @@ static void search_result_add_char(zathura_rectangle_t* rectangle,
 static void mupdf_page_extract_text(pdf_xref* document,
     mupdf_page_t* mupdf_page);
 
-PLUGIN_REGISTER("pdf-mupdf", 0, 1, 0, pdf_document_open, { "application/pdf" })
+PLUGIN_REGISTER(
+    "pdf-mupdf",
+    0, 1, 0,
+    pdf_document_open,
+    PLUGIN_MIMETYPES({
+      "application/pdf"
+    })
+  )
 
 zathura_plugin_error_t
 pdf_document_open(zathura_document_t* document)
