@@ -20,6 +20,7 @@ zathura-version-check:
 ifneq ($(ZATHURA_VERSION_CHECK), 0)
 	$(error "The minimum required version of zathura is ${ZATHURA_MIN_VERSION}")
 endif
+	$(QUIET)touch zathura-version-check
 
 options:
 	$(ECHO) ${PLUGIN} build options:
@@ -38,20 +39,20 @@ options:
 	@mkdir -p .depend
 	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} ${DFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
 
-${OBJECTS}:  config.mk
-${DOBJECTS}: config.mk
+${OBJECTS}:  config.mk zathura-version-check
+${DOBJECTS}: config.mk zathura-version-check
 
-${PLUGIN}.so: zathura-version-check ${OBJECTS}
+${PLUGIN}.so: ${OBJECTS}
 	$(ECHO) LD $@
 	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(OBJECTS) ${LIBS}
 
-${PLUGIN}-debug.so: zathura-version-check ${DOBJECTS}
+${PLUGIN}-debug.so: ${DOBJECTS}
 	$(ECHO) LD $@
 	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(DOBJECTS) ${LIBS}
 
 clean:
 	$(QUIET)rm -rf ${OBJECTS} ${DOBJECTS} $(PLUGIN).so $(PLUGIN)-debug.so \
-		doc .depend ${PROJECT}-${VERSION}.tar.gz
+		doc .depend ${PROJECT}-${VERSION}.tar.gz zathura-version-check
 
 debug: options ${PLUGIN}-debug.so
 
