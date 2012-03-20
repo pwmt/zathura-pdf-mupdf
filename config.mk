@@ -8,6 +8,7 @@ ZATHURA_VERSION_CHECK ?= $(shell pkg-config --atleast-version=$(ZATHURA_MIN_VERS
 
 # paths
 PREFIX ?= /usr
+LIBDIR ?= ${PREFIX}/lib
 
 # libs
 GTK_INC ?= $(shell pkg-config --cflags gtk+-2.0)
@@ -18,7 +19,9 @@ GIRARA_LIB ?= $(shell pkg-config --libs girara-gtk2)
 
 ZATHURA_INC ?= $(shell pkg-config --cflags zathura)
 PLUGINDIR ?= $(shell pkg-config --variable=plugindir zathura)
-PLUGINDIR ?= ${PREFIX}/lib/zathura
+ifeq (,${PLUGINDIR})
+PLUGINDIR = ${LIBDIR}/zathura
+endif
 
 INCS = ${GTK_INC} ${ZATHURA_INC} ${GIRARA_INC}
 LIBS = ${GIRARA_LIB} ${GTK_LIB} -lmupdf -lfitz -ljbig2dec -lopenjpeg -ljpeg
