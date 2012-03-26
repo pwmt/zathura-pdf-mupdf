@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <zathura/document.h>
+#include <zathura/page.h>
 #include <fitz.h>
 #include <mupdf.h>
 
@@ -44,13 +45,10 @@ zathura_plugin_error_t pdf_document_free(zathura_document_t* document);
 /**
  * Returns a reference to a page
  *
- * @param document Zathura document
- * @param page Page number
- * @param error Set to an error value (see zathura_plugin_error_t) if an
- *   error occured
+ * @param page Page object
  * @return A page object or NULL if an error occured
  */
-zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page, zathura_plugin_error_t* error);
+zathura_plugin_error_t pdf_page_init(zathura_page_t* page);
 
 /**
  * Frees a pdf page
@@ -58,7 +56,7 @@ zathura_page_t* pdf_page_get(zathura_document_t* document, unsigned int page, za
  * @param page Page
  * @return true if no error occured, otherwise false
  */
-zathura_plugin_error_t pdf_page_free(zathura_page_t* page);
+zathura_plugin_error_t pdf_page_clear(zathura_page_t* page);
 
 /**
  * Searches for a specific text on a page and returns a list of results
