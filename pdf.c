@@ -191,8 +191,6 @@ pdf_page_clear(zathura_page_t* page)
     free(mupdf_page);
   }
 
-  free(page);
-
   return ZATHURA_PLUGIN_ERROR_OK;
 }
 
