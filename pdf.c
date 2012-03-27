@@ -298,38 +298,39 @@ pdf_page_links_get(zathura_page_t* page, zathura_plugin_error_t* error)
 
   pdf_link* link = mupdf_page->page->links;
   for (; link != NULL; link = link->next) {
-    zathura_link_t* zathura_link = g_malloc0(sizeof(zathura_link_t));
-    if (zathura_link == NULL) {
-      if (error != NULL) {
-        *error = ZATHURA_PLUGIN_ERROR_OUT_OF_MEMORY;
-      }
-      goto error_free;
-    }
-
     /* extract position */
-    zathura_link->position.x1 = link->rect.x0;
-    zathura_link->position.x2 = link->rect.x1;
-    zathura_link->position.y1 = page_height - link->rect.y1;
-    zathura_link->position.y2 = page_height - link->rect.y0;
+    zathura_rectangle_t position;
+    position.x1 = link->rect.x0;
+    position.x2 = link->rect.x1;
+    position.y1 = page_height - link->rect.y1;
+    position.y2 = page_height - link->rect.y0;
 
+    zathura_link_type_t type     = ZATHURA_LINK_INVALID;
+    zathura_link_target_t target = { 0 };
+
+    char* buffer = NULL;
     if (link->kind == PDF_LINK_URI) {
-      char* buffer = g_malloc0(sizeof(char) * (fz_to_str_len(link->dest) + 1));
+      buffer = g_malloc0(sizeof(char) * (fz_to_str_len(link->dest) + 1));
       memcpy(buffer, fz_to_str_buf(link->dest), fz_to_str_len(link->dest));
       buffer[fz_to_str_len(link->dest)] = '\0';
 
-      zathura_link->type         = ZATHURA_LINK_EXTERNAL;
-      zathura_link->target.value = buffer;
+      type       = ZATHURA_LINK_EXTERNAL;
+      target.uri = buffer;
     } else if (link->kind == PDF_LINK_GOTO) {
       int page_number = pdf_find_page_number(pdf_document->document, fz_array_get(link->dest, 0));
 
-      zathura_link->type               = ZATHURA_LINK_TO_PAGE;
-      zathura_link->target.page_number = page_number;
+      type               = ZATHURA_LINK_TO_PAGE;
+      target.page_number = page_number;
     } else {
-      g_free(zathura_link);
       continue;
     }
 
+    zathura_link_t* zathura_link = zathura_link_new(type, position, target);
     girara_list_append(list, zathura_link);
+
+    if (buffer != NULL) {
+      g_free(buffer);
+    }
   }
 
   return list;
