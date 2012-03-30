@@ -22,20 +22,20 @@ static void mupdf_page_extract_text(pdf_xref* document,
 void
 register_functions(zathura_plugin_functions_t* functions)
 {
-  functions->document_open     = pdf_document_open;
-  functions->document_free     = pdf_document_free;
-  functions->page_init         = pdf_page_init;
-  functions->page_clear        = pdf_page_clear;
-  functions->page_search_text  = pdf_page_search_text;
-  functions->page_links_get    = pdf_page_links_get;
-  #if 0
-  functions->page_images_get   = pdf_page_images_get;
-  #endif
-  functions->page_get_text     = pdf_page_get_text;
-  functions->document_meta_get = pdf_document_meta_get;
-  functions->page_render       = pdf_page_render;
-  #if HAVE_CAIRO
-  functions->page_render_cairo = pdf_page_render_cairo;
+  functions->document_open            = pdf_document_open;
+  functions->document_free            = pdf_document_free;
+  functions->page_init                = pdf_page_init;
+  functions->page_clear               = pdf_page_clear;
+  functions->page_search_text         = pdf_page_search_text;
+  functions->page_links_get           = pdf_page_links_get;
+#if 0
+  functions->page_images_get          = pdf_page_images_get;
+#endif
+  functions->page_get_text            = pdf_page_get_text;
+  functions->document_get_information = pdf_document_get_information;
+  functions->page_render              = pdf_page_render;
+#if HAVE_CAIRO
+  functions->page_render_cairo        = pdf_page_render_cairo;
 #endif
 }
 
@@ -458,9 +458,9 @@ error_ret:
   return NULL;
 }
 
-char*
-pdf_document_meta_get(zathura_document_t* document, mupdf_document_t* mupdf_document,
-    zathura_document_meta_t meta, zathura_error_t* error)
+girara_list_t*
+pdf_document_get_information(zathura_document_t* document, mupdf_document_t*
+    mupdf_document, zathura_error_t* error)
 {
   if (document == NULL || mupdf_document == NULL) {
     if (error != NULL) {
@@ -472,6 +472,11 @@ pdf_document_meta_get(zathura_document_t* document, mupdf_document_t* mupdf_docu
   fz_obj* object = fz_dict_gets(mupdf_document->document->trailer, "Info");
   fz_obj* info   = fz_resolve_indirect(object);
 
+  girara_list_t* list = zathura_document_information_entry_list_new();
+  if (list == NULL) {
+    return NULL;
+  }
+
   for (int i = 0; i < fz_dict_len(info); i++) {
     fz_obj* key = fz_dict_get_key(info, i);
     fz_obj* val = fz_dict_get_val(info, i);
@@ -482,25 +487,31 @@ pdf_document_meta_get(zathura_document_t* document, mupdf_document_t* mupdf_docu
 
     char* name  = fz_to_name(key);
     char* value = fz_to_str_buf(val);
+    zathura_document_information_type_t type = ZATHURA_DOCUMENT_INFORMATION_OTHER;
 
-    if (meta == ZATHURA_DOCUMENT_AUTHOR && strcmp(name, "Author") == 0) {
-      return g_strdup(value);
-    } else if (meta == ZATHURA_DOCUMENT_TITLE && strcmp(name, "Title") == 0) {
-      return g_strdup(value);
-    } else if (meta == ZATHURA_DOCUMENT_SUBJECT && strcmp(name, "Subject") == 0) {
-      return g_strdup(value);
-    } else if (meta == ZATHURA_DOCUMENT_CREATOR && strcmp(name, "Creator") == 0) {
-      return g_strdup(value);
-    } else if (meta == ZATHURA_DOCUMENT_PRODUCER && strcmp(name, "Producer") == 0) {
-      return g_strdup(value);
-    } else if (meta == ZATHURA_DOCUMENT_CREATION_DATE && strcmp(name, "CreationDate") == 0) {
-      return g_strdup(value);
-    } else if (meta == ZATHURA_DOCUMENT_MODIFICATION_DATE && strcmp(name, "ModDate") == 0) {
-      return g_strdup(value);
+    if (strcmp(name, "Author") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_AUTHOR;
+    } else if (strcmp(name, "Title") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_TITLE;
+    } else if (strcmp(name, "Subject") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_SUBJECT;
+    } else if (strcmp(name, "Creator") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_CREATOR;
+    } else if (strcmp(name, "Producer") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_PRODUCER;
+    } else if (strcmp(name, "CreationDate") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_CREATION_DATE;
+    } else if (strcmp(name, "ModDate") == 0) {
+      type = ZATHURA_DOCUMENT_INFORMATION_MODIFICATION_DATE;
+    }
+
+    zathura_document_information_entry_t* entry = zathura_document_information_entry_new(type, value);
+    if (entry != NULL) {
+      girara_list_append(list, entry);
     }
   }
 
-  return NULL;
+  return list;
 }
 
 zathura_image_buffer_t*

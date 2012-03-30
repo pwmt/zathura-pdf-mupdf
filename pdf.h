@@ -99,15 +99,15 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_pag
 char* pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
 
 /**
- * Returns the content of a given meta field
+ * Returns a list of document information entries of the document
  *
  * @param document Zathura document
- * @param meta Meta identifier
  * @param error Set to an error value (see zathura_error_t) if an
  *   error occured
- * @return Value of the meta data or NULL if an error occurred
+ * @return List of information entries or NULL if an error occurred
  */
-char* pdf_document_meta_get(zathura_document_t* document, mupdf_document_t* mupdf_document, zathura_document_meta_t meta, zathura_error_t* error);
+girara_list_t* pdf_document_get_information(zathura_document_t* document,
+    mupdf_document_t* mupdf_document, zathura_error_t* error);
 
 /**
  * Renders a page and returns a allocated image buffer which has to be freed
