@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <girara/datastructures.h>
+#include <glib.h>
 
 #include "pdf.h"
 
