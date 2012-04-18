@@ -45,6 +45,18 @@ zathura_error_t pdf_document_open(zathura_document_t* document);
 zathura_error_t pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document);
 
 /**
+ * Generates the index of the document
+ *
+ * @param document Zathura document
+ * @param error Set to an error value (see zathura_error_t) if an
+ *   error occured
+ * @return Tree node object or NULL if an error occurred (e.g.: the document has
+ *   no index)
+ */
+girara_tree_node_t* pdf_document_index_generate(zathura_document_t* document,
+    mupdf_document_t* mupdf_document, zathura_error_t* error);
+
+/**
  * Returns a reference to a page
  *
  * @param page Page object

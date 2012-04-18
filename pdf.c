@@ -16,6 +16,8 @@ static void search_result_add_char(zathura_rectangle_t* rectangle, fz_text_page*
   page, int n);
 static void mupdf_page_extract_text(fz_document* document,
     mupdf_page_t* mupdf_page);
+static void build_index(mupdf_document_t* mupdf_document, fz_outline* outline,
+    girara_tree_node_t* root);
 #if 0
 static void pdf_zathura_image_free(zathura_image_t* image);
 static void get_images(pdf_obj* dict, girara_list_t* list);
@@ -27,6 +29,7 @@ register_functions(zathura_plugin_functions_t* functions)
 {
   functions->document_open            = pdf_document_open;
   functions->document_free            = pdf_document_free;
+  functions->document_index_generate  = pdf_document_index_generate;
   functions->page_init                = pdf_page_init;
   functions->page_clear               = pdf_page_clear;
   functions->page_search_text         = pdf_page_search_text;
@@ -123,6 +126,35 @@ pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document
   zathura_document_set_data(document, NULL);
 
   return ZATHURA_ERROR_OK;
+}
+
+girara_tree_node_t*
+pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupdf_document, zathura_error_t* error)
+{
+  if (document == NULL || mupdf_document == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
+    }
+    return NULL;
+  }
+
+  /* get outline */
+  fz_outline* outline = fz_load_outline(mupdf_document->document);
+  if (outline == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_UNKNOWN;
+    }
+    return NULL;
+  }
+
+  /* generate index */
+  girara_tree_node_t* root = girara_node_new(zathura_index_element_new("ROOT"));
+  build_index(mupdf_document, outline, root);
+
+  /* free outline */
+  fz_free_outline(mupdf_document->ctx, outline);
+
+  return root;
 }
 
 zathura_error_t
@@ -906,4 +938,32 @@ error_free:
   fz_free_device(text_device);
   fz_free_device(device);
   fz_free_display_list(mupdf_page->ctx, display_list);
+}
+
+static void
+build_index(mupdf_document_t* mupdf_document, fz_outline* outline, girara_tree_node_t* root)
+{
+  if (mupdf_document == NULL || outline == NULL || root == NULL) {
+    return;
+  }
+
+  while (outline != NULL) {
+    zathura_index_element_t* index_element = zathura_index_element_new(outline->title);
+
+    if (outline->dest.kind == FZ_LINK_URI) {
+      index_element->target.uri = g_strdup(outline->dest.ld.uri.uri);
+      index_element->type = ZATHURA_LINK_EXTERNAL;
+    } else if (outline->dest.kind == FZ_LINK_GOTO) {
+      index_element->target.page_number = outline->dest.ld.gotor.page;
+      index_element->type = ZATHURA_LINK_TO_PAGE;
+    }
+
+    girara_tree_node_t* node = girara_node_append_data(root, index_element);
+
+    if (outline->down != NULL) {
+      build_index(mupdf_document, outline->down, node);
+    }
+
+    outline = outline->next;
+  }
 }
