@@ -14,7 +14,13 @@ ifneq "$(WITH_CAIRO)" "0"
 CPPFLAGS += -DHAVE_CAIRO
 endif
 
-all: options ${PLUGIN}
+all: options ${PLUGIN}.so
+
+zathura-version-check:
+ifneq ($(ZATHURA_VERSION_CHECK), 0)
+	$(error "The minimum required version of zathura is ${ZATHURA_MIN_VERSION}")
+endif
+	$(QUIET)touch zathura-version-check
 
 options:
 	$(ECHO) ${PLUGIN} build options:
@@ -33,27 +39,27 @@ options:
 	@mkdir -p .depend
 	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} ${DFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
 
-${OBJECTS}:  config.mk
-${DOBJECTS}: config.mk
+${OBJECTS}:  config.mk zathura-version-check
+${DOBJECTS}: config.mk zathura-version-check
 
-${PLUGIN}: ${OBJECTS}
+${PLUGIN}.so: ${OBJECTS}
 	$(ECHO) LD $@
-	$(QUIET)${CC} -shared ${LDFLAGS} -o ${PLUGIN}.so $(OBJECTS) ${LIBS}
+	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(OBJECTS) ${LIBS}
 
-${PLUGIN}-debug: ${DOBJECTS}
+${PLUGIN}-debug.so: ${DOBJECTS}
 	$(ECHO) LD $@
-	$(QUIET)${CC} -shared ${LDFLAGS} -o ${PLUGIN}.so $(DOBJECTS) ${LIBS}
+	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(DOBJECTS) ${LIBS}
 
 clean:
-	$(QUIET)rm -rf ${OBJECTS} ${DOBJECTS} $(PLUGIN).so doc .depend \
-		${PROJECT}-${VERSION}.tar.gz
+	$(QUIET)rm -rf ${OBJECTS} ${DOBJECTS} $(PLUGIN).so $(PLUGIN)-debug.so \
+		doc .depend ${PROJECT}-${VERSION}.tar.gz zathura-version-check
 
-debug: options ${PLUGIN}-debug
+debug: options ${PLUGIN}-debug.so
 
 dist: clean
 	$(QUIET)mkdir -p ${PROJECT}-${VERSION}
 	$(QUIET)cp -R LICENSE Makefile config.mk common.mk Doxyfile \
-		${HEADER} ${SOURCE} ${PROJECT}-${VERSION}
+		${HEADER} ${SOURCE} AUTHORS ${PROJECT}-${VERSION}
 	$(QUIET)tar -cf ${PROJECT}-${VERSION}.tar ${PROJECT}-${VERSION}
 	$(QUIET)gzip ${PROJECT}-${VERSION}.tar
 	$(QUIET)rm -rf ${PROJECT}-${VERSION}
@@ -63,13 +69,13 @@ doc: clean
 
 install: all
 	$(ECHO) installing ${PLUGIN} plugin
-	$(QUIET)mkdir -p ${DESTDIR}${PREFIX}/lib/zathura
-	$(QUIET)cp -f ${PLUGIN}.so ${DESTDIR}${PREFIX}/lib/zathura
+	$(QUIET)mkdir -p ${DESTDIR}${PLUGINDIR}
+	$(QUIET)cp -f ${PLUGIN}.so ${DESTDIR}${PLUGINDIR}
 
 uninstall:
 	$(ECHO) uninstalling ${PLUGIN} plugin
-	$(QUIET)rm -f ${DESTDIR}${PREFIX}/lib/zathura/${PLUGIN}.so
-	$(QUIET)rmdir ${DESTDIR}${PREFIX}/lib/zathura 2> /dev/null || /bin/true
+	$(QUIET)rm -f ${DESTDIR}${PLUGINDIR}/${PLUGIN}.so
+	$(QUIET)rmdir ${DESTDIR}${PLUGINDIR} 2> /dev/null || /bin/true
 
 -include $(wildcard .depend/*.dep)
 
