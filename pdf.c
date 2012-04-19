@@ -16,7 +16,7 @@ static void search_result_add_char(zathura_rectangle_t* rectangle, fz_text_page*
   page, int n);
 static void mupdf_page_extract_text(fz_document* document,
     mupdf_page_t* mupdf_page);
-static void build_index(mupdf_document_t* mupdf_document, fz_outline* outline,
+static void build_index(fz_outline* outline,
     girara_tree_node_t* root);
 #if 0
 static void pdf_zathura_image_free(zathura_image_t* image);
@@ -149,7 +149,7 @@ pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupd
 
   /* generate index */
   girara_tree_node_t* root = girara_node_new(zathura_index_element_new("ROOT"));
-  build_index(mupdf_document, outline, root);
+  build_index(outline, root);
 
   /* free outline */
   fz_free_outline(mupdf_document->ctx, outline);
@@ -941,9 +941,9 @@ error_free:
 }
 
 static void
-build_index(mupdf_document_t* mupdf_document, fz_outline* outline, girara_tree_node_t* root)
+build_index(fz_outline* outline, girara_tree_node_t* root)
 {
-  if (mupdf_document == NULL || outline == NULL || root == NULL) {
+  if (outline == NULL || root == NULL) {
     return;
   }
 
@@ -961,7 +961,7 @@ build_index(mupdf_document_t* mupdf_document, fz_outline* outline, girara_tree_n
     girara_tree_node_t* node = girara_node_append_data(root, index_element);
 
     if (outline->down != NULL) {
-      build_index(mupdf_document, outline->down, node);
+      build_index(outline->down, node);
     }
 
     outline = outline->next;
