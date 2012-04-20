@@ -639,9 +639,9 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
   for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
     for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
       guchar* p = image_buffer->data + y * image_buffer->rowstride + x * 3;
-      p[0] = s[0];
+      p[0] = s[2];
       p[1] = s[1];
-      p[2] = s[2];
+      p[2] = s[0];
       s += n;
     }
   }
@@ -707,9 +707,9 @@ pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* c
   for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
     for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
       guchar* p = image + y * rowstride + x * 4;
-      p[0] = s[0];
+      p[0] = s[2];
       p[1] = s[1];
-      p[2] = s[2];
+      p[2] = s[0];
       s += n;
     }
   }
