@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <zathura/plugin-api.h>
 #include <fitz.h>
-#include <mupdf.h>
 
 #if HAVE_CAIRO
 #include <cairo.h>
@@ -20,7 +19,7 @@ typedef struct mupdf_document_s
 
 typedef struct mupdf_page_s
 {
-  pdf_page* page; /**< Reference to the mupdf page */
+  fz_page* page; /**< Reference to the mupdf page */
   fz_context* ctx; /**< Context */
   fz_text_sheet* sheet; /**< Text sheet */
   fz_text_page* text; /**< Page text */

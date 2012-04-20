@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <girara/datastructures.h>
 #include <glib.h>
+#include <muxps.h>
+#include <mupdf.h>
 
 #include "pdf.h"
 
@@ -50,7 +52,8 @@ ZATHURA_PLUGIN_REGISTER(
   0, 1, 0,
   register_functions,
   ZATHURA_PLUGIN_MIMETYPES({
-    "application/pdf"
+    "application/pdf",
+    "application/oxps"
   })
 )
 
@@ -79,7 +82,13 @@ pdf_document_open(zathura_document_t* document)
   const char* path     = zathura_document_get_path(document);
   const char* password = zathura_document_get_password(document);
 
-  if ((mupdf_document->document = (fz_document*) pdf_open_document(mupdf_document->ctx, path)) == NULL) {
+  if (strstr(path, ".xps") != 0 || strstr(path, ".XPS") != 0 || strstr(path, ".rels") != 0) {
+    mupdf_document->document = (fz_document*) xps_open_document(mupdf_document->ctx, (char*) path);
+  } else {
+    mupdf_document->document = (fz_document*) pdf_open_document(mupdf_document->ctx, (char*) path);
+  }
+
+  if (mupdf_document->document == NULL) {
     error = ZATHURA_ERROR_UNKNOWN;
     goto error_free;
   }
@@ -92,7 +101,7 @@ pdf_document_open(zathura_document_t* document)
     }
   }
 
-  zathura_document_set_number_of_pages(document, pdf_count_pages((pdf_document*) mupdf_document->document));
+  zathura_document_set_number_of_pages(document, fz_count_pages(mupdf_document->document));
   zathura_document_set_data(document, mupdf_document);
 
   return error;
@@ -182,7 +191,7 @@ pdf_page_init(zathura_page_t* page)
 
   /* load page */
   fz_try (mupdf_page->ctx) {
-    mupdf_page->page = (pdf_page*) fz_load_page(mupdf_document->document, index);
+    mupdf_page->page = fz_load_page(mupdf_document->document, index);
   } fz_catch (mupdf_page->ctx) {
     goto error_free;
   }
@@ -234,7 +243,7 @@ pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page)
     }
 
     if (mupdf_page->page != NULL) {
-      pdf_free_page((pdf_document*) mupdf_document->document, mupdf_page->page);
+      fz_free_page(mupdf_document->document, mupdf_page->page);
     }
 
     free(mupdf_page);
@@ -333,7 +342,7 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
     goto error_free;
   }
 
-  fz_link* link = pdf_load_links((pdf_document*) mupdf_document->document, mupdf_page->page);
+  fz_link* link = fz_load_links(mupdf_document->document, mupdf_page->page);
   for (; link != NULL; link = link->next) {
     /* extract position */
     zathura_rectangle_t position;
@@ -606,7 +615,7 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
   fz_try (mupdf_document->ctx) {
-    pdf_run_page((pdf_document*) mupdf_document->document, mupdf_page->page, device, fz_scale(scale, scale), NULL);
+    fz_run_page(mupdf_document->document, mupdf_page->page, device, fz_scale(scale, scale), NULL);
   } fz_catch (mupdf_document->ctx) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;
@@ -674,7 +683,7 @@ pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* c
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
   fz_try (mupdf_document->ctx) {
-    pdf_run_page((pdf_document*) mupdf_document->document, mupdf_page->page, device, fz_scale(scalex, scaley), NULL);
+    fz_run_page(mupdf_document->document, mupdf_page->page, device, fz_scale(scalex, scaley), NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }
@@ -925,7 +934,7 @@ mupdf_page_extract_text(fz_document* document, mupdf_page_t* mupdf_page)
   fz_device* text_device        = fz_new_text_device(mupdf_page->ctx, mupdf_page->sheet, mupdf_page->text);
 
   fz_try (mupdf_page->ctx) {
-    pdf_run_page((pdf_document*) document, mupdf_page->page, device, fz_identity, NULL);
+    fz_run_page(document, mupdf_page->page, device, fz_identity, NULL);
   } fz_catch (mupdf_page->ctx) {
     goto error_free;
   }
