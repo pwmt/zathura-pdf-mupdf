@@ -355,14 +355,17 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
     zathura_link_target_t target = { 0 };
 
     char* buffer = NULL;
-    if (link->dest.kind == FZ_LINK_URI) {
-      type       = ZATHURA_LINK_EXTERNAL;
-      target.uri = g_strdup(link->dest.ld.uri.uri);
-    } else if (link->dest.kind == FZ_LINK_GOTO) {
-      type               = ZATHURA_LINK_TO_PAGE;
-      target.page_number = link->dest.ld.gotor.page;
-    } else {
-      continue;
+    switch (link->dest.kind) {
+      case FZ_LINK_URI:
+        type         = ZATHURA_LINK_URI;
+        target.value = link->dest.ld.uri.uri;
+        break;
+      case FZ_LINK_GOTO:
+        type               = ZATHURA_LINK_GOTO_DEST;
+        target.page_number = link->dest.ld.gotor.page;
+        break;
+      default:
+        continue;
     }
 
     zathura_link_t* zathura_link = zathura_link_new(type, position, target);
@@ -958,13 +961,26 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
 
   while (outline != NULL) {
     zathura_index_element_t* index_element = zathura_index_element_new(outline->title);
+    zathura_link_target_t target;
+    zathura_link_type_t type;
+    zathura_rectangle_t rect;
 
-    if (outline->dest.kind == FZ_LINK_URI) {
-      index_element->target.uri = g_strdup(outline->dest.ld.uri.uri);
-      index_element->type = ZATHURA_LINK_EXTERNAL;
-    } else if (outline->dest.kind == FZ_LINK_GOTO) {
-      index_element->target.page_number = outline->dest.ld.gotor.page;
-      index_element->type = ZATHURA_LINK_TO_PAGE;
+    switch (outline->dest.kind) {
+      case FZ_LINK_URI:
+        type         = ZATHURA_LINK_URI;
+        target.value = outline->dest.ld.uri.uri;
+        break;
+      case FZ_LINK_GOTO:
+        type               = ZATHURA_LINK_GOTO_DEST;
+        target.page_number = outline->dest.ld.gotor.page;
+        break;
+      default:
+        continue;
+    }
+
+    index_element->link = zathura_link_new(type, rect, target);
+    if (index_element->link == NULL) {
+      continue;
     }
 
     girara_tree_node_t* node = girara_node_append_data(root, index_element);
