@@ -369,7 +369,9 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
     }
 
     zathura_link_t* zathura_link = zathura_link_new(type, position, target);
-    girara_list_append(list, zathura_link);
+    if (zathura_link != NULL) {
+      girara_list_append(list, zathura_link);
+    }
 
     if (buffer != NULL) {
       g_free(buffer);
