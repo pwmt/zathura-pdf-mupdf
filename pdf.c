@@ -342,20 +342,22 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
     zathura_link_target_t target = { 0 };
 
     char* buffer = NULL;
-    if (link->kind == PDF_LINK_URI) {
-      buffer = g_malloc0(sizeof(char) * (fz_to_str_len(link->dest) + 1));
-      memcpy(buffer, fz_to_str_buf(link->dest), fz_to_str_len(link->dest));
-      buffer[fz_to_str_len(link->dest)] = '\0';
+    switch (link->kind) {
+      case PDF_LINK_URI:
+        buffer = g_malloc0(sizeof(char) * (fz_to_str_len(link->dest) + 1));
+        memcpy(buffer, fz_to_str_buf(link->dest), fz_to_str_len(link->dest));
+        buffer[fz_to_str_len(link->dest)] = '\0';
 
-      type       = ZATHURA_LINK_EXTERNAL;
-      target.uri = buffer;
-    } else if (link->kind == PDF_LINK_GOTO) {
-      int page_number = pdf_find_page_number(mupdf_document->document, fz_array_get(link->dest, 0));
-
-      type               = ZATHURA_LINK_TO_PAGE;
-      target.page_number = page_number;
-    } else {
-      continue;
+        type         = ZATHURA_LINK_URI;
+        target.value = buffer;
+        break;
+      case PDF_LINK_GOTO:
+        type               = ZATHURA_LINK_GOTO_DEST;
+        target.page_number = pdf_find_page_number(mupdf_document->document,
+            fz_array_get(link->dest, 0));
+        break;
+      default:
+        continue;
     }
 
     zathura_link_t* zathura_link = zathura_link_new(type, position, target);
@@ -907,21 +909,34 @@ build_index(mupdf_document_t* mupdf_document, pdf_outline* outline, girara_tree_
 
   while (outline != NULL) {
     zathura_index_element_t* index_element = zathura_index_element_new(outline->title);
+    zathura_link_target_t target;
+    zathura_link_type_t type;
+    zathura_rectangle_t rect;
+    char* buffer = NULL;
 
-    if (outline->link->kind == PDF_LINK_URI) {
-      /* extract uri */
-      char* buffer = g_malloc0(sizeof(char) * (fz_to_str_len(outline->link->dest) + 1));
-      memcpy(buffer, fz_to_str_buf(outline->link->dest), fz_to_str_len(outline->link->dest));
-      buffer[fz_to_str_len(outline->link->dest)] = '\0';
-      index_element->target.uri = buffer;
+    switch (outline->link->kind) {
+      case PDF_LINK_URI:
+        /* extract uri */
+        buffer = g_malloc0(sizeof(char) * (fz_to_str_len(outline->link->dest) + 1));
+        memcpy(buffer, fz_to_str_buf(outline->link->dest), fz_to_str_len(outline->link->dest));
+        buffer[fz_to_str_len(outline->link->dest)] = '\0';
+        target.value = buffer;
 
-      index_element->type = ZATHURA_LINK_EXTERNAL;
-    } else if (outline->link->kind == PDF_LINK_GOTO) {
-      index_element->target.page_number =
-        pdf_find_page_number(mupdf_document->document,
+        type = ZATHURA_LINK_URI;
+        break;
+      case  PDF_LINK_GOTO:
+        target.page_number = pdf_find_page_number(mupdf_document->document,
             fz_array_get(outline->link->dest, 0));
 
-      index_element->type = ZATHURA_LINK_TO_PAGE;
+        type = ZATHURA_LINK_GOTO_DEST;
+        break;
+      default:
+        continue;
+    }
+
+    index_element->link = zathura_link_new(type, rect, target);
+    if (index_element->link == NULL) {
+      continue;
     }
 
     girara_tree_node_t* node = girara_node_append_data(root, index_element);
