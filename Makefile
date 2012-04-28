@@ -14,6 +14,10 @@ ifneq "$(WITH_CAIRO)" "0"
 CPPFLAGS += -DHAVE_CAIRO
 endif
 
+CPPFLAGS += "-DVERSION_MAJOR=${VERSION_MAJOR}"
+CPPFLAGS += "-DVERSION_MINOR=${VERSION_MINOR}"
+CPPFLAGS += "-DVERSION_REV=${VERSION_REV}"
+
 all: options ${PLUGIN}.so
 
 zathura-version-check:

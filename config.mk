@@ -1,6 +1,9 @@
 # See LICENSE file for license and copyright information
 
-VERSION = 0.1.0
+VERSION_MAJOR = 0
+VERSION_MINOR = 1
+VERSION_REV = 0
+VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
 ZATHURA_MIN_VERSION = 0.1.1
