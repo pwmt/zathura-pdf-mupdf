@@ -29,21 +29,21 @@ static void get_resources(pdf_obj* resource, girara_list_t* list);
 void
 register_functions(zathura_plugin_functions_t* functions)
 {
-  functions->document_open            = pdf_document_open;
-  functions->document_free            = pdf_document_free;
-  functions->document_index_generate  = pdf_document_index_generate;
-  functions->page_init                = pdf_page_init;
-  functions->page_clear               = pdf_page_clear;
-  functions->page_search_text         = pdf_page_search_text;
-  functions->page_links_get           = pdf_page_links_get;
+  functions->document_open            = (zathura_plugin_document_open_t) pdf_document_open;
+  functions->document_free            = (zathura_plugin_document_free_t) pdf_document_free;
+  functions->document_index_generate  = (zathura_plugin_document_index_generate_t) pdf_document_index_generate;
+  functions->page_init                = (zathura_plugin_page_init_t) pdf_page_init;
+  functions->page_clear               = (zathura_plugin_page_clear_t) pdf_page_clear;
+  functions->page_search_text         = (zathura_plugin_page_search_text_t) pdf_page_search_text;
+  functions->page_links_get           = (zathura_plugin_page_links_get_t) pdf_page_links_get;
 #if 0
-  functions->page_images_get          = pdf_page_images_get;
-  functions->document_get_information = pdf_document_get_information;
+  functions->page_images_get          = (zathura_plugin_page_images_get_t) pdf_page_images_get;
+  functions->document_get_information = (zathura_plugin_document_get_information_t) pdf_document_get_information;
 #endif
-  functions->page_get_text            = pdf_page_get_text;
-  functions->page_render              = pdf_page_render;
+  functions->page_get_text            = (zathura_plugin_page_get_text_t) pdf_page_get_text;
+  functions->page_render              = (zathura_plugin_page_render_t) pdf_page_render;
 #if HAVE_CAIRO
-  functions->page_render_cairo        = pdf_page_render_cairo;
+  functions->page_render_cairo        = (zathura_plugin_page_render_cairo_t) pdf_page_render_cairo;
 #endif
 }
 
