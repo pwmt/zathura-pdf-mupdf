@@ -44,6 +44,17 @@ zathura_error_t pdf_document_open(zathura_document_t* document);
 zathura_error_t pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document);
 
 /**
+ * Saves the document to the given path
+ *
+ * @param document Zathura document
+ * @param path File path
+ * @return ZATHURA_ERROR_OK when no error occured, otherwise see
+ *    zathura_error_t
+ */
+zathura_error_t pdf_document_save_as(zathura_document_t* document,
+    mupdf_document_t* mupdf_document, const char* path);
+
+/**
  * Generates the index of the document
  *
  * @param document Zathura document
