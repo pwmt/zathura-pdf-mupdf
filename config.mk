@@ -6,7 +6,7 @@ VERSION_REV = 0
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
-ZATHURA_MIN_VERSION = 0.1.1
+ZATHURA_MIN_VERSION = 0.2.0
 ZATHURA_VERSION_CHECK ?= $(shell pkg-config --atleast-version=$(ZATHURA_MIN_VERSION) zathura; echo $$?)
 
 # paths
