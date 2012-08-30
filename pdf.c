@@ -31,6 +31,7 @@ register_functions(zathura_plugin_functions_t* functions)
 {
   functions->document_open            = (zathura_plugin_document_open_t) pdf_document_open;
   functions->document_free            = (zathura_plugin_document_free_t) pdf_document_free;
+  functions->document_save_as         = (zathura_plugin_document_save_as_t) pdf_document_save_as;
   functions->document_index_generate  = (zathura_plugin_document_index_generate_t) pdf_document_index_generate;
   functions->page_init                = (zathura_plugin_page_init_t) pdf_page_init;
   functions->page_clear               = (zathura_plugin_page_clear_t) pdf_page_clear;
@@ -133,6 +134,19 @@ pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document
   fz_close_document(mupdf_document->document);
   free(mupdf_document);
   zathura_document_set_data(document, NULL);
+
+  return ZATHURA_ERROR_OK;
+}
+
+zathura_error_t
+pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
+    mupdf_document, const char* path)
+{
+  if (document == NULL || mupdf_document == NULL || path == NULL) {
+    return ZATHURA_ERROR_INVALID_ARGUMENTS;
+  }
+
+  fz_write_document(mupdf_document->document, (char*) path, NULL);
 
   return ZATHURA_ERROR_OK;
 }
