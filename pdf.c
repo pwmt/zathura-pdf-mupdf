@@ -146,7 +146,11 @@ pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
-  fz_write_document(mupdf_document->document, (char*) path, NULL);
+  fz_try (mupdf_document->ctx) {
+    fz_write_document(mupdf_document->document, (char*) path, NULL);
+  } fz_catch (mupdf_document->ctx) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
 
   return ZATHURA_ERROR_OK;
 }
