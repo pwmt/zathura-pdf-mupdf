@@ -146,7 +146,11 @@ pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
-  fz_write_document(mupdf_document->document, (char*) path, NULL);
+  fz_try (mupdf_document->ctx) {
+    fz_write_document(mupdf_document->document, (char*) path, NULL);
+  } fz_catch (mupdf_document->ctx) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
 
   return ZATHURA_ERROR_OK;
 }
@@ -568,7 +572,9 @@ pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* c
   }
 
   cairo_surface_t* surface = cairo_get_target(cairo);
-  if (surface == NULL) {
+  if (surface == NULL ||
+      cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS ||
+      cairo_surface_get_type(surface) != CAIRO_SURFACE_TYPE_IMAGE) {
     return ZATHURA_ERROR_UNKNOWN;
   }
 
