@@ -374,6 +374,9 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
 
     char* buffer = NULL;
     switch (link->dest.kind) {
+      case FZ_LINK_NONE:
+        type = ZATHURA_LINK_NONE;
+        break;
       case FZ_LINK_URI:
         type         = ZATHURA_LINK_URI;
         target.value = link->dest.ld.uri.uri;
@@ -795,6 +798,9 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
     zathura_rectangle_t rect;
 
     switch (outline->dest.kind) {
+      case FZ_LINK_NONE:
+        type = ZATHURA_LINK_NONE;
+        break;
       case FZ_LINK_URI:
         type         = ZATHURA_LINK_URI;
         target.value = outline->dest.ld.uri.uri;
