@@ -214,7 +214,7 @@ pdf_page_init(zathura_page_t* page)
     goto error_free;
   }
 
-  mupdf_page->bbox = fz_bound_page(mupdf_document->document, (fz_page*) mupdf_page->page);
+  fz_bound_page(mupdf_document->document, (fz_page*) mupdf_page->page, &mupdf_page->bbox);
 
   /* get page dimensions */
   zathura_page_set_width(page,  mupdf_page->bbox.x1 - mupdf_page->bbox.x0);
@@ -222,7 +222,7 @@ pdf_page_init(zathura_page_t* page)
 
   /* setup text */
   mupdf_page->extracted_text = false;
-  mupdf_page->text           = fz_new_text_page(mupdf_page->ctx, mupdf_page->bbox);
+  mupdf_page->text           = fz_new_text_page(mupdf_page->ctx, &mupdf_page->bbox);
   if (mupdf_page->text == NULL) {
     goto error_free;
   }
@@ -529,7 +529,9 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
   fz_try (mupdf_document->ctx) {
-    fz_run_page(mupdf_document->document, mupdf_page->page, device, fz_scale(scale, scale), NULL);
+    fz_matrix m;
+    fz_scale(&m, scale, scale);
+    fz_run_page(mupdf_document->document, mupdf_page->page, device, &m, NULL);
   } fz_catch (mupdf_document->ctx) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;
@@ -539,13 +541,14 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
 
   fz_free_device(device);
 
-  fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
+  fz_irect irect = { .x1 = page_width, .y1 = page_height };
+  fz_rect rect = { .x1 = page_width, .y1 = page_height };
 
-  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, fz_device_rgb, bbox);
+  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, fz_device_rgb, &irect);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
-  fz_run_display_list(display_list, device, fz_identity, bbox, NULL);
+  fz_run_display_list(display_list, device, &fz_identity, &rect, NULL);
   fz_free_device(device);
 
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
@@ -599,20 +602,23 @@ pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* c
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
   fz_try (mupdf_document->ctx) {
-    fz_run_page(mupdf_document->document, mupdf_page->page, device, fz_scale(scalex, scaley), NULL);
+    fz_matrix m;
+    fz_scale(&m, scalex, scaley);
+    fz_run_page(mupdf_document->document, mupdf_page->page, device, &m, NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }
 
   fz_free_device(device);
 
-  fz_bbox bbox = { .x1 = page_width, .y1 = page_height };
+  fz_irect irect = { .x1 = page_width, .y1 = page_height };
+  fz_rect rect = { .x1 = page_width, .y1 = page_height };
 
-  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, fz_device_rgb, bbox);
+  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, fz_device_rgb, &irect);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
-  fz_run_display_list(display_list, device, fz_identity, bbox, NULL);
+  fz_run_display_list(display_list, device, &fz_identity, &rect, NULL);
   fz_free_device(device);
 
   int rowstride        = cairo_image_surface_get_stride(surface);
@@ -769,12 +775,12 @@ mupdf_page_extract_text(fz_document* document, mupdf_page_t* mupdf_page)
   fz_device* text_device        = fz_new_text_device(mupdf_page->ctx, mupdf_page->sheet, mupdf_page->text);
 
   fz_try (mupdf_page->ctx) {
-    fz_run_page(document, mupdf_page->page, device, fz_identity, NULL);
+    fz_run_page(document, mupdf_page->page, device, &fz_identity, NULL);
   } fz_catch (mupdf_page->ctx) {
     goto error_free;
   }
 
-  fz_run_display_list(display_list, text_device, fz_identity, fz_infinite_bbox, NULL);
+  fz_run_display_list(display_list, text_device, &fz_identity, &fz_infinite_rect, NULL);
   mupdf_page->extracted_text = true;
 
 error_free:
