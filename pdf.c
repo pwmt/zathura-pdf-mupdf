@@ -447,12 +447,15 @@ pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectan
 
   for (fz_text_block* block = text_page->blocks; block < text_page->blocks + text_page->len; block++) {
     for (fz_text_line* line = block->lines; line < block->lines + block->len; line++) {
-      for (fz_text_span* span = line->spans; span < line->spans + line->len; span++) {
+      for (int j = 0; j < line->len; j++) {
+        fz_text_span* span = line->spans[j];
         bool seen = false;
 
         for (int i = 0; i < span->len; i++) {
-          fz_rect hitbox = span->text[i].bbox;
+          fz_rect hitbox;
           int c = span->text[i].c;
+
+          fz_text_char_bbox(&hitbox, span, i);
 
           if (c < 32) {
             c = '?';
@@ -467,7 +470,7 @@ pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectan
           }
         }
 
-        if (seen == true && span + 1 == line->spans + line->len) {
+        if (seen == true && j + 1 == line->len) {
           g_string_append_c(text, '\n');
         }
       }
@@ -653,8 +656,8 @@ text_page_length(fz_text_page *page)
   unsigned int length = 0;
   for (fz_text_block* block = page->blocks; block < page->blocks + page->len; block++) {
     for (fz_text_line* line = block->lines; line < block->lines + block->len; line++) {
-      for (fz_text_span* span = line->spans; span < line->spans + line->len; span++) {
-        length += span->len;
+      for (int i = 0; i < line->len; i++) {
+        length += line->spans[i]->len;
       }
 
       length++;
@@ -699,12 +702,13 @@ text_page_char_at(fz_text_page *page, int index)
   int offset = 0;
   for (fz_text_block* block = page->blocks; block < page->blocks + page->len; block++) {
     for (fz_text_line* line = block->lines; line < block->lines + block->len; line++) {
-      for (fz_text_span* span = line->spans; span < line->spans + line->len; span++) {
+      for (int i = 0; i < line->len; i++) {
+        fz_text_span* span = line->spans[i];
         if (index < offset + span->len) {
           return span->text[index - offset].c;
         }
 
-        if (span + 1 == line->spans + line->len) {
+        if (i + 1 == line->len) {
           if (index == offset + span->len) {
             return ' ';
           }
@@ -730,9 +734,11 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_page* page,
   int offset = 0;
   for (fz_text_block* block = page->blocks; block < page->blocks + page->len; block++) {
     for (fz_text_line* line = block->lines; line < block->lines + block->len; line++) {
-      for (fz_text_span* span = line->spans; span < line->spans + line->len; span++) {
+      for (int i = 0; i < line->len; i++) {
+        fz_text_span* span = line->spans[i];
         if (index < offset + span->len) {
-          fz_rect coordinates = span->text[index - offset].bbox;
+          fz_rect coordinates;
+          fz_text_char_bbox(&coordinates, span, index - offset);
 
           if (rectangle->x1 == 0) {
             rectangle->x1 = coordinates.x0;
@@ -753,7 +759,7 @@ search_result_add_char(zathura_rectangle_t* rectangle, fz_text_page* page,
           return;
         }
 
-        if (span + 1 == line->spans + line->len) {
+        if (i + 1 == line->len) {
           offset++;
         }
 
