@@ -14,6 +14,7 @@ ZATHURA_GTK_VERSION ?= $(shell pkg-config --variable=GTK_VERSION zathura)
 # paths
 PREFIX ?= /usr
 LIBDIR ?= ${PREFIX}/lib
+DESKTOPPREFIX ?= ${PREFIX}/share/applications
 
 # libs
 GTK_INC ?= $(shell pkg-config --cflags gtk+-${ZATHURA_GTK_VERSION}.0)
