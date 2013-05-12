@@ -113,6 +113,9 @@ error_free:
     if (mupdf_document->document != NULL) {
       fz_close_document(mupdf_document->document);
     }
+    if (mupdf_document->ctx != NULL) {
+      fz_free_context(mupdf_document->ctx);
+    }
 
     free(mupdf_document);
   }
@@ -132,6 +135,7 @@ pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document
   }
 
   fz_close_document(mupdf_document->document);
+  fz_free_context(mupdf_document->ctx);
   free(mupdf_document);
   zathura_document_set_data(document, NULL);
 
