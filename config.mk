@@ -2,7 +2,7 @@
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 2
-VERSION_REV = 3
+VERSION_REV = 4
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
@@ -14,6 +14,7 @@ ZATHURA_GTK_VERSION ?= $(shell pkg-config --variable=GTK_VERSION zathura)
 # paths
 PREFIX ?= /usr
 LIBDIR ?= ${PREFIX}/lib
+DESKTOPPREFIX ?= ${PREFIX}/share/applications
 
 # libs
 GTK_INC ?= $(shell pkg-config --cflags gtk+-${ZATHURA_GTK_VERSION}.0)
