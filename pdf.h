@@ -24,7 +24,6 @@ typedef struct mupdf_page_s
   fz_text_sheet* sheet; /**< Text sheet */
   fz_text_page* text; /**< Page text */
   fz_rect bbox; /**< Bbox */
-  bool extracted_text; /**< Text has been extracted */
 } mupdf_page_t;
 
 /**
