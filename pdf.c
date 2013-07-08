@@ -471,13 +471,13 @@ pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectan
               && hitbox.x0 <= rectangle.x2
               && hitbox.y1 >= rectangle.y1
               && hitbox.y0 <= rectangle.y2) {
-            g_string_append_c(text, c);
+            g_string_append_unichar(text, c);
             seen = true;
           }
         }
 
         if (seen == true && span + 1 == line->spans + line->len) {
-          g_string_append_c(text, '\n');
+          g_string_append_unichar(text, '\n');
         }
       }
     }
