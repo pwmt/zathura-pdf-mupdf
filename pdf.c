@@ -6,9 +6,8 @@
 #include <ctype.h>
 #include <girara/datastructures.h>
 #include <glib.h>
-#include <muxps.h>
-#include <mupdf.h>
-#include <fitz.h>
+#include <mupdf/xps.h>
+#include <mupdf/pdf.h>
 
 #include "pdf.h"
 
@@ -225,7 +224,7 @@ pdf_page_init(zathura_page_t* page)
   zathura_page_set_height(page, mupdf_page->bbox.y1 - mupdf_page->bbox.y0);
 
   /* setup text */
-  mupdf_page->text           = fz_new_text_page(mupdf_page->ctx, &mupdf_page->bbox);
+  mupdf_page->text = fz_new_text_page(mupdf_page->ctx);
   if (mupdf_page->text == NULL) {
     goto error_free;
   }
@@ -506,7 +505,7 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
   }
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
-  fz_free_display_list(mupdf_page->ctx, display_list);
+  fz_drop_display_list(mupdf_page->ctx, display_list);
 
   return image_buffer;
 }
@@ -580,7 +579,7 @@ pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* c
   }
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
-  fz_free_display_list(mupdf_page->ctx, display_list);
+  fz_drop_display_list(mupdf_page->ctx, display_list);
 
   return ZATHURA_ERROR_OK;;
 }

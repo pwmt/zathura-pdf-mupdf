@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 #include <zathura/plugin-api.h>
-#include <fitz.h>
+#include <mupdf/fitz.h>
 
 #if HAVE_CAIRO
 #include <cairo.h>
