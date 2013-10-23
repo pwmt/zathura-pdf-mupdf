@@ -287,6 +287,8 @@ pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char*
     goto error_ret;
   }
 
+  mupdf_document_t* mupdf_document = zathura_document_get_data(document);;
+
   girara_list_t* list = girara_list_new2((girara_free_function_t) zathura_link_free);
   if (list == NULL) {
     if (error != NULL) {
@@ -295,12 +297,22 @@ pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char*
     goto error_free;
   }
 
-  fz_rect hit_bbox[N_SEARCH_RESULTS];
-  int results = fz_search_text_page(mupdf_page->ctx, mupdf_page->text, (char*) text, hit_bbox, N_SEARCH_RESULTS);
+  /* extract text */
+  fz_try (mupdf_document->ctx) {
+    fz_device* text_device = fz_new_text_device(mupdf_page->ctx, mupdf_page->sheet, mupdf_page->text);
+    fz_matrix ctm;
+    fz_scale(&ctm, 1.0, 1.0);
+    fz_run_page(mupdf_document->document, mupdf_page->page, text_device, &ctm, NULL);
+    fz_free_device(text_device);
+  } fz_catch (mupdf_document->ctx) {
+    // TODO: Implement correct error handling
+  }
 
-  fprintf(stderr, "results for '%s': %d\n", text, results);
+  fz_rect* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, sizeof(fz_rect));
+  int num_results = fz_search_text_page(mupdf_page->ctx, mupdf_page->text,
+      (char*) text, hit_bbox, N_SEARCH_RESULTS);
 
-  for (int i = 0; i < results; i++) {
+  for (int i = 0; i < num_results; i++) {
     zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));
 
     rectangle->x1 = hit_bbox[i].x0;
@@ -310,6 +322,8 @@ pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char*
 
     girara_list_append(list, rectangle);
   }
+
+  fz_free(mupdf_page->ctx, hit_bbox);
 
   return list;
 
