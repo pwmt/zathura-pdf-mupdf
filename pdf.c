@@ -19,6 +19,8 @@ static void build_index(fz_outline* outline,
     girara_tree_node_t* root);
 static void get_images(pdf_obj* dict, girara_list_t* list);
 static void pdf_zathura_image_free(zathura_image_t* image);
+static void mupdf_page_extract_text(mupdf_document_t* mupdf_document,
+    mupdf_page_t* mupdf_page);
 
 void
 register_functions(zathura_plugin_functions_t* functions)
@@ -224,6 +226,8 @@ pdf_page_init(zathura_page_t* page)
   zathura_page_set_height(page, mupdf_page->bbox.y1 - mupdf_page->bbox.y0);
 
   /* setup text */
+  mupdf_page->extracted_text = false;
+
   mupdf_page->text = fz_new_text_page(mupdf_page->ctx);
   if (mupdf_page->text == NULL) {
     goto error_free;
@@ -298,14 +302,8 @@ pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char*
   }
 
   /* extract text */
-  fz_try (mupdf_document->ctx) {
-    fz_device* text_device = fz_new_text_device(mupdf_page->ctx, mupdf_page->sheet, mupdf_page->text);
-    fz_matrix ctm;
-    fz_scale(&ctm, 1.0, 1.0);
-    fz_run_page(mupdf_document->document, mupdf_page->page, text_device, &ctm, NULL);
-    fz_free_device(text_device);
-  } fz_catch (mupdf_document->ctx) {
-    // TODO: Implement correct error handling
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
   }
 
   fz_rect* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, sizeof(fz_rect));
@@ -431,6 +429,13 @@ pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectan
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
     }
     goto error_ret;
+  }
+
+  zathura_document_t* document     = zathura_page_get_document(page);
+  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
   }
 
   fz_rect rect = { rectangle.x1, rectangle.y1, rectangle.x2, rectangle.y2 };
@@ -783,4 +788,26 @@ get_resources(pdf_obj* resource, girara_list_t* list)
       get_resources(subsrc, list);
     }
   }
+}
+
+static void
+mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page) {
+  if (mupdf_document == NULL || mupdf_document->ctx == NULL || mupdf_page == NULL ||
+      mupdf_page->sheet == NULL || mupdf_page->text == NULL) {
+    return;
+  }
+
+  fz_device* text_device = NULL;
+
+  fz_try (mupdf_page->ctx) {
+    text_device = fz_new_text_device(mupdf_page->ctx, mupdf_page->sheet, mupdf_page->text);
+    fz_matrix ctm;
+    fz_scale(&ctm, 1.0, 1.0);
+    fz_run_page(mupdf_document->document, mupdf_page->page, text_device, &ctm, NULL);
+  } fz_always (mupdf_document->ctx) {
+    fz_free_device(text_device);
+  } fz_catch(mupdf_document->ctx) {
+  }
+
+  mupdf_page->extracted_text = true;
 }
