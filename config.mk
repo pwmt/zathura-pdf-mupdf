@@ -2,7 +2,7 @@
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 2
-VERSION_REV = 4
+VERSION_REV = 5
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
@@ -29,8 +29,11 @@ ifeq (,${PLUGINDIR})
 PLUGINDIR = ${LIBDIR}/zathura
 endif
 
-INCS = ${GTK_INC} ${ZATHURA_INC} ${GIRARA_INC}
-LIBS = ${GIRARA_LIB} ${GTK_LIB} -lfitz -ljbig2dec -lopenjpeg -ljpeg
+OPENSSL_INC ?= $(shell pkg-config --cflags openssl)
+OPENSSL_LIB ?= $(shell pkg-config --libs openssl)
+
+INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC}
+LIBS = ${GTK_LIB} ${GIRARA_LIB} ${OPENSSL_LIB} -lmupdf -lmupdf-js-none -ljbig2dec -lopenjp2 -ljpeg
 
 # flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)

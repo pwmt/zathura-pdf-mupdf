@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 #include <zathura/plugin-api.h>
-#include <fitz.h>
+#include <mupdf/fitz.h>
 
 #if HAVE_CAIRO
 #include <cairo.h>
@@ -24,7 +24,7 @@ typedef struct mupdf_page_s
   fz_text_sheet* sheet; /**< Text sheet */
   fz_text_page* text; /**< Page text */
   fz_rect bbox; /**< Bbox */
-  bool extracted_text; /**< Text has been extracted */
+  bool extracted_text; /**< If text has already been extracted */
 } mupdf_page_t;
 
 /**
