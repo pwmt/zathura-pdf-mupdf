@@ -457,6 +457,14 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
 			  unsigned int page_width, unsigned int page_height,
 			  double scalex, double scaley)
 {
+  if (mupdf_document == NULL ||
+      mupdf_document->ctx == NULL ||
+      mupdf_page == NULL ||
+      mupdf_page->page == NULL ||
+      image == NULL) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
+
   fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx);
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
@@ -535,13 +543,13 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
 
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
 
-  zathura_error_t e = pdf_page_render_to_buffer(mupdf_document, mupdf_page, image, rowstride, 3,
+  zathura_error_t error_render = pdf_page_render_to_buffer(mupdf_document, mupdf_page, image, rowstride, 3,
 						page_width, page_height, scalex, scaley);
 
-  if (e != ZATHURA_ERROR_OK) {
+  if (error_render != ZATHURA_ERROR_OK) {
     zathura_image_buffer_free(image_buffer);
     if (error != NULL) {
-      *error = e;
+      *error = error_render;
     }
     return NULL;
   }
