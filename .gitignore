@@ -4,3 +4,6 @@
 pdf.so
 *.swp
 zathura-version-check
+.ycm_extra_conf.*
+compile_commands.json
+tags
