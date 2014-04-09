@@ -48,7 +48,7 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
     zathura_index_element_t* index_element = zathura_index_element_new(outline->title);
     zathura_link_target_t target;
     zathura_link_type_t type;
-    zathura_rectangle_t rect;
+    zathura_rectangle_t rect = { .x1 = 0, .y1 = 0, .x2 = 0, .y2 = 0 };
 
     switch (outline->dest.kind) {
       case FZ_LINK_NONE:
@@ -65,6 +65,18 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
         target.left             = 0;
         target.top              = 0;
         target.scale            = 0.0;
+        {
+          int gflags = outline->dest.ld.gotor.flags;
+          if (gflags & fz_link_flag_l_valid) {
+            target.left = outline->dest.ld.gotor.lt.x;
+          }
+          if (gflags & fz_link_flag_t_valid) {
+            target.top = outline->dest.ld.gotor.lt.y;
+          }
+          if (gflags & fz_link_flag_r_is_zoom) {
+            target.scale = outline->dest.ld.gotor.rb.x;
+          }
+        }
         break;
       default:
         continue;
