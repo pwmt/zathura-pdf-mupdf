@@ -46,9 +46,9 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
 
   while (outline != NULL) {
     zathura_index_element_t* index_element = zathura_index_element_new(outline->title);
-    zathura_link_target_t target;
-    zathura_link_type_t type;
-    zathura_rectangle_t rect = { .x1 = 0, .y1 = 0, .x2 = 0, .y2 = 0 };
+    zathura_link_target_t target           = { ZATHURA_LINK_DESTINATION_UNKNOWN, NULL, 0, -1, -1, -1, -1, 0 };
+    zathura_link_type_t type               = ZATHURA_LINK_INVALID;
+    zathura_rectangle_t rect               = { .x1 = 0, .y1 = 0, .x2 = 0, .y2 = 0 };
 
     switch (outline->dest.kind) {
       case FZ_LINK_NONE:
