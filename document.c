@@ -46,7 +46,7 @@ pdf_document_open(zathura_document_t* document)
 
   /* authenticate if password is required and given */
   if (fz_needs_password(mupdf_document->document) != 0) {
-    if (password == NULL || fz_authenticate_password(mupdf_document->document, (char*) password) != 0) {
+    if (password == NULL || fz_authenticate_password(mupdf_document->document, (char*) password) == 0) {
       error = ZATHURA_ERROR_INVALID_PASSWORD;
       goto error_free;
     }
