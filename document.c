@@ -33,10 +33,16 @@ pdf_document_open(zathura_document_t* document)
   const char* path     = zathura_document_get_path(document);
   const char* password = zathura_document_get_password(document);
 
-  if (strstr(path, ".xps") != 0 || strstr(path, ".XPS") != 0 || strstr(path, ".rels") != 0) {
-    mupdf_document->document = (fz_document*) xps_open_document(mupdf_document->ctx, (char*) path);
-  } else {
-    mupdf_document->document = (fz_document*) pdf_open_document(mupdf_document->ctx, (char*) path);
+  fz_try(mupdf_document->ctx){
+    if (strstr(path, ".xps") != 0 || strstr(path, ".XPS") != 0 || strstr(path, ".rels") != 0) {
+      mupdf_document->document = (fz_document*) xps_open_document(mupdf_document->ctx, (char*) path);
+    } else {
+      mupdf_document->document = (fz_document*) pdf_open_document(mupdf_document->ctx, (char*) path);
+    }
+  }
+  fz_catch(mupdf_document->ctx){
+    error = ZATHURA_ERROR_UNKNOWN;
+    return error;
   }
 
   if (mupdf_document->document == NULL) {
@@ -46,7 +52,7 @@ pdf_document_open(zathura_document_t* document)
 
   /* authenticate if password is required and given */
   if (fz_needs_password(mupdf_document->document) != 0) {
-    if (password == NULL || fz_authenticate_password(mupdf_document->document, (char*) password) != 0) {
+    if (password == NULL || fz_authenticate_password(mupdf_document->document, (char*) password) == 0) {
       error = ZATHURA_ERROR_INVALID_PASSWORD;
       goto error_free;
     }

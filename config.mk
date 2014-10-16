@@ -2,7 +2,7 @@
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 2
-VERSION_REV = 6
+VERSION_REV = 7
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
@@ -32,7 +32,7 @@ endif
 OPENSSL_INC ?= $(shell pkg-config --cflags libcrypto)
 OPENSSL_LIB ?= $(shell pkg-config --libs libcrypto)
 
-MUPDF_LIB ?= -lmupdf -lmupdf-js-none
+MUPDF_LIB ?= -lmupdf -lmujs
 
 INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC}
 LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} -ljbig2dec -lopenjp2 -ljpeg

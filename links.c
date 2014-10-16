@@ -59,6 +59,30 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
         target.left             = 0;
         target.top              = 0;
         target.scale            = 0.0;
+        {
+          int gflags = link->dest.ld.gotor.flags;
+          if (gflags & fz_link_flag_l_valid) {
+            target.left = link->dest.ld.gotor.lt.x;
+          }
+          if (gflags & fz_link_flag_t_valid) {
+            target.top = link->dest.ld.gotor.lt.y;
+          }
+          /* if (gflags & fz_link_flag_r_is_zoom) { */
+          /*   target.scale = link->dest.ld.gotor.rb.x; */
+          /* } */
+        }
+        break;
+      case FZ_LINK_LAUNCH:
+        type = ZATHURA_LINK_LAUNCH;
+        target.value = link->dest.ld.launch.file_spec;
+        break;
+      case FZ_LINK_NAMED:
+        type = ZATHURA_LINK_NAMED;
+        target.value = link->dest.ld.named.named;
+        break;
+      case FZ_LINK_GOTOR:
+        type = ZATHURA_LINK_GOTO_REMOTE;
+        target.value = link->dest.ld.gotor.file_spec;
         break;
       default:
         continue;
