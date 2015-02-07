@@ -73,17 +73,31 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
           if (gflags & fz_link_flag_t_valid) {
             target.top = outline->dest.ld.gotor.lt.y;
           }
-          if (gflags & fz_link_flag_r_is_zoom) {
-            target.scale = outline->dest.ld.gotor.rb.x;
-          }
+          /* if (gflags & fz_link_flag_r_is_zoom) { */
+          /*   target.scale = outline->dest.ld.gotor.rb.x; */
+          /* } */
         }
         break;
+      case FZ_LINK_LAUNCH:
+        type = ZATHURA_LINK_LAUNCH;
+        target.value = outline->dest.ld.launch.file_spec;
+        break;
+      case FZ_LINK_NAMED:
+        type = ZATHURA_LINK_NAMED;
+        target.value = outline->dest.ld.named.named;
+        break;
+      case FZ_LINK_GOTOR:
+        type = ZATHURA_LINK_GOTO_REMOTE;
+        target.value = outline->dest.ld.gotor.file_spec;
+        break;
       default:
+        outline = outline->next; // TODO: Don't skip unknown type
         continue;
     }
 
     index_element->link = zathura_link_new(type, rect, target);
     if (index_element->link == NULL) {
+      outline = outline->next;
       continue;
     }
 
