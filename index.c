@@ -19,7 +19,7 @@ pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupd
   }
 
   /* get outline */
-  fz_outline* outline = fz_load_outline(mupdf_document->document);
+  fz_outline* outline = fz_load_outline(mupdf_document->ctx, mupdf_document->document);
   if (outline == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
@@ -32,7 +32,7 @@ pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupd
   build_index(outline, root);
 
   /* free outline */
-  fz_free_outline(mupdf_document->ctx, outline);
+  fz_drop_outline(mupdf_document->ctx, outline);
 
   return root;
 }
