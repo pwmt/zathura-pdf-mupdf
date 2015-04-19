@@ -113,6 +113,20 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page
  */
 girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
 
+#if HAVE_CAIRO
+/**
+ * Gets the content of the image in a cairo surface
+ *
+ * @param page Page
+ * @param image Image identifier
+ * @param error Set to an error value (see \ref zathura_error_t) if an
+ *   error occured
+ * @return The cairo image surface or NULL if an error occured
+ */
+cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t*
+    mupdf_page, zathura_image_t* image, zathura_error_t* error);
+#endif
+
 /**
  * Get text for selection
  * @param page Page

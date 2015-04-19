@@ -7,9 +7,6 @@
 #include "plugin.h"
 #include "utils.h"
 
-void mupdf_page_extract_text(mupdf_document_t* mupdf_document,
-    mupdf_page_t* mupdf_page);
-
 char*
 pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error)
 {
