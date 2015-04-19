@@ -32,6 +32,7 @@ ZATHURA_PLUGIN_REGISTER(
   register_functions,
   ZATHURA_PLUGIN_MIMETYPES({
     "application/pdf",
-    "application/oxps"
+    "application/oxps",
+    "application/epub+zip"
   })
 )
