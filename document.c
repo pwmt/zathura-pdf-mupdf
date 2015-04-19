@@ -6,7 +6,11 @@
 #include <mupdf/xps.h>
 #include <mupdf/pdf.h>
 
+#include <glib-2.0/glib.h>
+
 #include "plugin.h"
+
+#define LENGTH(x) (sizeof(x)/sizeof((x)[0]))
 
 zathura_error_t
 pdf_document_open(zathura_document_t* document)
@@ -118,3 +122,97 @@ pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
   return ZATHURA_ERROR_OK;
 }
 
+girara_list_t*
+pdf_document_get_information(zathura_document_t* document, mupdf_document_t*
+    mupdf_document, zathura_error_t* error)
+{
+  if (document == NULL || mupdf_document == NULL || error == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
+    }
+  }
+
+  girara_list_t* list = zathura_document_information_entry_list_new();
+  if (list == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_UNKNOWN;
+    }
+    return NULL;
+  }
+
+  fz_try (mupdf_document->ctx) {
+    pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, (pdf_document*) mupdf_document->document);
+    pdf_obj* info_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME_Info);
+
+    /* get string values */
+    typedef struct info_value_s {
+      const char* property;
+      zathura_document_information_type_t type;
+    } info_value_t;
+
+    static const info_value_t string_values[] = {
+      { "Title",    ZATHURA_DOCUMENT_INFORMATION_TITLE },
+      { "Author",   ZATHURA_DOCUMENT_INFORMATION_AUTHOR },
+      { "Subject",  ZATHURA_DOCUMENT_INFORMATION_SUBJECT },
+      { "Keywords", ZATHURA_DOCUMENT_INFORMATION_KEYWORDS },
+      { "Creator",  ZATHURA_DOCUMENT_INFORMATION_CREATOR },
+      { "Producer", ZATHURA_DOCUMENT_INFORMATION_PRODUCER }
+    };
+
+    for (unsigned int i = 0; i < LENGTH(string_values); i++) {
+      pdf_obj* value = pdf_dict_gets(mupdf_document->ctx, info_dict, string_values[i].property);
+      if (value == NULL) {
+        continue;
+      }
+
+      char* str_value = pdf_to_str_buf(mupdf_document->ctx, value);
+      if (str_value == NULL || strlen(str_value) == 0) {
+        continue;
+      }
+
+      zathura_document_information_entry_t* entry =
+        zathura_document_information_entry_new(
+          string_values[i].type,
+          str_value
+        );
+
+    if (entry != NULL) {
+      girara_list_append(list, entry);
+    }
+    }
+
+    static const info_value_t time_values[] = {
+      { "CreationDate", ZATHURA_DOCUMENT_INFORMATION_CREATION_DATE },
+      { "ModDate",      ZATHURA_DOCUMENT_INFORMATION_MODIFICATION_DATE }
+    };
+
+    for (unsigned int i = 0; i < LENGTH(time_values); i++) {
+      pdf_obj* value = pdf_dict_gets(mupdf_document->ctx, info_dict, time_values[i].property);
+      if (value == NULL) {
+        continue;
+      }
+
+      char* str_value = pdf_to_str_buf(mupdf_document->ctx, value);
+      if (str_value == NULL || strlen(str_value) == 0) {
+        continue;
+      }
+
+      zathura_document_information_entry_t* entry =
+        zathura_document_information_entry_new(
+          time_values[i].type,
+          str_value // FIXME: Convert to common format
+        );
+
+      if (entry != NULL) {
+        girara_list_append(list, entry);
+      }
+    }
+  } fz_catch (mupdf_document->ctx) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_UNKNOWN;
+    }
+    return NULL;
+  }
+
+  return list;
+}
