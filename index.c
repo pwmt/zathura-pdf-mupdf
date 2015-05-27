@@ -19,7 +19,7 @@ pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupd
   }
 
   /* get outline */
-  fz_outline* outline = fz_load_outline(mupdf_document->document);
+  fz_outline* outline = fz_load_outline(mupdf_document->ctx, mupdf_document->document);
   if (outline == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
@@ -32,7 +32,7 @@ pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupd
   build_index(outline, root);
 
   /* free outline */
-  fz_free_outline(mupdf_document->ctx, outline);
+  fz_drop_outline(mupdf_document->ctx, outline);
 
   return root;
 }
@@ -73,17 +73,31 @@ build_index(fz_outline* outline, girara_tree_node_t* root)
           if (gflags & fz_link_flag_t_valid) {
             target.top = outline->dest.ld.gotor.lt.y;
           }
-          if (gflags & fz_link_flag_r_is_zoom) {
-            target.scale = outline->dest.ld.gotor.rb.x;
-          }
+          /* if (gflags & fz_link_flag_r_is_zoom) { */
+          /*   target.scale = outline->dest.ld.gotor.rb.x; */
+          /* } */
         }
         break;
+      case FZ_LINK_LAUNCH:
+        type = ZATHURA_LINK_LAUNCH;
+        target.value = outline->dest.ld.launch.file_spec;
+        break;
+      case FZ_LINK_NAMED:
+        type = ZATHURA_LINK_NAMED;
+        target.value = outline->dest.ld.named.named;
+        break;
+      case FZ_LINK_GOTOR:
+        type = ZATHURA_LINK_GOTO_REMOTE;
+        target.value = outline->dest.ld.gotor.file_spec;
+        break;
       default:
+        outline = outline->next; // TODO: Don't skip unknown type
         continue;
     }
 
     index_element->link = zathura_link_new(type, rect, target);
     if (index_element->link == NULL) {
+      outline = outline->next;
       continue;
     }
 

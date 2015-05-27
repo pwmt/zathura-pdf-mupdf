@@ -31,7 +31,7 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
     goto error_free;
   }
 
-  fz_link* link = fz_load_links(mupdf_document->document, mupdf_page->page);
+  fz_link* link = fz_load_links(mupdf_document->ctx, mupdf_page->page);
   for (; link != NULL; link = link->next) {
     /* extract position */
     zathura_rectangle_t position;

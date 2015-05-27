@@ -7,10 +7,9 @@
 #include <mupdf/pdf.h>
 
 #include "plugin.h"
+#include "utils.h"
 
 static void pdf_zathura_image_free(zathura_image_t* image);
-static void get_images(pdf_obj* dict, girara_list_t* list);
-static void get_resources(pdf_obj* resource, girara_list_t* list);
 
 girara_list_t*
 pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error)
@@ -30,16 +29,7 @@ pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_erro
 
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
 
-  pdf_obj* page_object = pdf_load_object((pdf_document*) mupdf_document->document, zathura_page_get_index(page), 0);
-  if (page_object == NULL) {
-    goto error_free;
-  }
-
-  pdf_obj* resource = pdf_dict_gets(page_object, "Resources");
-  if (resource == NULL) {
-    goto error_free;
-  }
-
+  /* Setup image list */
   list = girara_list_new();
   if (list == NULL) {
     if (error != NULL) {
@@ -50,7 +40,25 @@ pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_erro
 
   girara_list_set_free_function(list, (girara_free_function_t) pdf_zathura_image_free);
 
-  get_resources(resource, list);
+  /* Extract images */
+  mupdf_page_extract_text(mupdf_document, mupdf_page);
+
+  fz_page_block* block;
+  for (block = mupdf_page->text->blocks; block < mupdf_page->text->blocks + mupdf_page->text->len; block++) {
+    if (block->type == FZ_PAGE_BLOCK_IMAGE) {
+      fz_image_block *image_block = block->u.image;
+
+      zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
+
+      zathura_image->position.x1 = image_block->bbox.x0;
+      zathura_image->position.y1 = image_block->bbox.y0;
+      zathura_image->position.x2 = image_block->bbox.x1;
+      zathura_image->position.y2 = image_block->bbox.y1;
+      zathura_image->data        = image_block->image;
+
+      girara_list_append(list, zathura_image);
+    }
+  }
 
   return list;
 
@@ -69,6 +77,75 @@ error_ret:
   return NULL;
 }
 
+cairo_surface_t*
+pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page,
+    zathura_image_t* image, zathura_error_t* error)
+{
+  if (page == NULL || mupdf_page == NULL || image == NULL || image->data == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
+    }
+    goto error_ret;
+  }
+
+  fz_image* mupdf_image = (fz_image*) image->data;
+
+  fz_pixmap* pixmap = NULL;
+  cairo_surface_t* surface = NULL;
+
+  pixmap = fz_new_pixmap_from_image(mupdf_page->ctx, mupdf_image, 0, 0);
+  if (pixmap == NULL) {
+    goto error_free;
+  }
+
+  surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, mupdf_image->w, mupdf_image->h);
+  if (surface == NULL) {
+    goto error_free;
+  }
+
+  unsigned char* surface_data = cairo_image_surface_get_data(surface);
+  int rowstride = cairo_image_surface_get_stride(surface);
+
+  unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
+  unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
+
+  for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
+    for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
+      guchar* p = surface_data + y * rowstride + x * 4;
+
+      // RGB
+      if (n == 4) {
+        p[0] = s[2];
+        p[1] = s[1];
+        p[2] = s[0];
+      // Gray-scale or mask
+      } else {
+        p[0] = s[0];
+        p[1] = s[0];
+        p[2] = s[0];
+      }
+      s += n;
+    }
+  }
+
+  fz_drop_pixmap(mupdf_page->ctx, pixmap);
+
+  return surface;
+
+error_free:
+
+  if (pixmap != NULL) {
+    fz_drop_pixmap(mupdf_page->ctx, pixmap);
+  }
+
+  if (surface != NULL) {
+    cairo_surface_destroy(surface);
+  }
+
+error_ret:
+
+  return NULL;
+}
 
 static void
 pdf_zathura_image_free(zathura_image_t* image)
@@ -79,75 +156,3 @@ pdf_zathura_image_free(zathura_image_t* image)
 
   g_free(image);
 }
-
-static void
-get_images(pdf_obj* dict, girara_list_t* list)
-{
-  if (dict == NULL || list == NULL) {
-    return;
-  }
-
-  for (int i = 0; i < pdf_dict_len(dict); i++) {
-    pdf_obj* image_dict = pdf_dict_get_val(dict, i);
-    if (pdf_is_dict(image_dict) == 0) {
-      continue;
-    }
-
-    pdf_obj* type = pdf_dict_gets(image_dict, "Subtype");
-    if (strcmp(pdf_to_name(type), "Image") != 0) {
-      continue;
-    }
-
-    bool duplicate = false;
-    GIRARA_LIST_FOREACH(list, zathura_image_t*, iter, image)
-      if (image->data == image_dict) {
-        duplicate = true;
-        break;
-      }
-    GIRARA_LIST_FOREACH_END(list, zathura_image_t*, iter, image);
-
-    if (duplicate == true) {
-      continue;
-    }
-
-    pdf_obj* width  = pdf_dict_gets(image_dict, "Width");
-    pdf_obj* height = pdf_dict_gets(image_dict, "Height");
-
-    zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
-
-    fprintf(stderr, "image\n");
-
-    // FIXME: Get correct image coordinates
-    zathura_image->data        = image_dict;
-    zathura_image->position.x1 = 0;
-    zathura_image->position.x2 = pdf_to_int(width);
-    zathura_image->position.y1 = 0;
-    zathura_image->position.y2 = pdf_to_int(height);
-
-    girara_list_append(list, zathura_image);
-  }
-}
-
-static void
-get_resources(pdf_obj* resource, girara_list_t* list)
-{
-  if (resource == NULL || list == NULL) {
-    return;
-  }
-
-  pdf_obj* x_object = pdf_dict_gets(resource, "XObject");
-  if (x_object == NULL) {
-    return;
-  }
-
-  get_images(x_object, list);
-
-  for (int i = 0; i < pdf_dict_len(x_object); i++) {
-    pdf_obj* obj = pdf_dict_get_val(x_object, i);
-    pdf_obj* subsrc = pdf_dict_gets(obj, "Resources");
-    if (subsrc != NULL && pdf_objcmp(resource, subsrc)) {
-      get_resources(subsrc, list);
-    }
-  }
-}
-
