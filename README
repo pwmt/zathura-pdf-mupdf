@@ -1,14 +1,15 @@
 zathura-pdf-mupdf
 =================
-The zathura-pdf-mupdf plugin adds PDF support to zathura by using the mupdf
-rendering library.
+The zathura-pdf-poppler plugin adds PDF support to libzathura by using the
+mupdf rendering library.
 
 Requirements
 ------------
-zathura (>= 0.2.0)
-girara
+libzathura (>= 0.0.1)
 mupdf (>= 1.7)
 openjpeg (>= 2.0)
+check (>= 0.9.8) (for tests)
+libfiu (>= 0.91) (for fault-injection)
 
 Installation
 ------------
