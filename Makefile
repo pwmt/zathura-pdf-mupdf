@@ -1,16 +1,18 @@
 # See LICENSE file for license and copyright information
 
 include config.mk
+include colors.mk
 include common.mk
 
-PROJECT  = zathura-pdf-mupdf
-PLUGIN   = pdf
-SOURCE   = $(shell find . -iname "*.c")
-HEADER   = $(shell find . -iname "*.h")
-OBJECTS  = ${SOURCE:.c=.o}
-DOBJECTS = ${SOURCE:.c=.do}
+SOURCE        = $(wildcard ${PROJECT}/*.c)
+HEADER        = $(wildcard ${PROJECT}/*.h)
+OBJECTS       = $(addprefix ${BUILDDIR_RELEASE}/,${SOURCE:.c=.o})
+OBJECTS_DEBUG = $(addprefix ${BUILDDIR_DEBUG}/,${SOURCE:.c=.o})
+OBJECTS_GCOV  = $(addprefix ${BUILDDIR_GCOV}/,${SOURCE:.c=.o})
 
-ifneq "$(WITH_CAIRO)" "0"
+ifneq (${WITH_CAIRO},0)
+INCS += ${CAIRO_INC}
+LIBS += ${CAIRO_LIB}
 CPPFLAGS += -DHAVE_CAIRO
 endif
 
@@ -18,76 +20,144 @@ CPPFLAGS += "-DVERSION_MAJOR=${VERSION_MAJOR}"
 CPPFLAGS += "-DVERSION_MINOR=${VERSION_MINOR}"
 CPPFLAGS += "-DVERSION_REV=${VERSION_REV}"
 
-all: options ${PLUGIN}.so
-
-zathura-version-check:
-ifneq ($(ZATHURA_VERSION_CHECK), 0)
-	$(error "The minimum required version of zathura is ${ZATHURA_MIN_VERSION}")
-endif
-	$(QUIET)touch zathura-version-check
+all: options ${BUILDDIR_RELEASE}/${PLUGIN}.so
 
 options:
-	$(ECHO) ${PLUGIN} build options:
+ifeq "$(VERBOSE)" "1"
+	$(ECHO) ${PROJECT} build options:
 	$(ECHO) "CFLAGS  = ${CFLAGS}"
 	$(ECHO) "LDFLAGS = ${LDFLAGS}"
 	$(ECHO) "DFLAGS  = ${DFLAGS}"
 	$(ECHO) "CC      = ${CC}"
+endif
 
-%.o: %.c
-	$(ECHO) CC $<
-	@mkdir -p .depend
-	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
+# check libzathura version
 
-%.do: %.c
-	$(ECHO) CC $<
-	@mkdir -p .depend
-	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} ${DFLAGS} -o $@ $< -MMD -MF .depend/$@.dep
+${LIBZATHURA_VERSION_CHECK_FILE}:
+ifneq ($(LIBZATHURA_VERSION_CHECK), 0)
+	$(error "The minimum required version of libzathura is ${LIBZATHURA_MIN_VERSION}")
+endif
+	$(QUIET)touch ${LIBZATHURA_VERSION_CHECK_FILE}
 
-${OBJECTS}:  config.mk zathura-version-check
-${DOBJECTS}: config.mk zathura-version-check
+# release build
 
-${PLUGIN}.so: ${OBJECTS}
-	$(ECHO) LD $@
-	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(OBJECTS) ${LIBS}
+${OBJECTS}: config.mk ${LIBZATHURA_VERSION_CHECK_FILE}
 
-${PLUGIN}-debug.so: ${DOBJECTS}
-	$(ECHO) LD $@
-	$(QUIET)${CC} -shared ${LDFLAGS} -o $@ $(DOBJECTS) ${LIBS}
+${BUILDDIR_RELEASE}/%.o: %.c
+	$(call colorecho,CC,$<)
+	@mkdir -p ${DEPENDDIR}/$(dir $(abspath $@))
+	@mkdir -p $(dir $(abspath $@))
+	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} \
+		-o $@ $< -MMD -MF ${DEPENDDIR}/$(abspath $@).dep
+
+${BUILDDIR_RELEASE}/${PLUGIN}.so: ${OBJECTS}
+	$(call colorecho,LD,$@)
+	$(QUIET)${CC} -shared ${LDFLAGS} \
+		-o ${BUILDDIR_RELEASE}/${PLUGIN}.so ${OBJECTS} ${LIBS}
+
+# debug build
+
+${OBJECTS_DEBUG}: config.mk ${LIBZATHURA_VERSION_CHECK_FILE}
+
+${BUILDDIR_DEBUG}/%.o: %.c
+	$(call colorecho,CC,$<)
+	@mkdir -p ${DEPENDDIR}/$(dir $(abspath $@))
+	@mkdir -p $(dir $(abspath $@))
+	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} ${DFLAGS} \
+		-o $@ $< -MMD -MF ${DEPENDDIR}/$(abspath $@).dep
+
+${BUILDDIR_DEBUG}/${PLUGIN}.so: ${OBJECTS_DEBUG}
+	$(call colorecho,LD,${PLUGIN}.so)
+	$(QUIET)${CC} -shared ${LDFLAGS} \
+		-o ${BUILDDIR_DEBUG}/${PLUGIN}.so ${OBJECTS_DEBUG} ${LIBS}
+
+debug: options ${BUILDDIR_DEBUG}/${PLUGIN}.so
+
+# gcov build
+
+${OBJECTS_GCOV}: config.mk ${LIBZATHURA_VERSION_CHECK_FILE}
+
+${BUILDDIR_GCOV}/%.o: %.c
+	$(call colorecho,CC,$<)
+	@mkdir -p ${DEPENDDIR}/$(dir $(abspath $@))
+	@mkdir -p $(dir $(abspath $@))
+	$(QUIET)${CC} -c ${CPPFLAGS} ${CFLAGS} ${DFLAGS} \
+		-o $@ $< -MMD -MF ${DEPENDDIR}/$(abspath $@).dep
+
+${BUILDDIR_GCOV}/${PLUGIN}.so: ${OBJECTS_GCOV}
+	$(call colorecho,LD,${PLUGIN}.so)
+	$(QUIET)${CC} -shared ${LDFLAGS} \
+		-o ${BUILDDIR_GCOV}/${PLUGIN}.so ${OBJECTS_GCOV} ${LIBS}
+
+gcov: options ${BUILDDIR_GCOV}/${PLUGIN}.so
+	$(QUIET)${MAKE} -C tests run-gcov
+	$(call colorecho,LCOV,"Analyse data")
+	$(QUIET)${LCOV_EXEC} ${LCOV_FLAGS}
+	$(call colorecho,LCOV,"Generate report")
+	$(QUIET)${GENHTML_EXEC} ${GENHTML_FLAGS}
+
+# clean
 
 clean:
-	$(QUIET)rm -rf ${OBJECTS} ${DOBJECTS} $(PLUGIN).so $(PLUGIN)-debug.so \
-		doc .depend ${PROJECT}-${VERSION}.tar.gz zathura-version-check
+	$(call colorecho,RM, "Clean objects and builds")
+	$(QUIET)rm -rf ${BUILDDIR}
+	$(QUIET)rm -f ${LIBZATHURA_VERSION_CHECK_FILE}
 
-debug: options ${PLUGIN}-debug.so
+	$(call colorecho,RM, "Clean dependencies")
+	$(QUIET)rm -rf ${DEPENDDIR}
+
+	$(call colorecho,RM, "Clean distribution files")
+	$(QUIET)rm -rf ${PROJECT}-${VERSION}.tar.gz
+	$(QUIET)rm -rf ${PROJECT}.info
+	$(QUIET)rm -rf ${PROJECT}/version.h
+
+	$(call colorecho,RM, "Clean code analysis")
+	$(QUIET)rm -rf ${LCOV_OUTPUT}
+	$(QUIET)rm -rf gcov
+
+	$(QUIET)${MAKE} -C tests clean
+	$(QUIET)${MAKE} -C doc clean
+
+# documentation
+
+doc:
+	$(QUIET)${MAKE} -C doc
+
+# test suite
+
+test: ${PROJECT}
+	$(QUIET)${MAKE} -C tests run
+
+# distribution
 
 dist: clean
-	$(QUIET)mkdir -p ${PROJECT}-${VERSION}
-	$(QUIET)cp -R LICENSE Makefile config.mk common.mk Doxyfile \
-		${HEADER} ${SOURCE} AUTHORS ${PROJECT}.desktop \
-		${PROJECT}-${VERSION}
-	$(QUIET)tar -cf ${PROJECT}-${VERSION}.tar ${PROJECT}-${VERSION}
-	$(QUIET)gzip ${PROJECT}-${VERSION}.tar
-	$(QUIET)rm -rf ${PROJECT}-${VERSION}
+	$(QUIET)tar -czf $(TARFILE) --exclude=.gitignore \
+		--transform 's,^,${PROJECT}-$(VERSION)/,' \
+		`git ls-files`
 
-doc: clean
-	$(QUIET)doxygen Doxyfile
+# installation
 
 install: all
-	$(ECHO) installing ${PLUGIN} plugin
-	$(QUIET)mkdir -p ${DESTDIR}${PLUGINDIR}
-	$(QUIET)cp -f ${PLUGIN}.so ${DESTDIR}${PLUGINDIR}
+	$(call colorecho,INSTALL,"Install plugin file")
+	$(QUIET)mkdir -m 755 -p ${DESTDIR}${PLUGINDIR}
+	$(QUIET)install -m 644 ${BUILDDIR_RELEASE}/${PLUGIN}.so ${DESTDIR}${PLUGINDIR}
+	$(call colorecho,INSTALL,"Install desktop file")
 	$(QUIET)mkdir -m 755 -p ${DESTDIR}${DESKTOPPREFIX}
-	$(ECHO) installing desktop file
 	$(QUIET)install -m 644 ${PROJECT}.desktop ${DESTDIR}${DESKTOPPREFIX}
 
 uninstall:
-	$(ECHO) uninstalling ${PLUGIN} plugin
+	$(call colorecho,INSTALL,"Remove plugin file")
 	$(QUIET)rm -f ${DESTDIR}${PLUGINDIR}/${PLUGIN}.so
 	$(QUIET)rmdir --ignore-fail-on-non-empty ${DESTDIR}${PLUGINDIR} 2> /dev/null
-	$(ECHO) removing desktop file
+	$(call colorecho,INSTALL,"Remove desktop file")
 	$(QUIET)rm -f ${DESTDIR}${DESKTOPPREFIX}/${PROJECT}.desktop
 	$(QUIET)rmdir --ignore-fail-on-non-empty ${DESTDIR}${DESKTOPPREFIX} 2> /dev/null
 
 -include $(wildcard .depend/*.dep)
 
-.PHONY: all options clean debug doc dist install uninstall
+.PHONY: all options clean debug doc test dist install uninstall \
+	${PROJECT} ${PROJECT}-gcov.so
+
+${DEPENDDIR}S = ${OBJECTS:.o=.o.dep}
+DEPENDS = ${${DEPENDDIR}S:^=${DEPENDDIR}/}
+-include $${DEPENDDIR}S}
