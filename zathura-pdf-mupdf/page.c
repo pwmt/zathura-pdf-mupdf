@@ -68,6 +68,19 @@ pdf_page_init(zathura_page_t* page)
     goto error_free;
   }
 
+  /* setup text */
+  mupdf_page->extracted_text = false;
+
+  mupdf_page->text = fz_new_text_page(mupdf_page->ctx);
+  if (mupdf_page->text == NULL) {
+    goto error_free;
+  }
+
+  mupdf_page->sheet = fz_new_text_sheet(mupdf_page->ctx);
+  if (mupdf_page->sheet == NULL) {
+    goto error_free;
+  }
+
 error_out:
 
   return error;

@@ -53,7 +53,7 @@ START_TEST(test_pdf_page_get_images) {
   fail_unless(zathura_image_get_position(image, &position) == ZATHURA_ERROR_OK);
   fail_unless((int) position.p1.x == (int) 305);
   fail_unless((int) position.p1.y == (int) 56);
-  fail_unless((int) position.p2.x == (int) 307);
+  fail_unless((int) position.p2.x == (int) 306);
   fail_unless((int) position.p2.y == (int) 58);
 } END_TEST
 
