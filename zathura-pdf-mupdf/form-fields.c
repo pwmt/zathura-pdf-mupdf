@@ -1,27 +1,29 @@
 /* See LICENSE file for license and copyright information */
 
+#include <stdio.h>
 #include <stdlib.h>
+
+#define _POSIX_C_SOURCE 1
 
 #include "plugin.h"
 #include "internal.h"
 
-#if HAVE_CAIRO
 zathura_error_t
-pdf_image_get_cairo_surface(zathura_image_t* image, cairo_surface_t** surface)
+pdf_page_get_form_fields(zathura_page_t* page, zathura_list_t** form_fields)
 {
-  if (image == NULL || surface == NULL) {
+  if (page == NULL || form_fields == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
+  zathura_error_t error = ZATHURA_ERROR_PLUGIN_NOT_IMPLEMENTED;
 
-  return ZATHURA_ERROR_OK;
+  return error;
 }
-#endif
 
 zathura_error_t
-pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
+pdf_form_field_save(zathura_form_field_t* form_field)
 {
-  if (page == NULL || images == NULL) {
+  if (form_field == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 

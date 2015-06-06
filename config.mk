@@ -42,7 +42,7 @@ FIU_INC ?= $(shell pkg-config --cflags libfiu)
 FIU_LIB ?= $(shell pkg-config --libs libfiu)
 
 INCS = ${OPENSSL_INC} ${LIBZATHURA_INC}
-LIBS = ${MUPDF_LIB} ${OPENSSL_LIB} ${LIBZATHURA_LIB}
+LIBS = ${MUPDF_LIB} ${OPENSSL_LIB} ${LIBZATHURA_LIB} -ljbig2dec -lopenjp2 -ljpeg
 
 # flags
 CFLAGS += -std=c11 -pedantic -Wall -Wextra -fPIC --coverage $(INCS)

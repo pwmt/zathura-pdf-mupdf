@@ -1,38 +1,30 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
-#include <mupdf/pdf.h>
+#include <stdio.h>
 
 #include "plugin.h"
-#include "utils.h"
+#include "internal.h"
 
-char*
-pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error)
+zathura_error_t
+pdf_page_get_text(zathura_page_t* page, char** text)
 {
-  if (page == NULL || mupdf_page == NULL || mupdf_page->text == NULL) {
-    if (error != NULL) {
-      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
-    }
-    goto error_ret;
+  if (page == NULL || text == NULL) {
+      return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
-  zathura_document_t* document     = zathura_page_get_document(page);
-  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+  zathura_error_t error = ZATHURA_ERROR_PLUGIN_NOT_IMPLEMENTED;
 
-  if (mupdf_page->extracted_text == false) {
-    mupdf_page_extract_text(mupdf_document, mupdf_page);
+  return error;
+}
+
+zathura_error_t
+pdf_page_get_selected_text(zathura_page_t* page, char** text, zathura_rectangle_t rectangle)
+{
+  if (page == NULL || text == NULL) {
+      return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
-  fz_rect rect = { rectangle.x1, rectangle.y1, rectangle.x2, rectangle.y2 };
+  zathura_error_t error = ZATHURA_ERROR_PLUGIN_NOT_IMPLEMENTED;
 
-  return fz_copy_selection(mupdf_page->ctx, mupdf_page->text, rect);
-
-error_ret:
-
-  if (error != NULL && *error == ZATHURA_ERROR_OK) {
-    *error = ZATHURA_ERROR_UNKNOWN;
-  }
-
-  return NULL;
+  return error;
 }

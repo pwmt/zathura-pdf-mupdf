@@ -1,10 +1,11 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
-#include <glib.h>
+#if HAVE_CAIRO
+#include <cairo.h>
+#endif
 
 #include "plugin.h"
+#include "internal.h"
 
 static zathura_error_t
 pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
@@ -46,8 +47,8 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
 
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
   unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
-  for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
-    for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
+  for (int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
+    for (int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
       guchar* p = image + y * rowstride + x * components;
       p[0] = s[2];
       p[1] = s[1];
@@ -62,89 +63,64 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
   return ZATHURA_ERROR_OK;
 }
 
-zathura_image_buffer_t*
-pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error)
+#ifdef HAVE_CAIRO
+zathura_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo,
+    double scale, int rotation, int flags)
 {
-  if (page == NULL || mupdf_page == NULL) {
-    if (error != NULL) {
-      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
-    }
-    return NULL;
-  }
-
-  zathura_document_t* document = zathura_page_get_document(page);
-  if (document == NULL) {
-    return NULL;
-  }
-
-  /* calculate sizes */
-  double scalex            = zathura_document_get_scale(document);
-  double scaley            = scalex;
-  unsigned int page_width  = scalex * zathura_page_get_width(page);
-  unsigned int page_height = scaley * zathura_page_get_height(page);
-
-  /* create image buffer */
-  zathura_image_buffer_t* image_buffer = zathura_image_buffer_create(page_width, page_height);
-
-  if (image_buffer == NULL) {
-    if (error != NULL) {
-      *error = ZATHURA_ERROR_OUT_OF_MEMORY;
-    }
-    return NULL;
-  }
-
-  int rowstride        = image_buffer->rowstride;
-  unsigned char* image = image_buffer->data;
-
-  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
-
-  zathura_error_t error_render = pdf_page_render_to_buffer(mupdf_document, mupdf_page, image, rowstride, 3,
-						page_width, page_height, scalex, scaley);
-
-  if (error_render != ZATHURA_ERROR_OK) {
-    zathura_image_buffer_free(image_buffer);
-    if (error != NULL) {
-      *error = error_render;
-    }
-    return NULL;
-  }
-
-  return image_buffer;
-}
-
-#if HAVE_CAIRO
-zathura_error_t
-pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* cairo, bool GIRARA_UNUSED(printing))
-{
-  if (page == NULL || mupdf_page == NULL) {
+  if (page == NULL || cairo == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
+
+  zathura_error_t error = ZATHURA_ERROR_OK;
 
   cairo_surface_t* surface = cairo_get_target(cairo);
   if (surface == NULL ||
       cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS ||
       cairo_surface_get_type(surface) != CAIRO_SURFACE_TYPE_IMAGE) {
-    return ZATHURA_ERROR_UNKNOWN;
+    error = ZATHURA_ERROR_UNKNOWN;
+    goto error_out;
   }
 
-  zathura_document_t* document = zathura_page_get_document(page);
-  if (document == NULL) {
-    return ZATHURA_ERROR_UNKNOWN;
+  zathura_document_t* document;
+  if (zathura_page_get_document(page, &document) != ZATHURA_ERROR_OK || document == NULL) {
+    error = ZATHURA_ERROR_UNKNOWN;
+    goto error_out;
+  }
+
+  mupdf_document_t* mupdf_document;
+  if (zathura_document_get_data(document, (void**) &mupdf_document) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  mupdf_page_t* mupdf_page;
+  if ((error = zathura_page_get_data(page, (void**) &mupdf_page)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  unsigned int width;
+  if (zathura_page_get_width(page, &width) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  unsigned int height;
+  if (zathura_page_get_height(page, &height) != ZATHURA_ERROR_OK) {
+    goto error_out;
   }
 
   unsigned int page_width  = cairo_image_surface_get_width(surface);
   unsigned int page_height = cairo_image_surface_get_height(surface);
 
-  double scalex = ((double) page_width) / zathura_page_get_width(page);
-  double scaley = ((double) page_height) /zathura_page_get_height(page);
+  double scalex = ((double) page_width) / width;
+  double scaley = ((double) page_height) /height;
 
   int rowstride        = cairo_image_surface_get_stride(surface);
   unsigned char* image = cairo_image_surface_get_data(surface);
 
-  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
-
   return pdf_page_render_to_buffer(mupdf_document, mupdf_page, image, rowstride, 4,
 				   page_width, page_height, scalex, scaley);
+
+error_out:
+
+  return error;
 }
 #endif
-
