@@ -32,4 +32,8 @@
   DO_PRAGMA(GCC diagnostic pop)
 #endif
 
+#ifndef LENGTH
+#define LENGTH(x) (sizeof(x)/sizeof((x)[0]))
+#endif
+
 #endif /* MACROS_H */

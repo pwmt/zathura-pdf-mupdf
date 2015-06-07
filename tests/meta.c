@@ -36,7 +36,7 @@ START_TEST(test_pdf_document_get_metadata_simple) {
   fail_unless(pdf_document_get_metadata(document, &metadata) == ZATHURA_ERROR_OK);
   fail_unless(metadata != NULL);
 
-  fail_unless(zathura_list_length(metadata) == 7);
+  fail_unless(zathura_list_length(metadata) == 6);
 } END_TEST
 
 Suite*
