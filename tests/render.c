@@ -79,7 +79,7 @@ START_TEST(test_pdf_page_render) {
   cairo_restore(cairo);
 
   cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_OVER);
-  cairo_set_source_rgb(cairo, 1.0, 1.0, 1.0);
+  cairo_set_source_rgb(cairo, 0.0, 0.0, 0.0);
   cairo_paint(cairo);
 
   fail_unless(compare_pixel(surface, 0, 0, (int[3]) {0,0,0})       == true);
