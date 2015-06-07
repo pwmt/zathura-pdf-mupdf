@@ -4,9 +4,7 @@
 
 #include "plugin.h"
 #include "internal.h"
-
-static bool convert_mupdf_to_zathura_action(fz_link* link, zathura_action_t**
-    action);
+#include "utils.h"
 
 zathura_error_t
 pdf_page_get_links(zathura_page_t* page, zathura_list_t** links)
@@ -43,7 +41,7 @@ pdf_page_get_links(zathura_page_t* page, zathura_list_t** links)
     position.p2.y = link->rect.y1;
 
     zathura_action_t* action;
-    if (convert_mupdf_to_zathura_action(link, &action) == false) {
+    if (mupdf_to_zathura_action(&(link->dest), &action) == false) {
       continue;
     }
 
@@ -71,52 +69,4 @@ error_free:
 error_out:
 
   return error;
-}
-
-static bool
-convert_mupdf_to_zathura_action(fz_link* link, zathura_action_t** action)
-{
-  if (link == NULL || action == NULL) {
-    return false;
-  }
-
-  switch (link->dest.kind) {
-    case FZ_LINK_NONE:
-      if (zathura_action_new(action, ZATHURA_ACTION_NONE) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_URI:
-      if (zathura_action_new(action, ZATHURA_ACTION_URI) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_GOTO:
-      if (zathura_action_new(action, ZATHURA_ACTION_GOTO) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_LAUNCH:
-      if (zathura_action_new(action, ZATHURA_ACTION_LAUNCH) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_NAMED:
-      if (zathura_action_new(action, ZATHURA_ACTION_NAMED) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_GOTOR:
-      if (zathura_action_new(action, ZATHURA_ACTION_GOTO_REMOTE) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    default:
-      if (zathura_action_new(action, ZATHURA_ACTION_UNKNOWN) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-  }
-
-  return true;
 }

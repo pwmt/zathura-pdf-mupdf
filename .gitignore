@@ -2,7 +2,7 @@
 *~
 .depend
 pdf.so
-*.swp
+*.sw[a-z]
 zathura-version-check
 .ycm_extra_conf.*
 compile_commands.json

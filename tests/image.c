@@ -54,7 +54,7 @@ START_TEST(test_pdf_page_get_images) {
   fail_unless((int) position.p1.x == (int) 305);
   fail_unless((int) position.p1.y == (int) 56);
   fail_unless((int) position.p2.x == (int) 306);
-  fail_unless((int) position.p2.y == (int) 58);
+  fail_unless((int) position.p2.y == (int) 57);
 } END_TEST
 
 START_TEST(test_pdf_page_get_images_fault_injection) {
