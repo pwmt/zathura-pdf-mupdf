@@ -49,7 +49,7 @@ START_TEST(test_pdf_page_get_form_fields_simple) {
   fail_unless(number_of_form_fields == 20);
 
   /* compare first form field */
-  zathura_form_field_mapping_t* form_field_mapping = zathura_list_nth_data(form_fields, 2);
+  zathura_form_field_mapping_t* form_field_mapping = zathura_list_nth_data(form_fields, 4);
   fail_unless(form_field_mapping != NULL);
   zathura_form_field_t* form_field = form_field_mapping->form_field;
   fail_unless(form_field != NULL);
@@ -67,7 +67,7 @@ START_TEST(test_pdf_page_get_form_fields_simple) {
   fail_unless(state == false);
 
   /* compare second form field */
-  form_field_mapping = zathura_list_nth_data(form_fields, 1);
+  form_field_mapping = zathura_list_nth_data(form_fields, 7);
   fail_unless(form_field_mapping != NULL);
   form_field = form_field_mapping->form_field;
   fail_unless(form_field != NULL);
@@ -82,10 +82,10 @@ START_TEST(test_pdf_page_get_form_fields_simple) {
   fail_unless(button_type == ZATHURA_FORM_FIELD_BUTTON_TYPE_CHECK);
 
   fail_unless(zathura_form_field_button_get_state(form_field, &state) == ZATHURA_ERROR_OK);
-  fail_unless(state == true);
+  fail_unless(state == false);
 
   /* compare third form field */
-  form_field_mapping = zathura_list_nth_data(form_fields, 3);
+  form_field_mapping = zathura_list_nth_data(form_fields, 8);
   fail_unless(form_field_mapping != NULL);
   form_field = form_field_mapping->form_field;
   fail_unless(form_field != NULL);

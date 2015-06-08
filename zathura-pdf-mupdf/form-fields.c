@@ -407,12 +407,10 @@ pdf_form_field_save(zathura_form_field_t* form_field)
               continue;
             }
 
-            char** tmp = realloc(values, sizeof(char*) * ++number_of_values);
-            if (tmp == NULL) {
-              number_of_values--;
-            } else {
+            char** tmp = realloc(values, sizeof(char*) * (number_of_values + 1));
+            if (tmp != NULL) {
               values = tmp;
-              values[number_of_values-1] = name;
+              values[number_of_values++] = name;
             }
           }
         }
