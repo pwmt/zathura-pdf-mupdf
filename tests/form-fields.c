@@ -46,7 +46,7 @@ START_TEST(test_pdf_page_get_form_fields_simple) {
   fail_unless(form_fields != NULL);
 
   unsigned int number_of_form_fields = zathura_list_length(form_fields);
-  fail_unless(number_of_form_fields == 5);
+  fail_unless(number_of_form_fields == 20);
 
   /* compare first form field */
   zathura_form_field_mapping_t* form_field_mapping = zathura_list_nth_data(form_fields, 2);
