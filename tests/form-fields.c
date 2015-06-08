@@ -103,7 +103,7 @@ START_TEST(test_pdf_page_save_form_field) {
   fail_unless(form_fields != NULL);
 
   /* Read and check second form field */
-  zathura_form_field_mapping_t* form_field_mapping = zathura_list_nth_data(form_fields, 4);
+  zathura_form_field_mapping_t* form_field_mapping = zathura_list_nth_data(form_fields, 7);
   fail_unless(form_field_mapping != NULL);
   zathura_form_field_t* form_field = form_field_mapping->form_field;
   fail_unless(form_field != NULL);
@@ -118,13 +118,13 @@ START_TEST(test_pdf_page_save_form_field) {
 
   bool state;
   fail_unless(zathura_form_field_button_get_state(form_field, &state) == ZATHURA_ERROR_OK);
-  fail_unless(state == true);
+  fail_unless(state == false);
 
   /* Change state */
-  fail_unless(zathura_form_field_button_set_state(form_field, false) == ZATHURA_ERROR_OK);
+  fail_unless(zathura_form_field_button_set_state(form_field, true) == ZATHURA_ERROR_OK);
 
   fail_unless(zathura_form_field_button_get_state(form_field, &state) == ZATHURA_ERROR_OK);
-  fail_unless(state == false);
+  fail_unless(state == true);
 
   /* Save form field */
   fail_unless(zathura_form_field_save(form_field) == ZATHURA_ERROR_OK);
@@ -152,7 +152,7 @@ START_TEST(test_pdf_page_save_form_field) {
   fail_unless(form_fields != NULL);
 
   /* Read and check second form field */
-  form_field_mapping = zathura_list_nth_data(form_fields, 4);
+  form_field_mapping = zathura_list_nth_data(form_fields, 7);
   fail_unless(form_field_mapping != NULL);
   form_field = form_field_mapping->form_field;
   fail_unless(form_field != NULL);
@@ -164,7 +164,7 @@ START_TEST(test_pdf_page_save_form_field) {
   fail_unless(button_type == ZATHURA_FORM_FIELD_BUTTON_TYPE_CHECK);
 
   fail_unless(zathura_form_field_button_get_state(form_field, &state) == ZATHURA_ERROR_OK);
-  fail_unless(state == false);
+  fail_unless(state == true);
 
   zathura_list_free_full(form_fields, free);
 
@@ -187,7 +187,7 @@ suite_form_fields(void)
 
   tcase = tcase_create("save");
   tcase_add_checked_fixture(tcase, setup_document_form_fields, teardown_document);
-  /* tcase_add_test(tcase, test_pdf_page_save_form_field); */
+  tcase_add_test(tcase, test_pdf_page_save_form_field);
   suite_add_tcase(suite, tcase);
 
   return suite;

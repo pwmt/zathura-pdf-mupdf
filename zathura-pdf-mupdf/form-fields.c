@@ -12,6 +12,11 @@ static zathura_error_t mupdf_form_field_to_zathura_form_field(zathura_page_t*
     page, mupdf_document_t* mupdf_document, pdf_widget* widget,
     zathura_form_field_t** form_field);
 
+typedef struct mupdf_form_field_s {
+  pdf_widget* widget;
+  mupdf_document_t* document;
+} mupdf_form_field_t;
+
 zathura_error_t
 pdf_page_get_form_fields(zathura_page_t* page, zathura_list_t** form_fields)
 {
@@ -117,8 +122,16 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
   }
 
   /* set user data */
-  if ((error = zathura_form_field_set_user_data(*form_field, widget)) != ZATHURA_ERROR_OK) {
+  mupdf_form_field_t* mupdf_form_field = calloc(1, sizeof(mupdf_form_field_t));
+  if (mupdf_form_field == NULL) {
     goto error_out;
+  }
+
+  mupdf_form_field->widget   = widget;
+  mupdf_form_field->document = mupdf_document;
+
+  if ((error = zathura_form_field_set_user_data(*form_field, mupdf_form_field)) != ZATHURA_ERROR_OK) {
+    goto error_free;
   }
 
   // TODO: Get name, partial name and mapping name
@@ -300,7 +313,11 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
       break;
   }
 
+  return error;
+
 error_free:
+
+  free(mupdf_form_field);
 
 error_out:
 
@@ -314,7 +331,101 @@ pdf_form_field_save(zathura_form_field_t* form_field)
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
-  zathura_error_t error = ZATHURA_ERROR_PLUGIN_NOT_IMPLEMENTED;
+  zathura_form_field_type_t type;
+  if (zathura_form_field_get_type(form_field, &type) != ZATHURA_ERROR_OK) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
 
-  return error;
+  mupdf_form_field_t* mupdf_form_field;
+  if (zathura_form_field_get_user_data(form_field, (void**) &mupdf_form_field) != ZATHURA_ERROR_OK) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
+
+  mupdf_document_t* mupdf_document = mupdf_form_field->document;
+  pdf_widget* widget = mupdf_form_field->widget;
+
+  switch (type) {
+    case ZATHURA_FORM_FIELD_UNKNOWN:
+      return ZATHURA_ERROR_INVALID_ARGUMENTS;
+    case ZATHURA_FORM_FIELD_BUTTON:
+      {
+        zathura_form_field_button_type_t button_type;
+        if (zathura_form_field_button_get_type(form_field, &button_type) !=
+            ZATHURA_ERROR_OK) {
+          return ZATHURA_ERROR_INVALID_ARGUMENTS;
+        }
+
+        bool state;
+        if (zathura_form_field_button_get_state(form_field, &state) != ZATHURA_ERROR_OK) {
+          return ZATHURA_ERROR_INVALID_ARGUMENTS;
+        }
+
+        pdf_annot* annot = (pdf_annot*) widget;
+        pdf_obj* value = pdf_new_name(mupdf_document->ctx, (pdf_document*) mupdf_document->document, state ? "Yes" : "Off");
+        pdf_dict_put(mupdf_document->ctx, annot->obj, PDF_NAME_AS, value);
+      }
+      break;
+    case ZATHURA_FORM_FIELD_TEXT:
+      {
+        char* text;
+        if (zathura_form_field_text_get_text(form_field, &text) != ZATHURA_ERROR_OK) {
+          return ZATHURA_ERROR_INVALID_ARGUMENTS;
+        }
+
+        pdf_text_widget_set_text(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, text);
+      }
+      break;
+    case ZATHURA_FORM_FIELD_CHOICE:
+      {
+        zathura_list_t* choice_items;
+        if (zathura_form_field_choice_get_items(form_field, &choice_items) != ZATHURA_ERROR_OK) {
+          return ZATHURA_ERROR_INVALID_ARGUMENTS;
+        }
+
+        /* get mupdf options */
+        unsigned int number_of_items =
+          pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*)
+              mupdf_document->document, widget, NULL);
+
+        char* options[number_of_items];
+        pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, options);
+
+        char** values = NULL;
+        unsigned int number_of_values = 0;
+
+        /* iterate over all items */
+        zathura_form_field_choice_item_t* choice_item;
+        ZATHURA_LIST_FOREACH(choice_item, choice_items) {
+          bool is_selected;
+          if (zathura_form_field_choice_item_is_selected(choice_item, &is_selected) != ZATHURA_ERROR_OK) {
+            continue;
+          }
+
+          if (is_selected == true) {
+            char* name;
+            if (zathura_form_field_choice_item_get_name(choice_item, &name) != ZATHURA_ERROR_OK) {
+              continue;
+            }
+
+            char** tmp = realloc(values, sizeof(char*) * ++number_of_values);
+            if (tmp == NULL) {
+              number_of_values--;
+            } else {
+              values = tmp;
+              values[number_of_values-1] = name;
+            }
+          }
+        }
+
+        if (number_of_values > 0) {
+          pdf_choice_widget_set_value(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, number_of_values, values);
+          free(values);
+        }
+      }
+      break;
+    case ZATHURA_FORM_FIELD_SIGNATURE:
+      break;
+  }
+
+  return ZATHURA_ERROR_OK;
 }
