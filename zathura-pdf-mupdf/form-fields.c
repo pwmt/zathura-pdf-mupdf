@@ -130,7 +130,7 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
   mupdf_form_field->widget   = widget;
   mupdf_form_field->document = mupdf_document;
 
-  if ((error = zathura_form_field_set_user_data(*form_field, mupdf_form_field)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_form_field_set_user_data(*form_field, mupdf_form_field, free)) != ZATHURA_ERROR_OK) {
     goto error_free;
   }
 
