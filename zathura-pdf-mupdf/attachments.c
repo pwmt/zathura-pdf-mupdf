@@ -138,7 +138,7 @@ parse_mupdf_attachment(mupdf_document_t* mupdf_document, pdf_obj* file)
     goto error_free;
   }
 
-  if (zathura_attachment_set_user_data(attachment, mupdf_attachment)
+  if (zathura_attachment_set_user_data(attachment, mupdf_attachment, free)
       != ZATHURA_ERROR_OK) {
     goto error_free;
   }

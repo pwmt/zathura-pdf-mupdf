@@ -146,7 +146,7 @@ pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
       mupdf_image->page  = mupdf_page;
       mupdf_image->image = image_block->image;
 
-      if (zathura_image_set_user_data(zathura_image, mupdf_image) != ZATHURA_ERROR_OK) {
+      if (zathura_image_set_user_data(zathura_image, mupdf_image, free) != ZATHURA_ERROR_OK) {
         zathura_image_free(zathura_image);
         error = ZATHURA_ERROR_UNKNOWN;
         goto error_free;
