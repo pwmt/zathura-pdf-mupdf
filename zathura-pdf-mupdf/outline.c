@@ -18,7 +18,7 @@ pdf_document_get_outline(zathura_document_t* document, zathura_node_t** outline)
   zathura_error_t error = ZATHURA_ERROR_OK;
 
   mupdf_document_t* mupdf_document;
-  if ((error = zathura_document_get_data(document, (void**) &mupdf_document)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_document_get_user_data(document, (void**) &mupdf_document)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 

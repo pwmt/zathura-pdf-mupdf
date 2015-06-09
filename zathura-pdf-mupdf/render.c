@@ -88,12 +88,12 @@ zathura_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo,
   }
 
   mupdf_document_t* mupdf_document;
-  if (zathura_document_get_data(document, (void**) &mupdf_document) != ZATHURA_ERROR_OK) {
+  if (zathura_document_get_user_data(document, (void**) &mupdf_document) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 
   mupdf_page_t* mupdf_page;
-  if ((error = zathura_page_get_data(page, (void**) &mupdf_page)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_page_get_user_data(page, (void**) &mupdf_page)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 

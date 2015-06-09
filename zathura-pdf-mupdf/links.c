@@ -22,12 +22,12 @@ pdf_page_get_links(zathura_page_t* page, zathura_list_t** links)
   }
 
   mupdf_document_t* mupdf_document;
-  if ((error = zathura_document_get_data(document, (void**) &mupdf_document)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_document_get_user_data(document, (void**) &mupdf_document)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 
   mupdf_page_t* mupdf_page;
-  if ((error = zathura_page_get_data(page, (void**) &mupdf_page)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_page_get_user_data(page, (void**) &mupdf_page)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 

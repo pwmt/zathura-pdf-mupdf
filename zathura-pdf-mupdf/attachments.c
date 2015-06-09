@@ -29,7 +29,7 @@ pdf_document_get_attachments(zathura_document_t* document, zathura_list_t** atta
   *attachments = NULL;
 
   mupdf_document_t* mupdf_document;
-  if ((error = zathura_document_get_data(document, (void**) &mupdf_document)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_document_get_user_data(document, (void**) &mupdf_document)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 
