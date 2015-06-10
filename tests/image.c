@@ -78,7 +78,7 @@ START_TEST(test_pdf_page_get_image_cairo_buffer) {
   fail_unless(zathura_image_get_cairo_surface(image, &surface) == ZATHURA_ERROR_OK);
   fail_unless(surface != NULL);
 
-  cairo_surface_write_to_png(surface, "foo.png");
+  cairo_surface_destroy(surface);
 } END_TEST
 #endif
 

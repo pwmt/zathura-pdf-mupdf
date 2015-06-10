@@ -54,7 +54,7 @@ compare_pixel(cairo_surface_t* surface, unsigned int x, unsigned int y, int
   const int rowstride  = cairo_image_surface_get_stride(surface);
   unsigned char* image = cairo_image_surface_get_data(surface);
 
-  unsigned char* data = image + y * rowstride + x * rowstride;
+  unsigned char* data = image + y * rowstride + x * 4;
 
   fail_unless(data[0] == rgb[0]);
   fail_unless(data[1] == rgb[1]);

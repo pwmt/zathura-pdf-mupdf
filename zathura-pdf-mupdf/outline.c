@@ -50,6 +50,7 @@ pdf_document_get_outline(zathura_document_t* document, zathura_node_t** outline)
 
 error_free:
 
+  zathura_outline_free(*outline);
   fz_drop_outline(mupdf_document->ctx, mupdf_outline);
 
 error_out:

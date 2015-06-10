@@ -40,6 +40,8 @@ START_TEST(test_pdf_page_get_annotations_simple) {
   fail_unless(annotations != NULL);
 
   fail_unless(zathura_list_length(annotations) == 23);
+
+  zathura_list_free_full(annotations, zathura_annotation_free);
 } END_TEST
 
 Suite*

@@ -82,6 +82,8 @@ pdf_document_get_attachments(zathura_document_t* document, zathura_list_t** atta
     if (attachment != NULL) {
       *attachments = zathura_list_append(*attachments, attachment);
     }
+
+    pdf_drop_obj(mupdf_document->ctx, res_file);
   }
 
   error = ZATHURA_ERROR_OK;

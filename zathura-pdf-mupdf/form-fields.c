@@ -362,7 +362,7 @@ pdf_form_field_save(zathura_form_field_t* form_field)
 
         pdf_annot* annot = (pdf_annot*) widget;
         pdf_obj* value = pdf_new_name(mupdf_document->ctx, (pdf_document*) mupdf_document->document, state ? "Yes" : "Off");
-        pdf_dict_put(mupdf_document->ctx, annot->obj, PDF_NAME_AS, value);
+        pdf_dict_put_drop(mupdf_document->ctx, annot->obj, PDF_NAME_AS, value);
       }
       break;
     case ZATHURA_FORM_FIELD_TEXT:

@@ -45,7 +45,7 @@ pdf_document_open(zathura_document_t* document)
   }
   fz_catch(mupdf_document->ctx){
     error = ZATHURA_ERROR_UNKNOWN;
-    return error;
+    goto error_free;
   }
 
   if (mupdf_document->document == NULL) {
@@ -103,6 +103,7 @@ pdf_document_free(zathura_document_t* document)
     if (mupdf_document != NULL) {
       fz_drop_document(mupdf_document->ctx, mupdf_document->document);
       fz_drop_context(mupdf_document->ctx);
+      free(mupdf_document);
       zathura_document_set_user_data(document, NULL);
     }
   }

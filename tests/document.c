@@ -48,11 +48,12 @@ START_TEST(test_pdf_document_save_as) {
   gint file_handle;
   if ((file_handle = g_file_open_tmp(NULL, &path, NULL)) != -1) {
     fail_unless(pdf_document_save_as(document, path) == ZATHURA_ERROR_OK);
-    close(file_handle);
 
     g_remove(path);
     g_free(path);
   }
+
+  close(file_handle);
   fail_unless(file_handle != -1);
 } END_TEST
 
