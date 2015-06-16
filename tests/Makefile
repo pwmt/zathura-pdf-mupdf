@@ -60,9 +60,9 @@ run: ${PROJECT}
 
 # debug
 
-debug: options ${PROJECT}-debug
+debug: ${PROJECT}-debug
 
-${PROJECT}-debug: ${OBJECTS_DEBUG}
+${PROJECT}-debug: options ${OBJECTS_DEBUG}
 	$(QUIET)${MAKE} WITH_LIBFIU=1 -C .. ${BUILDDIR_DEBUG}/${PLUGIN}.so
 	$(call colorecho,CC,$@)
 	$(QUIET)${CC} ${LDFLAGS} -o $@ \
@@ -82,7 +82,7 @@ run-debug: ${PROJECT}-debug
 
 # gcov
 
-gcov: options ${PROJECT}-gcov
+gcov: ${PROJECT}-gcov
 
 ${PROJECT}-gcov: options ${OBJECTS_GCOV}
 	$(QUIET)${MAKE} WITH_LIBFIU=1 -C .. ${BUILDDIR_GCOV}/${PLUGIN}.so
@@ -102,8 +102,12 @@ ${BUILDDIR_GCOV}/%.o: %.c
 run-gcov: ${PROJECT}-gcov
 	$(QUIET)${FIU_EXEC} ./${PROJECT}-gcov
 
+# valgrind
+
 valgrind: ${PROJECT}-debug
 	 $(QUIET)G_SLICE=always-malloc G_DEBUG=gc-friendly ${FIU_EXEC} ${VALGRIND} ${VALGRIND_ARGUMENTS} ./${PROJECT}-debug
+
+# clean
 
 clean:
 	$(call colorecho,RM, "Clean test files")
