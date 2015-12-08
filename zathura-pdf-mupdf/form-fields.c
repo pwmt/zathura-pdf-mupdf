@@ -276,14 +276,14 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
 
         unsigned int number_of_items =
           pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*)
-              mupdf_document->document, widget, NULL);
+              mupdf_document->document, widget, 0, NULL);
         unsigned int number_of_values =
           pdf_choice_widget_value(mupdf_document->ctx, (pdf_document*)
               mupdf_document->document, widget, NULL);
 
         if (number_of_items > 0) {
           char* options[number_of_items];
-          pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, options);
+          pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, 0, options);
           char* values[number_of_values];
           pdf_choice_widget_value(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, values);
 
@@ -385,10 +385,11 @@ pdf_form_field_save(zathura_form_field_t* form_field)
         /* get mupdf options */
         unsigned int number_of_items =
           pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*)
-              mupdf_document->document, widget, NULL);
+              mupdf_document->document, widget, 0, NULL);
 
         char* options[number_of_items];
-        pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, options);
+        pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*)
+            mupdf_document->document, widget, 0, options);
 
         char** values = NULL;
         unsigned int number_of_values = 0;
