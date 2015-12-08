@@ -55,6 +55,8 @@ START_TEST(test_pdf_page_get_images) {
   fail_unless((int) position.p1.y == (int) 56);
   fail_unless((int) position.p2.x == (int) 306);
   fail_unless((int) position.p2.y == (int) 57);
+
+  zathura_list_free_full(images, zathura_image_free);
 } END_TEST
 
 START_TEST(test_pdf_page_get_images_fault_injection) {
@@ -79,6 +81,8 @@ START_TEST(test_pdf_page_get_image_cairo_buffer) {
   fail_unless(surface != NULL);
 
   cairo_surface_destroy(surface);
+
+  zathura_list_free_full(images, zathura_image_free);
 } END_TEST
 #endif
 

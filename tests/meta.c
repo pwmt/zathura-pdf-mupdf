@@ -37,6 +37,7 @@ START_TEST(test_pdf_document_get_metadata_simple) {
   fail_unless(metadata != NULL);
 
   fail_unless(zathura_list_length(metadata) == 6);
+  zathura_list_free_full(metadata, zathura_document_meta_entry_free);
 } END_TEST
 
 Suite*

@@ -40,6 +40,7 @@ START_TEST(test_pdf_document_get_attachments) {
   zathura_list_t* attachments;
   fail_unless(pdf_document_get_attachments(document, &attachments) == ZATHURA_ERROR_OK);
   fail_unless(zathura_list_length(attachments) == 1);
+  zathura_list_free_full(attachments, zathura_attachment_free);
 } END_TEST
 
 START_TEST(test_pdf_document_save_attachment) {
@@ -59,6 +60,8 @@ START_TEST(test_pdf_document_save_attachment) {
     g_remove(path);
     g_free(path);
   }
+
+  zathura_list_free_full(attachments, zathura_attachment_free);
 } END_TEST
 
 Suite*
