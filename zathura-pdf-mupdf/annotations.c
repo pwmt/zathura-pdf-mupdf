@@ -123,7 +123,11 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   }
 
   /* create new annotation */
-  if ((error = zathura_annotation_new(annotation, zathura_type)) != ZATHURA_ERROR_OK) {
+  if ((error = zathura_annotation_new(page, annotation, zathura_type)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  if ((error = zathura_annotation_set_user_data(*annotation, mupdf_annotation, NULL)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 
@@ -143,3 +147,139 @@ error_out:
 
     return error;
 }
+
+static zathura_error_t
+pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
+			  unsigned char* image, int rowstride, int components,
+			  unsigned int page_width, unsigned int page_height, unsigned int annotation_width, unsigned int annotation_height,
+        zathura_rectangle_t position,
+			  double scalex, double scaley)
+{
+  if (mupdf_annotation == NULL ||
+      mupdf_document == NULL ||
+      mupdf_document->ctx == NULL ||
+      mupdf_page == NULL ||
+      mupdf_page->page == NULL ||
+      image == NULL) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
+
+  fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx);
+  fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
+
+  fz_try (mupdf_document->ctx) {
+    fz_matrix m;
+    fz_scale(&m, scalex, scaley);
+    pdf_run_annot(mupdf_document->ctx, (pdf_page*) mupdf_page->page, mupdf_annotation, device, &m, NULL);
+  } fz_catch (mupdf_document->ctx) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
+
+  fz_drop_device(mupdf_page->ctx, device);
+
+  fz_irect irect = { .x1 = page_width, .y1 = page_height };
+  fz_rect rect = { .x1 = page_width, .y1 = page_height };
+
+  fz_colorspace* colorspace = fz_device_rgb(mupdf_document->ctx);
+  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, colorspace, &irect);
+  fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
+
+  device = fz_new_draw_device(mupdf_page->ctx, pixmap);
+  fz_run_display_list(mupdf_page->ctx, display_list, device, &fz_identity, &rect, NULL);
+  fz_drop_device(mupdf_page->ctx, device);
+
+  unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
+  unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
+  unsigned int offset_y = position.p1.y;
+  unsigned int offset_x = position.p1.x;
+
+  for (unsigned int y = 0; y < annotation_height; y++) {
+    for (unsigned int x = 0; x < annotation_width; x++) {
+      guchar* p = image + y * rowstride + x * components;
+      unsigned char* data = s + page_width * (offset_y + y) * n + (offset_x + x) * n ;
+      p[0] = data[2];
+      p[1] = data[1];
+      p[2] = data[0];
+    }
+  }
+
+  fz_drop_pixmap(mupdf_page->ctx, pixmap);
+  fz_drop_display_list(mupdf_page->ctx, display_list);
+
+  return ZATHURA_ERROR_OK;
+}
+
+#ifdef HAVE_CAIRO
+zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, cairo_t* cairo,
+    double scale)
+{
+  if (annotation == NULL || cairo == NULL) {
+    return ZATHURA_ERROR_INVALID_ARGUMENTS;
+  }
+
+  zathura_error_t error = ZATHURA_ERROR_OK;
+
+  cairo_surface_t* surface = cairo_get_target(cairo);
+  if (surface == NULL ||
+      cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS ||
+      cairo_surface_get_type(surface) != CAIRO_SURFACE_TYPE_IMAGE) {
+    error = ZATHURA_ERROR_UNKNOWN;
+    goto error_out;
+  }
+
+  pdf_annot* mupdf_annotation;
+  if ((error = zathura_annotation_get_user_data(annotation, (void**) &mupdf_annotation)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  zathura_page_t* page;
+  if (zathura_annotation_get_page(annotation, &page) != ZATHURA_ERROR_OK || page == NULL) {
+    error = ZATHURA_ERROR_UNKNOWN;
+    goto error_out;
+  }
+
+  zathura_document_t* document;
+  if (zathura_page_get_document(page, &document) != ZATHURA_ERROR_OK || document == NULL) {
+    error = ZATHURA_ERROR_UNKNOWN;
+    goto error_out;
+  }
+
+  mupdf_document_t* mupdf_document;
+  if (zathura_document_get_user_data(document, (void**) &mupdf_document) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  mupdf_page_t* mupdf_page;
+  if ((error = zathura_page_get_user_data(page, (void**) &mupdf_page)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  zathura_rectangle_t position;
+  if (zathura_annotation_get_position(annotation, &position) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  unsigned int page_width;
+  if (zathura_page_get_width(page, &page_width) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  unsigned int page_height;
+  if (zathura_page_get_height(page, &page_height) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  unsigned int annotation_width  = cairo_image_surface_get_width(surface);
+  unsigned int annotation_height = cairo_image_surface_get_height(surface);
+
+  int rowstride        = cairo_image_surface_get_stride(surface);
+  unsigned char* image = cairo_image_surface_get_data(surface);
+
+  return pdf_annotation_render_to_buffer(mupdf_annotation, mupdf_document, mupdf_page, image, rowstride, 4,
+				   page_width, page_height, annotation_width, annotation_height, position, scale, scale);
+
+error_out:
+
+  return error;
+}
+#endif

@@ -31,4 +31,8 @@ zathura_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo, doub
 
 zathura_error_t pdf_form_field_save(zathura_form_field_t* form_field);
 
+#ifdef HAVE_CAIRO
+zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, cairo_t* cairo, double scale);
+#endif
+
 #endif // PDF_H
