@@ -190,8 +190,8 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
 
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
   unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
-  unsigned int offset_y = position.p1.y;
-  unsigned int offset_x = position.p1.x;
+  unsigned int offset_y = position.p1.y * scaley;
+  unsigned int offset_x = position.p1.x * scalex;
 
   for (unsigned int y = 0; y < annotation_height; y++) {
     for (unsigned int x = 0; x < annotation_width; x++) {
@@ -264,10 +264,14 @@ zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, ca
     goto error_out;
   }
 
+  page_width *= scale;
+
   unsigned int page_height;
   if (zathura_page_get_height(page, &page_height) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
+
+  page_height *= scale;
 
   unsigned int annotation_width  = cairo_image_surface_get_width(surface);
   unsigned int annotation_height = cairo_image_surface_get_height(surface);
