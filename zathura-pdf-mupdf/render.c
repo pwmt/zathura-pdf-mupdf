@@ -8,10 +8,9 @@
 #include "internal.h"
 
 static zathura_error_t
-pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
-			  unsigned char* image, int rowstride, int components,
-			  unsigned int page_width, unsigned int page_height,
-			  double scalex, double scaley)
+pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t*
+    mupdf_page, unsigned char* image, unsigned int page_width, unsigned int
+    page_height, double scalex, double scaley)
 {
   if (mupdf_document == NULL ||
       mupdf_document->ctx == NULL ||
@@ -38,24 +37,12 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
   fz_rect rect = { .x1 = page_width, .y1 = page_height };
 
   fz_colorspace* colorspace = fz_device_rgb(mupdf_document->ctx);
-  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, colorspace, &irect);
+  fz_pixmap* pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, &irect, image);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
   fz_run_display_list(mupdf_page->ctx, display_list, device, &fz_identity, &rect, NULL);
   fz_drop_device(mupdf_page->ctx, device);
-
-  unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
-  unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
-  for (int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
-    for (int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
-      guchar* p = image + y * rowstride + x * components;
-      p[0] = s[2];
-      p[1] = s[1];
-      p[2] = s[0];
-      s += n;
-    }
-  }
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
   fz_drop_display_list(mupdf_page->ctx, display_list);
@@ -113,11 +100,10 @@ zathura_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo,
   double scalex = ((double) page_width) / width;
   double scaley = ((double) page_height) /height;
 
-  int rowstride        = cairo_image_surface_get_stride(surface);
   unsigned char* image = cairo_image_surface_get_data(surface);
 
-  return pdf_page_render_to_buffer(mupdf_document, mupdf_page, image, rowstride, 4,
-				   page_width, page_height, scalex, scaley);
+  return pdf_page_render_to_buffer(mupdf_document, mupdf_page, image,
+      page_width, page_height, scalex, scaley);
 
 error_out:
 
