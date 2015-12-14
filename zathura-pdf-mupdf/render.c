@@ -84,26 +84,13 @@ zathura_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo,
     goto error_out;
   }
 
-  unsigned int width;
-  if (zathura_page_get_width(page, &width) != ZATHURA_ERROR_OK) {
-    goto error_out;
-  }
-
-  unsigned int height;
-  if (zathura_page_get_height(page, &height) != ZATHURA_ERROR_OK) {
-    goto error_out;
-  }
-
   unsigned int page_width  = cairo_image_surface_get_width(surface);
   unsigned int page_height = cairo_image_surface_get_height(surface);
-
-  double scalex = ((double) page_width) / width;
-  double scaley = ((double) page_height) /height;
 
   unsigned char* image = cairo_image_surface_get_data(surface);
 
   return pdf_page_render_to_buffer(mupdf_document, mupdf_page, image,
-      page_width, page_height, scalex, scaley);
+      page_width, page_height, scale, scale);
 
 error_out:
 
