@@ -37,24 +37,12 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
   fz_rect rect = { .x1 = page_width, .y1 = page_height };
 
   fz_colorspace* colorspace = fz_device_rgb(mupdf_document->ctx);
-  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, colorspace, &irect);
+  fz_pixmap* pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, &irect, image);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
   fz_run_display_list(mupdf_page->ctx, display_list, device, &fz_identity, &rect, NULL);
   fz_drop_device(mupdf_page->ctx, device);
-
-  unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
-  unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
-  for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
-    for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
-      guchar* p = image + y * rowstride + x * components;
-      p[0] = s[2];
-      p[1] = s[1];
-      p[2] = s[0];
-      s += n;
-    }
-  }
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
   fz_drop_display_list(mupdf_page->ctx, display_list);
