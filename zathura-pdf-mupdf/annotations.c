@@ -148,12 +148,27 @@ error_out:
     return error;
 }
 
+static void argb_to_rgb(fz_context *ctx, fz_colorspace *colorspace, const float *argb, float *rgb)
+{
+  rgb[0] = argb[0];
+  rgb[1] = argb[1];
+  rgb[2] = argb[2];
+}
+
+static void rgb_to_argb(fz_context *ctx, fz_colorspace *colorspace, const float *rgb, float *argb)
+{
+  argb[0] = rgb[2];
+  argb[1] = rgb[1];
+  argb[2] = rgb[0];
+  argb[3] = 255;
+}
+
 static zathura_error_t
 pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
-			  unsigned char* image, int rowstride, int components,
-			  unsigned int page_width, unsigned int page_height, unsigned int annotation_width, unsigned int annotation_height,
+			  unsigned char* image, int rowstride,
+			  unsigned int annotation_width, unsigned int annotation_height,
         zathura_rectangle_t position,
-			  double scalex, double scaley)
+			  double scalex, double scaley, cairo_format_t cairo_format)
 {
   if (mupdf_annotation == NULL ||
       mupdf_document == NULL ||
@@ -177,31 +192,36 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
 
   fz_drop_device(mupdf_page->ctx, device);
 
-  fz_irect irect = { .x1 = page_width, .y1 = page_height };
-  fz_rect rect = { .x1 = page_width, .y1 = page_height };
+  /* Prepare rendering */
+  fz_irect irect = { .x1 = annotation_width, .y1 = annotation_height};
 
-  fz_colorspace* colorspace = fz_device_rgb(mupdf_document->ctx);
-  fz_pixmap* pixmap = fz_new_pixmap_with_bbox(mupdf_page->ctx, colorspace, &irect);
-  fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
+  fz_rect rect;
+  rect.x0 = position.p1.x * scalex;
+  rect.y0 = position.p1.y * scaley;
+  rect.x1 = position.p2.x * scalex;
+  rect.y1 = position.p2.y * scaley;
+
+  fz_rect_from_irect(&rect, fz_round_rect(&irect, &rect));
+
+  /* Create correct pixmap */
+  fz_pixmap* pixmap = NULL;
+
+  if (cairo_format == CAIRO_FORMAT_RGB24) {
+    fz_colorspace* colorspace = fz_device_bgr(mupdf_document->ctx);
+    pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, &irect, image);
+  } else if (cairo_format == CAIRO_FORMAT_ARGB32) {
+    /* Define new color space */
+    fz_colorspace* colorspace = fz_new_colorspace(mupdf_document->ctx, "argb", 3);
+    colorspace->to_rgb = argb_to_rgb;
+    colorspace->from_rgb = rgb_to_argb;
+
+    /* Create pixmap */
+    pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, &irect, image);
+  }
 
   device = fz_new_draw_device(mupdf_page->ctx, pixmap);
   fz_run_display_list(mupdf_page->ctx, display_list, device, &fz_identity, &rect, NULL);
   fz_drop_device(mupdf_page->ctx, device);
-
-  unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
-  unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
-  unsigned int offset_y = position.p1.y * scaley;
-  unsigned int offset_x = position.p1.x * scalex;
-
-  for (unsigned int y = 0; y < annotation_height; y++) {
-    for (unsigned int x = 0; x < annotation_width; x++) {
-      guchar* p = image + y * rowstride + x * components;
-      unsigned char* data = s + page_width * (offset_y + y) * n + (offset_x + x) * n ;
-      p[0] = data[2];
-      p[1] = data[1];
-      p[2] = data[0];
-    }
-  }
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
   fz_drop_display_list(mupdf_page->ctx, display_list);
@@ -224,6 +244,12 @@ zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, ca
       cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS ||
       cairo_surface_get_type(surface) != CAIRO_SURFACE_TYPE_IMAGE) {
     error = ZATHURA_ERROR_UNKNOWN;
+    goto error_out;
+  }
+
+  cairo_format_t cairo_format = cairo_image_surface_get_format(surface);
+  if (cairo_format != CAIRO_FORMAT_ARGB32 && cairo_format != CAIRO_FORMAT_RGB24) {
+    error = ZATHURA_ERROR_INVALID_ARGUMENTS;
     goto error_out;
   }
 
@@ -259,19 +285,7 @@ zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, ca
     goto error_out;
   }
 
-  unsigned int page_width;
-  if (zathura_page_get_width(page, &page_width) != ZATHURA_ERROR_OK) {
-    goto error_out;
-  }
-
-  page_width *= scale;
-
-  unsigned int page_height;
-  if (zathura_page_get_height(page, &page_height) != ZATHURA_ERROR_OK) {
-    goto error_out;
-  }
-
-  page_height *= scale;
+  cairo_surface_flush(surface);
 
   unsigned int annotation_width  = cairo_image_surface_get_width(surface);
   unsigned int annotation_height = cairo_image_surface_get_height(surface);
@@ -279,8 +293,13 @@ zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, ca
   int rowstride        = cairo_image_surface_get_stride(surface);
   unsigned char* image = cairo_image_surface_get_data(surface);
 
-  return pdf_annotation_render_to_buffer(mupdf_annotation, mupdf_document, mupdf_page, image, rowstride, 4,
-				   page_width, page_height, annotation_width, annotation_height, position, scale, scale);
+  error = pdf_annotation_render_to_buffer(mupdf_annotation, mupdf_document,
+      mupdf_page, image, rowstride, annotation_width, annotation_height,
+      position, scale, scale, cairo_format);
+
+  cairo_surface_mark_dirty(surface);
+
+  return error;
 
 error_out:
 
