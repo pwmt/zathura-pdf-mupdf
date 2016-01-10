@@ -37,8 +37,11 @@ MUPDF_LIB ?= -lmupdf -lmujs
 INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC}
 LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} -ljbig2dec -lopenjp2 -ljpeg
 
-# flags
+# compiler flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)
+
+# linker flags
+LDFLAGS += -fPIC
 
 # debug
 DFLAGS ?= -g
