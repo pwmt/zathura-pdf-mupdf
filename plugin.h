@@ -31,7 +31,7 @@ typedef struct mupdf_page_s
  * Open a pdf document
  *
  * @param document Zathura document
- * @return true if no error occured, otherwise false
+ * @return true if no error occurred, otherwise false
  */
 zathura_error_t pdf_document_open(zathura_document_t* document);
 
@@ -39,7 +39,7 @@ zathura_error_t pdf_document_open(zathura_document_t* document);
  * Closes and frees the internal document structure
  *
  * @param document Zathura document
- * @return true if no error occured, otherwise false
+ * @return true if no error occurred, otherwise false
  */
 zathura_error_t pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document);
 
@@ -48,7 +48,7 @@ zathura_error_t pdf_document_free(zathura_document_t* document, mupdf_document_t
  *
  * @param document Zathura document
  * @param path File path
- * @return ZATHURA_ERROR_OK when no error occured, otherwise see
+ * @return ZATHURA_ERROR_OK when no error occurred, otherwise see
  *    zathura_error_t
  */
 zathura_error_t pdf_document_save_as(zathura_document_t* document,
@@ -59,7 +59,7 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document,
  *
  * @param document Zathura document
  * @param error Set to an error value (see zathura_error_t) if an
- *   error occured
+ *   error occurred
  * @return Tree node object or NULL if an error occurred (e.g.: the document has
  *   no index)
  */
@@ -70,7 +70,7 @@ girara_tree_node_t* pdf_document_index_generate(zathura_document_t* document,
  * Returns a reference to a page
  *
  * @param page Page object
- * @return A page object or NULL if an error occured
+ * @return A page object or NULL if an error occurred
  */
 zathura_error_t pdf_page_init(zathura_page_t* page);
 
@@ -78,7 +78,7 @@ zathura_error_t pdf_page_init(zathura_page_t* page);
  * Frees a pdf page
  *
  * @param page Page
- * @return true if no error occured, otherwise false
+ * @return true if no error occurred, otherwise false
  */
 zathura_error_t pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page);
 
@@ -88,8 +88,8 @@ zathura_error_t pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page);
  * @param page Page
  * @param text Search item
  * @param error Set to an error value (see zathura_error_t) if an
- *   error occured
- * @return List of search results or NULL if an error occured
+ *   error occurred
+ * @return List of search results or NULL if an error occurred
  */
 girara_list_t* pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char* text, zathura_error_t* error);
 
@@ -98,8 +98,8 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_pa
  *
  * @param page Page
  * @param error Set to an error value (see zathura_error_t) if an
- *   error occured
- * @return List of links or NULL if an error occured
+ *   error occurred
+ * @return List of links or NULL if an error occurred
  */
 girara_list_t* pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
 
@@ -108,7 +108,7 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page
  *
  * @param page The page
  * @param error Set to an error value (see zathura_error_t) if an
- *   error occured
+ *   error occurred
  * @return List of images
  */
 girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
@@ -120,8 +120,8 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_pag
  * @param page Page
  * @param image Image identifier
  * @param error Set to an error value (see \ref zathura_error_t) if an
- *   error occured
- * @return The cairo image surface or NULL if an error occured
+ *   error occurred
+ * @return The cairo image surface or NULL if an error occurred
  */
 cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t*
     mupdf_page, zathura_image_t* image, zathura_error_t* error);
@@ -132,7 +132,7 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t*
  * @param page Page
  * @param rectangle Selection
  * @error Set to an error value (see \ref zathura_error_t) if an error
- * occured
+ * occurred
  * @return The selected text (needs to be deallocated with g_free)
  */
 char* pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
@@ -142,7 +142,7 @@ char* pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_
  *
  * @param document Zathura document
  * @param error Set to an error value (see zathura_error_t) if an
- *   error occured
+ *   error occurred
  * @return List of information entries or NULL if an error occurred
  */
 girara_list_t* pdf_document_get_information(zathura_document_t* document,
@@ -154,8 +154,8 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document,
  *
  * @param page Page
  * @param error Set to an error value (see zathura_error_t) if an
- *   error occured
- * @return Image buffer or NULL if an error occured
+ *   error occurred
+ * @return Image buffer or NULL if an error occurred
  */
 zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
 
@@ -165,7 +165,7 @@ zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, mupdf_page_t* mupd
  *
  * @param page Page
  * @param cairo Cairo object
- * @return  true if no error occured, otherwise false
+ * @return  true if no error occurred, otherwise false
  */
 zathura_error_t pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* cairo, bool printing);
 #endif

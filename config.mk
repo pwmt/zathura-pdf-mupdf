@@ -1,8 +1,8 @@
 # See LICENSE file for license and copyright information
 
 VERSION_MAJOR = 0
-VERSION_MINOR = 2
-VERSION_REV = 9
+VERSION_MINOR = 3
+VERSION_REV = 0
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
@@ -37,8 +37,11 @@ MUPDF_LIB ?= -lmupdf -lmujs
 INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC}
 LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} -ljbig2dec -lopenjp2 -ljpeg
 
-# flags
+# compiler flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)
+
+# linker flags
+LDFLAGS += -fPIC
 
 # debug
 DFLAGS ?= -g
