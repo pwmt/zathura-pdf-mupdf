@@ -54,6 +54,9 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t*
 zathura_error_t pdf_page_render_cairo(zathura_page_t* page, cairo_t* cairo,
     double scale, int rotation, int flags)
 {
+  (void) rotation;
+  (void) flags;
+
   if (page == NULL || cairo == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }

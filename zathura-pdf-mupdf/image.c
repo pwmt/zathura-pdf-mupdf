@@ -28,7 +28,7 @@ pdf_image_get_cairo_surface(zathura_image_t* image, cairo_surface_t** surface)
 
   mupdf_page_t* mupdf_page = mupdf_image->page;
 
-  fz_pixmap* pixmap = fz_new_pixmap_from_image(mupdf_page->ctx, mupdf_image->image, 0, 0);
+  fz_pixmap* pixmap = fz_get_pixmap_from_image(mupdf_page->ctx, mupdf_image->image, 0, 0);
   if (pixmap == NULL) {
     goto error_free;
   }

@@ -36,7 +36,7 @@ OPENSSL_LIB ?= $(shell pkg-config --libs libcrypto)
 LIBZATHURA_INC ?= $(shell pkg-config --cflags libzathura)
 LIBZATHURA_LIB ?= $(shell pkg-config --libs libzathura)
 
-MUPDF_LIB ?= -lmupdf -lmujs
+MUPDF_LIB ?= -lmupdf -lmupdfthird
 
 FIU_INC ?= $(shell pkg-config --cflags libfiu)
 FIU_LIB ?= $(shell pkg-config --libs libfiu)

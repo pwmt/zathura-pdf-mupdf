@@ -10,7 +10,7 @@
 #include "macros.h"
 
 static zathura_error_t mupdf_annotation_to_zathura_annotation(zathura_page_t*
-    page, mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page, pdf_annot*
+    page, mupdf_document_t* mupdf_document, pdf_annot*
     mupdf_annot, zathura_annotation_t** annotation);
 
 zathura_error_t
@@ -42,14 +42,14 @@ pdf_page_get_annotations(zathura_page_t* page, zathura_list_t** annotations)
   pdf_annot* mupdf_annotation = pdf_first_annot(mupdf_document->ctx, (pdf_page*) mupdf_page->page);
   while (mupdf_annotation != NULL) {
     zathura_annotation_t* annotation;
-    if (mupdf_annotation_to_zathura_annotation(page, mupdf_document, mupdf_page, mupdf_annotation, &annotation) !=
+    if (mupdf_annotation_to_zathura_annotation(page, mupdf_document, mupdf_annotation, &annotation) !=
         ZATHURA_ERROR_OK) {
-      mupdf_annotation = pdf_next_annot(mupdf_document->ctx, (pdf_page*) mupdf_page->page, mupdf_annotation);
+      mupdf_annotation = pdf_next_annot(mupdf_document->ctx, mupdf_annotation);
       continue;
     }
 
     fz_rect bounding_box;
-    pdf_bound_annot(mupdf_document->ctx, (pdf_page*) mupdf_page->page, mupdf_annotation, &bounding_box);
+    pdf_bound_annot(mupdf_document->ctx, mupdf_annotation, &bounding_box);
 
     zathura_rectangle_t position = {
       {bounding_box.x0, bounding_box.y0},
@@ -63,7 +63,7 @@ pdf_page_get_annotations(zathura_page_t* page, zathura_list_t** annotations)
     *annotations = zathura_list_append(*annotations, annotation);
 
     /* next annot */
-    mupdf_annotation = pdf_next_annot(mupdf_document->ctx, (pdf_page*) mupdf_page->page, mupdf_annotation);
+    mupdf_annotation = pdf_next_annot(mupdf_document->ctx, mupdf_annotation);
   }
 
   return error;
@@ -75,7 +75,7 @@ error_out:
 
 static zathura_error_t
 mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
-    mupdf_document, mupdf_page_t* mupdf_page, pdf_annot* mupdf_annotation,
+    mupdf_document, pdf_annot* mupdf_annotation,
     zathura_annotation_t** annotation)
 {
   fz_annot_type mupdf_type = pdf_annot_type(mupdf_document->ctx, mupdf_annotation);
@@ -150,6 +150,9 @@ error_out:
 
 static void argb_to_rgb(fz_context *ctx, fz_colorspace *colorspace, const float *argb, float *rgb)
 {
+  (void) ctx;
+  (void) colorspace;
+
   rgb[0] = argb[0];
   rgb[1] = argb[1];
   rgb[2] = argb[2];
@@ -157,6 +160,9 @@ static void argb_to_rgb(fz_context *ctx, fz_colorspace *colorspace, const float 
 
 static void rgb_to_argb(fz_context *ctx, fz_colorspace *colorspace, const float *rgb, float *argb)
 {
+  (void) ctx;
+  (void) colorspace;
+
   argb[0] = rgb[2];
   argb[1] = rgb[1];
   argb[2] = rgb[0];
@@ -165,7 +171,7 @@ static void rgb_to_argb(fz_context *ctx, fz_colorspace *colorspace, const float 
 
 static zathura_error_t
 pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
-			  unsigned char* image, int rowstride,
+			  unsigned char* image,
 			  unsigned int annotation_width, unsigned int annotation_height,
         zathura_rectangle_t position,
 			  double scalex, double scaley, cairo_format_t cairo_format)
@@ -185,7 +191,7 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
   fz_try (mupdf_document->ctx) {
     fz_matrix m;
     fz_scale(&m, scalex, scaley);
-    pdf_run_annot(mupdf_document->ctx, (pdf_page*) mupdf_page->page, mupdf_annotation, device, &m, NULL);
+    pdf_run_annot(mupdf_document->ctx, mupdf_annotation, device, &m, NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }
@@ -290,11 +296,10 @@ zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, ca
   unsigned int annotation_width  = cairo_image_surface_get_width(surface);
   unsigned int annotation_height = cairo_image_surface_get_height(surface);
 
-  int rowstride        = cairo_image_surface_get_stride(surface);
   unsigned char* image = cairo_image_surface_get_data(surface);
 
   error = pdf_annotation_render_to_buffer(mupdf_annotation, mupdf_document,
-      mupdf_page, image, rowstride, annotation_width, annotation_height,
+      mupdf_page, image, annotation_width, annotation_height,
       position, scale, scale, cairo_format);
 
   cairo_surface_mark_dirty(surface);

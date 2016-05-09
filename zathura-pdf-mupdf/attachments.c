@@ -174,9 +174,9 @@ pdf_attachment_save(zathura_attachment_t* attachment, const char* path, void* us
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  if (pdf_is_stream(mupdf_document->ctx, (pdf_document*)
-        mupdf_document->document, mupdf_attachment->num, mupdf_attachment->gen)
-      == 0) {
+  /* if (pdf_is_stream(mupdf_document->ctx, (pdf_document*) */
+  /*       mupdf_document->document, mupdf_attachment->num, mupdf_attachment->gen) */
+  if (pdf_is_stream(mupdf_document->ctx, file) == 0) {
     return ZATHURA_ERROR_UNKNOWN;
   }
 
