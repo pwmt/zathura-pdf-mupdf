@@ -109,12 +109,7 @@ pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
   }
 
   fz_try (mupdf_document->ctx) {
-    /* pdf_save_document claims to accepts NULL as third argument but doesn't.
-     * pdf_write_document does not check if the third arguments is NULL for some
-     * options. */
-
-    pdf_write_options opts = { 0 }; /* just use the default options */
-    pdf_save_document(mupdf_document->ctx, (pdf_document*) mupdf_document->document, (char*) path, &opts);
+    pdf_save_document(mupdf_document->ctx, (pdf_document*) mupdf_document->document, (char*) path, NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }
