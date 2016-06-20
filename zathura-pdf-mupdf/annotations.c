@@ -137,6 +137,16 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
     goto error_free;
   }
 
+  /* Check if annotation has an appearance stream */
+  bool has_appearance_stream = false;
+  if (mupdf_annotation->ap != NULL) {
+    has_appearance_stream = true;
+  }
+
+  if ((error = zathura_annotation_set_appearance_stream(*annotation, has_appearance_stream)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
   return error;
 
 error_free:
