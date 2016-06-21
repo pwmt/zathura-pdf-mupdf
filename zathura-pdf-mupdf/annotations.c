@@ -148,11 +148,22 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
     goto error_out;
   }
 
+  /* Parse properties */
+  pdf_obj* obj = NULL;
+
+  /* Get color */
+  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_C);
+  zathura_annotation_color_t color = mupdf_color_to_zathura_color(mupdf_document->ctx, obj);
+
+  if ((error = zathura_annotation_set_color(*annotation, color)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
   /* Check opacity */
   // XXX: The mupdf annotation rendering evaluates opacity already
   if (has_appearance_stream == false) {
     float opacity = 1.0;
-    pdf_obj* obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_CA);
+    obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_CA);
     if (pdf_is_number(mupdf_document->ctx, obj)) {
       opacity = pdf_to_real(mupdf_document->ctx, obj);
     }
@@ -163,7 +174,7 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   }
 
   /* Check blend mode */
-  pdf_obj* obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_BM);
+  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_BM);
   if (pdf_is_array(mupdf_document->ctx, obj)) {
     obj = pdf_array_get(mupdf_document->ctx, obj, 0);
   }

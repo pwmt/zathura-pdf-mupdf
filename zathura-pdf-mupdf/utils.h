@@ -16,4 +16,6 @@ zathura_blend_mode_t mupdf_blend_mode_to_zathura_blend_mode(const char* blend_mo
 
 const char* zathura_blend_mode_to_mupdf_blend_mode(zathura_blend_mode_t blend_mode);
 
+zathura_annotation_color_t mupdf_color_to_zathura_color(fz_context* ctx, pdf_obj* obj);
+
 #endif // UTILS_H

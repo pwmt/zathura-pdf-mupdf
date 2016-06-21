@@ -128,3 +128,26 @@ zathura_blend_mode_to_mupdf_blend_mode(zathura_blend_mode_t blend_mode)
 
   return "Normal";
 }
+
+zathura_annotation_color_t
+mupdf_color_to_zathura_color(fz_context* ctx, pdf_obj* obj)
+{
+  zathura_annotation_color_t color = {
+    ZATHURA_ANNOTATION_COLOR_SPACE_RGB,
+    {0}
+  };
+
+  if (pdf_is_array(ctx, obj)) {
+    unsigned int n = pdf_array_len(ctx, obj);
+    for (unsigned int i = 0; i < n; i++) {
+      pdf_obj* item = pdf_array_get(ctx, obj, i);
+
+      if (pdf_is_number(ctx, item)) {
+        float number = pdf_to_real(ctx, item);
+        color.values[i] = number * 65535.0;
+      }
+    }
+  }
+
+  return color;
+}
