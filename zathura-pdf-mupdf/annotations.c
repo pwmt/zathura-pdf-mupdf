@@ -8,6 +8,7 @@
 #include "plugin.h"
 #include "internal.h"
 #include "macros.h"
+#include "utils.h"
 
 static zathura_error_t mupdf_annotation_to_zathura_annotation(zathura_page_t*
     page, mupdf_document_t* mupdf_document, pdf_annot*
@@ -145,6 +146,32 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
 
   if ((error = zathura_annotation_set_appearance_stream(*annotation, has_appearance_stream)) != ZATHURA_ERROR_OK) {
     goto error_out;
+  }
+
+  /* Check opacity */
+  float opacity = 1.0;
+  pdf_obj* obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_CA);
+  if (pdf_is_number(mupdf_document->ctx, obj)) {
+    opacity = pdf_to_real(mupdf_document->ctx, obj);
+  }
+
+  if ((error = zathura_annotation_set_opacity(*annotation, opacity)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  /* Check blend mode */
+  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_BM);
+  if (pdf_is_array(mupdf_document->ctx, obj)) {
+    obj = pdf_array_get(mupdf_document->ctx, obj, 0);
+  }
+
+  if (pdf_is_name(mupdf_document->ctx, obj)) {
+    char* blend_mode_str = pdf_to_name(mupdf_document->ctx, obj);
+
+    zathura_blend_mode_t blend_mode = mupdf_blend_mode_to_zathura_blend_mode(blend_mode_str);
+    if ((error = zathura_annotation_set_blend_mode(*annotation, blend_mode)) != ZATHURA_ERROR_OK) {
+      goto error_out;
+    }
   }
 
   return error;

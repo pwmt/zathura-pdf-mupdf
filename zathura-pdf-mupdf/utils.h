@@ -12,4 +12,8 @@ void mupdf_page_extract_text(mupdf_document_t* mupdf_document,
 bool mupdf_to_zathura_action(fz_link_dest* link, zathura_action_t**
     action);
 
+zathura_blend_mode_t mupdf_blend_mode_to_zathura_blend_mode(const char* blend_mode_str);
+
+const char* zathura_blend_mode_to_mupdf_blend_mode(zathura_blend_mode_t blend_mode);
+
 #endif // UTILS_H

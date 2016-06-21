@@ -2,7 +2,10 @@
 
 #define _POSIX_C_SOURCE 1
 
+#include <string.h>
+
 #include "utils.h"
+#include "macros.h"
 
 void
 mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page) {
@@ -76,4 +79,52 @@ mupdf_to_zathura_action(fz_link_dest* link, zathura_action_t** action)
   }
 
   return true;
+}
+
+typedef struct blend_mode_map_s {
+  const char* string;
+  zathura_blend_mode_t blend_mode;
+} blend_mode_map_t;
+
+static blend_mode_map_t blend_mode_mapping[] = {
+  { "Normal",     ZATHURA_BLEND_MODE_NORMAL },
+  { "Multiply",   ZATHURA_BLEND_MODE_MULTIPLY },
+  { "Screen",     ZATHURA_BLEND_MODE_SCREEN },
+  { "Overlay",    ZATHURA_BLEND_MODE_OVERLAY },
+  { "Darken",     ZATHURA_BLEND_MODE_DARKEN },
+  { "Lighten",    ZATHURA_BLEND_MODE_LIGHTEN },
+  { "ColorDodge", ZATHURA_BLEND_MODE_COLOR_DODGE },
+  { "ColorBurn",  ZATHURA_BLEND_MODE_COLOR_BURN },
+  { "HardLight",  ZATHURA_BLEND_MODE_HARD_LIGHT },
+  { "SoftLight",  ZATHURA_BLEND_MODE_SOFT_LIGHT },
+  { "Difference", ZATHURA_BLEND_MODE_DIFFERENCE },
+  { "Exclusion",  ZATHURA_BLEND_MODE_EXCLUSION },
+};
+
+zathura_blend_mode_t
+mupdf_blend_mode_to_zathura_blend_mode(const char* blend_mode_str)
+{
+  if (blend_mode_str == NULL) {
+    return ZATHURA_BLEND_MODE_NORMAL;
+  }
+
+  for (unsigned int i = 0; i < LENGTH(blend_mode_mapping); i++) {
+    if (strcmp(blend_mode_str, blend_mode_mapping[i].string) == 0) {
+      return blend_mode_mapping[i].blend_mode;
+    }
+  }
+
+  return ZATHURA_BLEND_MODE_NORMAL;
+}
+
+const char*
+zathura_blend_mode_to_mupdf_blend_mode(zathura_blend_mode_t blend_mode)
+{
+  for (unsigned int i = 0; i < LENGTH(blend_mode_mapping); i++) {
+    if (blend_mode_mapping[i].blend_mode == blend_mode) {
+      return blend_mode_mapping[i].string;
+    }
+  }
+
+  return "Normal";
 }
