@@ -13,6 +13,8 @@
 static zathura_error_t mupdf_annotation_to_zathura_annotation(zathura_page_t*
     page, mupdf_document_t* mupdf_document, pdf_annot*
     mupdf_annot, zathura_annotation_t** annotation);
+static zathura_error_t parse_annotation_circle(fz_context* ctx, pdf_document*
+    document, pdf_annot* mupdf_annotation, zathura_annotation_t* annotation);
 
 zathura_error_t
 pdf_page_get_annotations(zathura_page_t* page, zathura_list_t** annotations)
@@ -188,6 +190,16 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
     }
   }
 
+  /* Parse type specific properties */
+  switch (zathura_type) {
+    case ZATHURA_ANNOTATION_CIRCLE:
+      error = parse_annotation_circle(mupdf_document->ctx,
+          (pdf_document*) mupdf_document->document, mupdf_annotation, *annotation);
+      break;
+    default:
+      break;
+  }
+
   return error;
 
 error_free:
@@ -197,6 +209,31 @@ error_free:
 error_out:
 
     return error;
+}
+
+static zathura_error_t
+parse_annotation_circle(fz_context* ctx, pdf_document* document, pdf_annot* mupdf_annotation,
+    zathura_annotation_t* annotation) {
+  zathura_error_t error = ZATHURA_ERROR_OK;
+
+  /* Get color */
+  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME_C);
+  zathura_annotation_color_t color = mupdf_color_to_zathura_color(ctx, obj);
+
+  if ((error = zathura_annotation_circle_set_color(annotation, color)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  /* Parse border style */
+  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, document, mupdf_annotation->obj);
+
+  if ((error = zathura_annotation_circle_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+error_out:
+
+  return error;
 }
 
 static void argb_to_rgb(fz_context *ctx, fz_colorspace *colorspace, const float *argb, float *rgb)

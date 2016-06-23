@@ -18,4 +18,7 @@ const char* zathura_blend_mode_to_mupdf_blend_mode(zathura_blend_mode_t blend_mo
 
 zathura_annotation_color_t mupdf_color_to_zathura_color(fz_context* ctx, pdf_obj* obj);
 
+zathura_annotation_border_t mupdf_border_to_zathura_border(fz_context* ctx,
+    pdf_document* document, pdf_obj* annotation);
+
 #endif // UTILS_H

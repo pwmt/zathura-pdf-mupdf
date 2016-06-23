@@ -3,6 +3,7 @@
 #define _POSIX_C_SOURCE 1
 
 #include <string.h>
+#include <libzathura/libzathura.h>
 
 #include "utils.h"
 #include "macros.h"
@@ -150,4 +151,92 @@ mupdf_color_to_zathura_color(fz_context* ctx, pdf_obj* obj)
   }
 
   return color;
+}
+
+zathura_annotation_border_t
+mupdf_border_to_zathura_border(fz_context* ctx, pdf_document* document, pdf_obj* annotation)
+{
+  /* Initialize border with default values */
+  zathura_annotation_border_t border;
+  zathura_annotation_border_init(&border);
+
+  /* Parse border style */
+  pdf_obj* dict = pdf_dict_get(ctx, annotation, PDF_NAME_BS);
+  pdf_obj* obj = NULL;
+
+  if (pdf_is_dict(ctx, dict) != 0) {
+    /* Parse width */
+    obj = pdf_dict_get(ctx, dict, PDF_NAME_W);
+    if (pdf_is_number(ctx, obj)) {
+      border.width = pdf_to_int(ctx, obj);
+    }
+
+    /* Parse style */
+    typedef struct annotation_border_style_mapping_s {
+      const char* name;
+      zathura_annotation_border_style_t style;
+    } annotation_border_style_mapping_t;
+
+    annotation_border_style_mapping_t border_style_mapping[] = {
+      { "S", ZATHURA_ANNOTATION_BORDER_STYLE_SOLID },
+      { "D", ZATHURA_ANNOTATION_BORDER_STYLE_DASHED },
+      { "B", ZATHURA_ANNOTATION_BORDER_STYLE_BEVELED },
+      { "I", ZATHURA_ANNOTATION_BORDER_STYLE_INSET },
+      { "U", ZATHURA_ANNOTATION_BORDER_STYLE_UNDERLINE },
+    };
+
+    obj = pdf_dict_get(ctx, dict, PDF_NAME_S);
+    if (pdf_is_name(ctx, obj)) {
+      char* name = pdf_to_name(ctx, obj);
+      for (unsigned int i = 0; i < LENGTH(border_style_mapping); i++) {
+        if (strncmp(name, border_style_mapping[i].name, 1) == 0) {
+          border.style = border_style_mapping[i].style;
+        }
+      }
+    }
+
+    /* Parse dash array */
+    obj = pdf_dict_get(ctx, dict, PDF_NAME_D);
+    if (pdf_is_array(ctx, obj)) {
+      zathura_list_t* dash_array = NULL;
+
+      int length = pdf_array_len(ctx, obj);
+      for (int i = 0; i < length; i++) {
+        pdf_obj* entry = pdf_array_get(ctx, obj, i);
+        if (pdf_is_number(ctx, entry)) {
+          int number = pdf_to_int(ctx, entry);
+          dash_array = zathura_list_append(dash_array, number);
+        }
+      }
+
+      border.dash_pattern.dash_array = dash_array;
+      border.dash_pattern.dash_phase = 0;
+    }
+  }
+
+  /* Parse border effect */
+  pdf_obj* key = pdf_new_name(ctx, document, "BE");
+  dict = pdf_dict_get(ctx, annotation, key);
+  pdf_drop_obj(ctx, key);
+
+  if (pdf_is_dict(ctx, dict) != 0) {
+    /* Parse intensity */
+    obj = pdf_dict_get(ctx, dict, PDF_NAME_I);
+    if (pdf_is_number(ctx, obj)) {
+      border.intensity = pdf_to_int(ctx, obj);
+    }
+
+    /* Parse style */
+    obj = pdf_dict_get(ctx, dict, PDF_NAME_S);
+    if (pdf_is_name(ctx, obj)) {
+      char* name = pdf_to_name(ctx, obj);
+      if (strncmp(name, "C", 1) == 0) {
+        border.effect = ZATHURA_ANNOTATION_BORDER_EFFECT_CLOUDY;
+      } else {
+        border.effect = ZATHURA_ANNOTATION_BORDER_EFFECT_NONE;
+      }
+    }
+  }
+
+  return border;
 }
