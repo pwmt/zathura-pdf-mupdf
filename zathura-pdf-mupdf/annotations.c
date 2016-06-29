@@ -15,6 +15,8 @@ static zathura_error_t mupdf_annotation_to_zathura_annotation(zathura_page_t*
     mupdf_annot, zathura_annotation_t** annotation);
 static zathura_error_t parse_annotation_circle(fz_context* ctx, pdf_document*
     document, pdf_annot* mupdf_annotation, zathura_annotation_t* annotation);
+static zathura_error_t parse_annotation_polygon(fz_context* ctx, pdf_document*
+    document, pdf_annot* mupdf_annotation, zathura_annotation_t* annotation);
 
 zathura_error_t
 pdf_page_get_annotations(zathura_page_t* page, zathura_list_t** annotations)
@@ -196,6 +198,10 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
       error = parse_annotation_circle(mupdf_document->ctx,
           (pdf_document*) mupdf_document->document, mupdf_annotation, *annotation);
       break;
+    case ZATHURA_ANNOTATION_POLYGON:
+      error = parse_annotation_polygon(mupdf_document->ctx,
+          (pdf_document*) mupdf_document->document, mupdf_annotation, *annotation);
+      break;
     default:
       break;
   }
@@ -228,6 +234,80 @@ parse_annotation_circle(fz_context* ctx, pdf_document* document, pdf_annot* mupd
   zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, document, mupdf_annotation->obj);
 
   if ((error = zathura_annotation_circle_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+error_out:
+
+  return error;
+}
+
+static zathura_error_t
+parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mupdf_annotation,
+    zathura_annotation_t* annotation) {
+  zathura_error_t error = ZATHURA_ERROR_OK;
+
+  /* Get color */
+  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME_C);
+  zathura_annotation_color_t color = mupdf_color_to_zathura_color(ctx, obj);
+
+  if ((error = zathura_annotation_set_color(annotation, color)) != ZATHURA_ERROR_OK) {
+    goto error_out;
+  }
+
+  /* Get vertices */
+  pdf_obj* key = pdf_new_name(ctx, document, "Vertices");
+  obj = pdf_dict_get(ctx, mupdf_annotation->obj, key);
+  pdf_drop_obj(ctx, key);
+
+  const fz_matrix* page_ctm = &(mupdf_annotation->page->ctm);
+
+  if (pdf_is_array(ctx, obj) != 0) {
+    int length = pdf_array_len(ctx, obj);
+    if (length % 2 != 0) {
+      error = ZATHURA_ERROR_INVALID_ARGUMENTS; // XXX: Corrupt data error
+      goto error_out;
+    }
+
+    zathura_list_t* vertices = NULL;
+
+    for (int i = 0; i < length; i += 2) {
+      pdf_obj* x_obj = pdf_array_get(ctx, obj, i);
+      pdf_obj* y_obj = pdf_array_get(ctx, obj, i + 1);
+
+      if (pdf_is_number(ctx, x_obj) && pdf_is_number(ctx, y_obj)) {
+        double x = pdf_to_real(ctx, x_obj);
+        double y = pdf_to_real(ctx, y_obj);
+
+        fz_rect rect = fz_empty_rect;
+        rect.x0 = x;
+        rect.y0 = y;
+        rect.x1 = x;
+        rect.y1 = y;
+
+        fz_transform_rect(&rect, page_ctm);
+
+        zathura_point_t* point = calloc(1, sizeof(zathura_point_t));
+        if (point != NULL) {
+          point->x = rect.x0;
+          point->y = rect.y0;
+          vertices = zathura_list_append(vertices, point);
+        } else {
+          error = ZATHURA_ERROR_OUT_OF_MEMORY;
+          goto error_out;
+        }
+      }
+    }
+
+    if ((error = zathura_annotation_polygon_set_vertices(annotation, vertices)) != ZATHURA_ERROR_OK) {
+      zathura_list_free_full(vertices, free);
+      goto error_out;
+    }
+  }
+
+  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, document, mupdf_annotation->obj);
+
+  if ((error = zathura_annotation_polygon_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
 
