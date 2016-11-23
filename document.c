@@ -3,7 +3,6 @@
 #define _POSIX_C_SOURCE 1
 
 #include <mupdf/fitz.h>
-#include <mupdf/xps.h>
 #include <mupdf/pdf.h>
 
 #include <glib-2.0/glib.h>

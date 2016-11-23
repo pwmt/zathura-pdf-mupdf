@@ -43,7 +43,9 @@ pdf_page_init(zathura_page_t* page)
   /* setup text */
   mupdf_page->extracted_text = false;
 
-  mupdf_page->text = fz_new_stext_page(mupdf_page->ctx);
+  fz_rect mediabox;
+  mupdf_page->text = fz_new_stext_page(mupdf_page->ctx,
+      fz_bound_page(mupdf_page->ctx, mupdf_page->page, &mediabox));
   if (mupdf_page->text == NULL) {
     goto error_free;
   }
