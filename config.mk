@@ -2,7 +2,7 @@
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 3
-VERSION_REV = 0
+VERSION_REV = 1
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
@@ -32,10 +32,16 @@ endif
 OPENSSL_INC ?= $(shell pkg-config --cflags libcrypto)
 OPENSSL_LIB ?= $(shell pkg-config --libs libcrypto)
 
-MUPDF_LIB ?= -lmupdf -lmujs
+FREETYPE_INC ?= $(shell pkg-config --cflags freetype2)
+FREETYPE_LIB ?= $(shell pkg-config --libs freetype2)
 
-INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC}
-LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} -ljbig2dec -lopenjp2 -ljpeg
+HARFBUZZ_INC ?= $(shell pkg-config --cflags harfbuzz)
+HARFBUZZ_LIB ?= $(shell pkg-config --libs harfbuzz)
+
+MUPDF_LIB ?= -lmupdf -lmupdfthird
+
+INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC} ${FREETYPE_INC} ${HARFBUZZ_INC}
+LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} ${FREETYPE_LIB} ${HARFBUZZ_LIB} -ljbig2dec -lopenjp2 -ljpeg -lz
 
 # compiler flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)
