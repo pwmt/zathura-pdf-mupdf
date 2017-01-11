@@ -2,7 +2,7 @@
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 3
-VERSION_REV = 0
+VERSION_REV = 1
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
 # minimum required zathura version
