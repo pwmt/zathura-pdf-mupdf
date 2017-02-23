@@ -51,7 +51,9 @@ build_index(fz_context* ctx, fz_document* document, fz_outline* outline, girara_
     zathura_link_type_t type               = ZATHURA_LINK_INVALID;
     zathura_rectangle_t rect               = { .x1 = 0, .y1 = 0, .x2 = 0, .y2 = 0 };
 
-    if (fz_is_external_link(ctx, outline->uri) == 1) {
+    if (outline->uri == NULL) {
+      type = ZATHURA_LINK_NONE;
+    } else if (fz_is_external_link(ctx, outline->uri) == 1) {
       if (strstr(outline->uri, "file://") == outline->uri) {
         type         = ZATHURA_LINK_GOTO_REMOTE;
         target.value = outline->uri;
