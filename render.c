@@ -100,7 +100,6 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
   return image_buffer;
 }
 
-#if HAVE_CAIRO
 zathura_error_t
 pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* cairo, bool GIRARA_UNUSED(printing))
 {
@@ -134,5 +133,4 @@ pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* c
   return pdf_page_render_to_buffer(mupdf_document, mupdf_page, image, rowstride, 4,
 				   page_width, page_height, scalex, scaley);
 }
-#endif
 

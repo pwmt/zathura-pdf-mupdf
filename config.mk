@@ -17,6 +17,9 @@ LIBDIR ?= ${PREFIX}/lib
 DESKTOPPREFIX ?= ${PREFIX}/share/applications
 
 # libs
+CAIRO_INC ?= $(shell $(PKG_CONFIG) --cflags cairo)
+CAIRO_LIB ?= $(shell $(PKG_CONFIG) --libs cairo)
+
 GTK_INC ?= $(shell pkg-config --cflags gtk+-${ZATHURA_GTK_VERSION}.0)
 GTK_LIB ?= $(shell pkg-config --libs gtk+-${ZATHURA_GTK_VERSION}.0)
 
@@ -40,8 +43,8 @@ HARFBUZZ_LIB ?= $(shell pkg-config --libs harfbuzz)
 
 MUPDF_LIB ?= -lmupdf -lmupdfthird
 
-INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${ZATHURA_INC} ${FREETYPE_INC} ${HARFBUZZ_INC}
-LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} ${FREETYPE_LIB} ${HARFBUZZ_LIB} -ljbig2dec -lopenjp2 -ljpeg -lz
+INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${CAIRO_INC} ${ZATHURA_INC} ${FREETYPE_INC} ${HARFBUZZ_INC}
+LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} ${CAIRO_LIB} ${FREETYPE_LIB} ${HARFBUZZ_LIB} -ljbig2dec -lopenjp2 -ljpeg -lz
 
 # compiler flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)
@@ -51,9 +54,6 @@ LDFLAGS += -fPIC
 
 # debug
 DFLAGS ?= -g
-
-# build with cairo support?
-WITH_CAIRO ?= 1
 
 # compiler
 CC ?= gcc

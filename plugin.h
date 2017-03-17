@@ -6,10 +6,7 @@
 #include <stdbool.h>
 #include <zathura/plugin-api.h>
 #include <mupdf/fitz.h>
-
-#if HAVE_CAIRO
 #include <cairo.h>
-#endif
 
 typedef struct mupdf_document_s
 {
@@ -113,7 +110,6 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page
  */
 girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
 
-#if HAVE_CAIRO
 /**
  * Gets the content of the image in a cairo surface
  *
@@ -125,7 +121,6 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_pag
  */
 cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t*
     mupdf_page, zathura_image_t* image, zathura_error_t* error);
-#endif
 
 /**
  * Get text for selection
@@ -159,7 +154,6 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document,
  */
 zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
 
-#if HAVE_CAIRO
 /**
  * Renders a page onto a cairo object
  *
@@ -168,6 +162,5 @@ zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, mupdf_page_t* mupd
  * @return  true if no error occurred, otherwise false
  */
 zathura_error_t pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* cairo, bool printing);
-#endif
 
 #endif // PDF_H
