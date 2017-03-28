@@ -5,11 +5,13 @@ VERSION_MINOR = 3
 VERSION_REV = 1
 VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 
+PKG_CONFIG ?= pkg-config
+
 # minimum required zathura version
 ZATHURA_MIN_VERSION = 0.2.0
 
-ZATHURA_VERSION_CHECK ?= $(shell pkg-config --atleast-version=$(ZATHURA_MIN_VERSION) zathura; echo $$?)
-ZATHURA_GTK_VERSION ?= $(shell pkg-config --variable=GTK_VERSION zathura)
+ZATHURA_VERSION_CHECK ?= $(shell $(PKG_CONFIG) --atleast-version=$(ZATHURA_MIN_VERSION) zathura; echo $$?)
+ZATHURA_GTK_VERSION ?= $(shell $(PKG_CONFIG) --variable=GTK_VERSION zathura)
 
 # paths
 PREFIX ?= /usr
@@ -20,26 +22,26 @@ DESKTOPPREFIX ?= ${PREFIX}/share/applications
 CAIRO_INC ?= $(shell $(PKG_CONFIG) --cflags cairo)
 CAIRO_LIB ?= $(shell $(PKG_CONFIG) --libs cairo)
 
-GTK_INC ?= $(shell pkg-config --cflags gtk+-${ZATHURA_GTK_VERSION}.0)
-GTK_LIB ?= $(shell pkg-config --libs gtk+-${ZATHURA_GTK_VERSION}.0)
+GTK_INC ?= $(shell $(PKG_CONFIG) --cflags gtk+-${ZATHURA_GTK_VERSION}.0)
+GTK_LIB ?= $(shell $(PKG_CONFIG) --libs gtk+-${ZATHURA_GTK_VERSION}.0)
 
-GIRARA_INC ?= $(shell pkg-config --cflags girara-gtk${ZATHURA_GTK_VERSION})
-GIRARA_LIB ?= $(shell pkg-config --libs girara-gtk${ZATHURA_GTK_VERSION})
+GIRARA_INC ?= $(shell $(PKG_CONFIG) --cflags girara-gtk${ZATHURA_GTK_VERSION})
+GIRARA_LIB ?= $(shell $(PKG_CONFIG) --libs girara-gtk${ZATHURA_GTK_VERSION})
 
-ZATHURA_INC ?= $(shell pkg-config --cflags zathura)
-PLUGINDIR ?= $(shell pkg-config --variable=plugindir zathura)
+ZATHURA_INC ?= $(shell $(PKG_CONFIG) --cflags zathura)
+PLUGINDIR ?= $(shell $(PKG_CONFIG) --variable=plugindir zathura)
 ifeq (,${PLUGINDIR})
 PLUGINDIR = ${LIBDIR}/zathura
 endif
 
-OPENSSL_INC ?= $(shell pkg-config --cflags libcrypto)
-OPENSSL_LIB ?= $(shell pkg-config --libs libcrypto)
+OPENSSL_INC ?= $(shell $(PKG_CONFIG) --cflags libcrypto)
+OPENSSL_LIB ?= $(shell $(PKG_CONFIG) --libs libcrypto)
 
-FREETYPE_INC ?= $(shell pkg-config --cflags freetype2)
-FREETYPE_LIB ?= $(shell pkg-config --libs freetype2)
+FREETYPE_INC ?= $(shell $(PKG_CONFIG) --cflags freetype2)
+FREETYPE_LIB ?= $(shell $(PKG_CONFIG) --libs freetype2)
 
-HARFBUZZ_INC ?= $(shell pkg-config --cflags harfbuzz)
-HARFBUZZ_LIB ?= $(shell pkg-config --libs harfbuzz)
+HARFBUZZ_INC ?= $(shell $(PKG_CONFIG) --cflags harfbuzz)
+HARFBUZZ_LIB ?= $(shell $(PKG_CONFIG) --libs harfbuzz)
 
 MUPDF_LIB ?= -lmupdf -lmupdfthird
 
