@@ -50,11 +50,6 @@ pdf_page_init(zathura_page_t* page)
     goto error_free;
   }
 
-  mupdf_page->sheet = fz_new_stext_sheet(mupdf_page->ctx);
-  if (mupdf_page->sheet == NULL) {
-    goto error_free;
-  }
-
   return ZATHURA_ERROR_OK;
 
 error_free:
@@ -77,10 +72,6 @@ pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page)
   if (mupdf_page != NULL) {
     if (mupdf_page->text != NULL) {
       fz_drop_stext_page(mupdf_page->ctx, mupdf_page->text);
-    }
-
-    if (mupdf_page->sheet != NULL) {
-      fz_drop_stext_sheet(mupdf_page->ctx, mupdf_page->sheet);
     }
 
     if (mupdf_page->page != NULL) {
