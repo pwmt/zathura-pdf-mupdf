@@ -31,6 +31,7 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
     return ZATHURA_ERROR_UNKNOWN;
   }
 
+  fz_close_device(mupdf_page->ctx, device);
   fz_drop_device(mupdf_page->ctx, device);
 
   fz_irect irect = { .x1 = page_width, .y1 = page_height };
@@ -43,6 +44,7 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
 
   device = fz_new_draw_device(mupdf_page->ctx, NULL, pixmap);
   fz_run_display_list(mupdf_page->ctx, display_list, device, &fz_identity, &rect, NULL);
+  fz_close_device(mupdf_page->ctx, device);
   fz_drop_device(mupdf_page->ctx, device);
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
