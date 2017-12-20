@@ -20,8 +20,6 @@ pdf_page_init(zathura_page_t* page)
     return  ZATHURA_ERROR_OUT_OF_MEMORY;
   }
 
-  zathura_page_set_data(page, mupdf_page);
-
   mupdf_page->ctx = mupdf_document->ctx;
   if (mupdf_page->ctx == NULL) {
     goto error_free;
@@ -36,10 +34,6 @@ pdf_page_init(zathura_page_t* page)
 
   fz_bound_page(mupdf_document->ctx, (fz_page*) mupdf_page->page, &mupdf_page->bbox);
 
-  /* get page dimensions */
-  zathura_page_set_width(page,  mupdf_page->bbox.x1 - mupdf_page->bbox.x0);
-  zathura_page_set_height(page, mupdf_page->bbox.y1 - mupdf_page->bbox.y0);
-
   /* setup text */
   mupdf_page->extracted_text = false;
 
@@ -50,10 +44,11 @@ pdf_page_init(zathura_page_t* page)
     goto error_free;
   }
 
-  mupdf_page->sheet = fz_new_stext_sheet(mupdf_page->ctx);
-  if (mupdf_page->sheet == NULL) {
-    goto error_free;
-  }
+  zathura_page_set_data(page, mupdf_page);
+
+  /* get page dimensions */
+  zathura_page_set_width(page,  mupdf_page->bbox.x1 - mupdf_page->bbox.x0);
+  zathura_page_set_height(page, mupdf_page->bbox.y1 - mupdf_page->bbox.y0);
 
   return ZATHURA_ERROR_OK;
 
@@ -77,10 +72,6 @@ pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page)
   if (mupdf_page != NULL) {
     if (mupdf_page->text != NULL) {
       fz_drop_stext_page(mupdf_page->ctx, mupdf_page->text);
-    }
-
-    if (mupdf_page->sheet != NULL) {
-      fz_drop_stext_sheet(mupdf_page->ctx, mupdf_page->sheet);
     }
 
     if (mupdf_page->page != NULL) {
