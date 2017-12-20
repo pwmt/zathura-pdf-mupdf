@@ -8,7 +8,7 @@ VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}
 PKG_CONFIG ?= pkg-config
 
 # minimum required zathura version
-ZATHURA_MIN_VERSION = 0.2.0
+ZATHURA_MIN_VERSION = 0.3.8
 
 ZATHURA_VERSION_CHECK ?= $(shell $(PKG_CONFIG) --atleast-version=$(ZATHURA_MIN_VERSION) zathura; echo $$?)
 ZATHURA_GTK_VERSION ?= $(shell $(PKG_CONFIG) --variable=GTK_VERSION zathura)
