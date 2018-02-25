@@ -45,7 +45,7 @@ HARFBUZZ_LIB ?= $(shell $(PKG_CONFIG) --libs harfbuzz)
 MUPDF_LIB ?= -lmupdf -lmupdfthird
 
 INCS = ${GTK_INC} ${GIRARA_INC} ${OPENSSL_INC} ${CAIRO_INC} ${ZATHURA_INC} ${FREETYPE_INC} ${HARFBUZZ_INC}
-LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} ${CAIRO_LIB} ${FREETYPE_LIB} ${HARFBUZZ_LIB} -ljbig2dec -lopenjp2 -ljpeg -lz
+LIBS = ${GTK_LIB} ${GIRARA_LIB} ${MUPDF_LIB} ${OPENSSL_LIB} ${CAIRO_LIB} ${FREETYPE_LIB} ${HARFBUZZ_LIB}
 
 # compiler flags
 CFLAGS += -std=c99 -fPIC -pedantic -Wall -Wno-format-zero-length $(INCS)
