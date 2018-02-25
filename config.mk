@@ -11,7 +11,6 @@ PKG_CONFIG ?= pkg-config
 ZATHURA_MIN_VERSION = 0.3.8
 
 ZATHURA_VERSION_CHECK ?= $(shell $(PKG_CONFIG) --atleast-version=$(ZATHURA_MIN_VERSION) zathura; echo $$?)
-ZATHURA_GTK_VERSION ?= $(shell $(PKG_CONFIG) --variable=GTK_VERSION zathura)
 
 # paths
 PREFIX ?= /usr
@@ -22,11 +21,11 @@ DESKTOPPREFIX ?= ${PREFIX}/share/applications
 CAIRO_INC ?= $(shell $(PKG_CONFIG) --cflags cairo)
 CAIRO_LIB ?= $(shell $(PKG_CONFIG) --libs cairo)
 
-GTK_INC ?= $(shell $(PKG_CONFIG) --cflags gtk+-${ZATHURA_GTK_VERSION}.0)
-GTK_LIB ?= $(shell $(PKG_CONFIG) --libs gtk+-${ZATHURA_GTK_VERSION}.0)
+GTK_INC ?= $(shell $(PKG_CONFIG) --cflags gtk+-3.0)
+GTK_LIB ?= $(shell $(PKG_CONFIG) --libs gtk+-3.0)
 
-GIRARA_INC ?= $(shell $(PKG_CONFIG) --cflags girara-gtk${ZATHURA_GTK_VERSION})
-GIRARA_LIB ?= $(shell $(PKG_CONFIG) --libs girara-gtk${ZATHURA_GTK_VERSION})
+GIRARA_INC ?= $(shell $(PKG_CONFIG) --cflags girara-gtk3)
+GIRARA_LIB ?= $(shell $(PKG_CONFIG) --libs girara-gtk3)
 
 ZATHURA_INC ?= $(shell $(PKG_CONFIG) --cflags zathura)
 PLUGINDIR ?= $(shell $(PKG_CONFIG) --variable=plugindir zathura)
