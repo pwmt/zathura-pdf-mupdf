@@ -70,7 +70,7 @@ build_index(fz_context* ctx, fz_document* document, fz_outline* outline, girara_
       target.page_number      = fz_resolve_link(ctx, document, outline->uri, &x, &y);
       target.left  = x;
       target.top   = y;
-      target.scale = 0.0;
+      target.zoom  = 0.0;
     }
 
     index_element->link = zathura_link_new(type, rect, target);

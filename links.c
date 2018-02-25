@@ -61,7 +61,7 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
           mupdf_document->document, link->uri, &x, &y);
       target.left  = x;
       target.top   = y;
-      target.scale = 0.0;
+      target.zoom  = 0.0;
     }
 
     zathura_link_t* zathura_link = zathura_link_new(type, position, target);
