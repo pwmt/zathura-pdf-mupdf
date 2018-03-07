@@ -44,16 +44,16 @@ flags = [
 flags = cc.get_supported_arguments(flags)
 
 sources = files(
-  'document.c',
-  'image.c',
-  'index.c',
-  'links.c',
-  'page.c',
-  'plugin.c',
-  'render.c',
-  'search.c',
-  'select.c',
-  'utils.c'
+  'zathura-pdf-mupdf/document.c',
+  'zathura-pdf-mupdf/image.c',
+  'zathura-pdf-mupdf/index.c',
+  'zathura-pdf-mupdf/links.c',
+  'zathura-pdf-mupdf/page.c',
+  'zathura-pdf-mupdf/plugin.c',
+  'zathura-pdf-mupdf/render.c',
+  'zathura-pdf-mupdf/search.c',
+  'zathura-pdf-mupdf/select.c',
+  'zathura-pdf-mupdf/utils.c'
 )
 
 pdf = shared_module('pdf-mupdf',
