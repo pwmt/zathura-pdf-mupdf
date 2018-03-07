@@ -83,8 +83,10 @@ error_ret:
 }
 
 zathura_error_t
-pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document)
+pdf_document_free(zathura_document_t* document, void* data)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
@@ -98,9 +100,10 @@ pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document
 }
 
 zathura_error_t
-pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
-    mupdf_document, const char* path)
+pdf_document_save_as(zathura_document_t* document, void* data, const char* path)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL || path == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
@@ -115,9 +118,10 @@ pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
 }
 
 girara_list_t*
-pdf_document_get_information(zathura_document_t* document, mupdf_document_t*
-    mupdf_document, zathura_error_t* error)
+pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL || error == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;

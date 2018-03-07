@@ -58,12 +58,13 @@ error_free:
 }
 
 zathura_error_t
-pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page)
+pdf_page_clear(zathura_page_t* page, void* data)
 {
   if (page == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
+  mupdf_page_t* mupdf_page         = data;
   zathura_document_t* document     = zathura_page_get_document(page);
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
 

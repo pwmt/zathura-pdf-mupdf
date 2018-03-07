@@ -5,7 +5,7 @@
 #include "plugin.h"
 
 girara_list_t*
-pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error)
+pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
 {
   if (page == NULL) {
     if (error != NULL) {
@@ -14,6 +14,7 @@ pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error
     goto error_ret;
   }
 
+  mupdf_page_t* mupdf_page = data;
   zathura_document_t* document = zathura_page_get_document(page);
   if (document == NULL || mupdf_page == NULL || mupdf_page->page == NULL) {
     goto error_ret;

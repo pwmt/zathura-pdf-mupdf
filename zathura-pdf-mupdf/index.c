@@ -8,8 +8,10 @@ static void build_index(fz_context* ctx, fz_document* document, fz_outline*
     outline, girara_tree_node_t* root);
 
 girara_tree_node_t*
-pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupdf_document, zathura_error_t* error)
+pdf_document_index_generate(zathura_document_t* document, void* data, zathura_error_t* error)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;

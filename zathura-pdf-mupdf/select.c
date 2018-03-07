@@ -6,8 +6,10 @@
 #include "utils.h"
 
 char*
-pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error)
+pdf_page_get_text(zathura_page_t* page, void* data, zathura_rectangle_t rectangle, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL || mupdf_page == NULL || mupdf_page->text == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;

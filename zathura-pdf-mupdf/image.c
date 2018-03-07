@@ -10,8 +10,10 @@
 static void pdf_zathura_image_free(zathura_image_t* image);
 
 girara_list_t*
-pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error)
+pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -74,9 +76,11 @@ error_ret:
 }
 
 cairo_surface_t*
-pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page,
+pdf_page_image_get_cairo(zathura_page_t* page, void* data,
     zathura_image_t* image, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL || mupdf_page == NULL || image == NULL || image->data == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
