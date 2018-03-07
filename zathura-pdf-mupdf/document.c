@@ -1,7 +1,5 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
 
