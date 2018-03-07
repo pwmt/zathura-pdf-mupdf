@@ -60,7 +60,7 @@ pdf_document_open(zathura_document_t* document)
   zathura_document_set_number_of_pages(document, fz_count_pages(mupdf_document->ctx, mupdf_document->document));
   zathura_document_set_data(document, mupdf_document);
 
-  return error;
+  return ZATHURA_ERROR_OK;
 
 error_free:
 

@@ -109,8 +109,8 @@ pdf_page_image_get_cairo(zathura_page_t* page, void* data,
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
   unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
 
-  for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
-    for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
+  for (int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
+    for (int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
       guchar* p = surface_data + y * rowstride + x * 4;
 
       // RGB

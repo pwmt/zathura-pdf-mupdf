@@ -9,7 +9,7 @@ mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_pa
     return;
   }
 
-  fz_device* text_device = NULL;
+  fz_device* volatile text_device = NULL;
 
   fz_try (mupdf_page->ctx) {
     text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, NULL);

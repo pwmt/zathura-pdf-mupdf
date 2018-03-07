@@ -6,7 +6,7 @@
 
 static zathura_error_t
 pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
-			  unsigned char* image, int rowstride, int components,
+			  unsigned char* image, int GIRARA_UNUSED(rowstride), int GIRARA_UNUSED(components),
 			  unsigned int page_width, unsigned int page_height,
 			  double scalex, double scaley)
 {
