@@ -1,7 +1,5 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
 #define N_SEARCH_RESULTS 512
 
 #include <glib.h>
@@ -10,8 +8,10 @@
 #include "utils.h"
 
 girara_list_t*
-pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char* text, zathura_error_t* error)
+pdf_page_search_text(zathura_page_t* page, void* data, const char* text, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL || text == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -41,7 +41,7 @@ pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char*
 
   fz_rect* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, sizeof(fz_rect));
   int num_results = fz_search_stext_page(mupdf_page->ctx, mupdf_page->text,
-      (char*) text, hit_bbox, N_SEARCH_RESULTS);
+      text, hit_bbox, N_SEARCH_RESULTS);
 
   for (int i = 0; i < num_results; i++) {
     zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));

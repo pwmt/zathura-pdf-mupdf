@@ -39,7 +39,7 @@ zathura_error_t pdf_document_open(zathura_document_t* document);
  * @param document Zathura document
  * @return true if no error occurred, otherwise false
  */
-zathura_error_t pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document);
+zathura_error_t pdf_document_free(zathura_document_t* document, void* mupdf_document);
 
 /**
  * Saves the document to the given path
@@ -50,7 +50,7 @@ zathura_error_t pdf_document_free(zathura_document_t* document, mupdf_document_t
  *    zathura_error_t
  */
 zathura_error_t pdf_document_save_as(zathura_document_t* document,
-    mupdf_document_t* mupdf_document, const char* path);
+    void* mupdf_document, const char* path);
 
 /**
  * Generates the index of the document
@@ -62,7 +62,7 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document,
  *   no index)
  */
 girara_tree_node_t* pdf_document_index_generate(zathura_document_t* document,
-    mupdf_document_t* mupdf_document, zathura_error_t* error);
+    void* mupdf_document, zathura_error_t* error);
 
 /**
  * Returns a reference to a page
@@ -78,7 +78,7 @@ zathura_error_t pdf_page_init(zathura_page_t* page);
  * @param page Page
  * @return true if no error occurred, otherwise false
  */
-zathura_error_t pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page);
+zathura_error_t pdf_page_clear(zathura_page_t* page, void* mupdf_page);
 
 /**
  * Searches for a specific text on a page and returns a list of results
@@ -89,7 +89,7 @@ zathura_error_t pdf_page_clear(zathura_page_t* page, mupdf_page_t* mupdf_page);
  *   error occurred
  * @return List of search results or NULL if an error occurred
  */
-girara_list_t* pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_page, const char* text, zathura_error_t* error);
+girara_list_t* pdf_page_search_text(zathura_page_t* page, void* mupdf_page, const char* text, zathura_error_t* error);
 
 /**
  * Returns a list of internal/external links that are shown on the given page
@@ -99,7 +99,7 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, mupdf_page_t* mupdf_pa
  *   error occurred
  * @return List of links or NULL if an error occurred
  */
-girara_list_t* pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
+girara_list_t* pdf_page_links_get(zathura_page_t* page, void* mupdf_page, zathura_error_t* error);
 
 /**
  * Returns a list of images included on the zathura page
@@ -109,7 +109,7 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, mupdf_page_t* mupdf_page
  *   error occurred
  * @return List of images
  */
-girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
+girara_list_t* pdf_page_images_get(zathura_page_t* page, void* mupdf_page, zathura_error_t* error);
 
 /**
  * Gets the content of the image in a cairo surface
@@ -120,7 +120,7 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_pag
  *   error occurred
  * @return The cairo image surface or NULL if an error occurred
  */
-cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t*
+cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void*
     mupdf_page, zathura_image_t* image, zathura_error_t* error);
 
 /**
@@ -131,7 +131,7 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t*
  * occurred
  * @return The selected text (needs to be deallocated with g_free)
  */
-char* pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
+char* pdf_page_get_text(zathura_page_t* page, void* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
 
 /**
  * Returns a list of document information entries of the document
@@ -142,7 +142,7 @@ char* pdf_page_get_text(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_
  * @return List of information entries or NULL if an error occurred
  */
 girara_list_t* pdf_document_get_information(zathura_document_t* document,
-    mupdf_document_t* mupdf_document, zathura_error_t* error);
+    void* mupdf_document, zathura_error_t* error);
 
 /**
  * Renders a page and returns a allocated image buffer which has to be freed
@@ -153,7 +153,7 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document,
  *   error occurred
  * @return Image buffer or NULL if an error occurred
  */
-zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error);
+zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, void* mupdf_page, zathura_error_t* error);
 
 /**
  * Renders a page onto a cairo object
@@ -162,6 +162,6 @@ zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, mupdf_page_t* mupd
  * @param cairo Cairo object
  * @return  true if no error occurred, otherwise false
  */
-zathura_error_t pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* cairo, bool printing);
+zathura_error_t pdf_page_render_cairo(zathura_page_t* page, void* mupdf_page, cairo_t* cairo, bool printing);
 
 #endif // PDF_H

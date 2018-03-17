@@ -1,7 +1,5 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
 #include <girara/datastructures.h>
 
 #include "plugin.h"
@@ -10,8 +8,10 @@ static void build_index(fz_context* ctx, fz_document* document, fz_outline*
     outline, girara_tree_node_t* root);
 
 girara_tree_node_t*
-pdf_document_index_generate(zathura_document_t* document, mupdf_document_t* mupdf_document, zathura_error_t* error)
+pdf_document_index_generate(zathura_document_t* document, void* data, zathura_error_t* error)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -70,7 +70,7 @@ build_index(fz_context* ctx, fz_document* document, fz_outline* outline, girara_
       target.page_number      = fz_resolve_link(ctx, document, outline->uri, &x, &y);
       target.left  = x;
       target.top   = y;
-      target.scale = 0.0;
+      target.zoom  = 0.0;
     }
 
     index_element->link = zathura_link_new(type, rect, target);

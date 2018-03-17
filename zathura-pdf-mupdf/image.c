@@ -1,7 +1,5 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
 #include <glib.h>
 #include <girara/datastructures.h>
 #include <mupdf/pdf.h>
@@ -12,8 +10,10 @@
 static void pdf_zathura_image_free(zathura_image_t* image);
 
 girara_list_t*
-pdf_page_images_get(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error)
+pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -76,9 +76,11 @@ error_ret:
 }
 
 cairo_surface_t*
-pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page,
+pdf_page_image_get_cairo(zathura_page_t* page, void* data,
     zathura_image_t* image, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL || mupdf_page == NULL || image == NULL || image->data == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -107,8 +109,10 @@ pdf_page_image_get_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page,
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
   unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
 
-  for (unsigned int y = 0; y < fz_pixmap_height(mupdf_page->ctx, pixmap); y++) {
-    for (unsigned int x = 0; x < fz_pixmap_width(mupdf_page->ctx, pixmap); x++) {
+  const int height = fz_pixmap_height(mupdf_page->ctx, pixmap);
+  const int width  = fz_pixmap_width(mupdf_page->ctx, pixmap);
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
       guchar* p = surface_data + y * rowstride + x * 4;
 
       // RGB

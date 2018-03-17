@@ -1,7 +1,5 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
 
@@ -53,7 +51,7 @@ pdf_document_open(zathura_document_t* document)
 
   /* authenticate if password is required and given */
   if (fz_needs_password(mupdf_document->ctx, mupdf_document->document) != 0) {
-    if (password == NULL || fz_authenticate_password(mupdf_document->ctx, mupdf_document->document, (char*) password) == 0) {
+    if (password == NULL || fz_authenticate_password(mupdf_document->ctx, mupdf_document->document, password) == 0) {
       error = ZATHURA_ERROR_INVALID_PASSWORD;
       goto error_free;
     }
@@ -62,7 +60,7 @@ pdf_document_open(zathura_document_t* document)
   zathura_document_set_number_of_pages(document, fz_count_pages(mupdf_document->ctx, mupdf_document->document));
   zathura_document_set_data(document, mupdf_document);
 
-  return error;
+  return ZATHURA_ERROR_OK;
 
 error_free:
 
@@ -85,8 +83,10 @@ error_ret:
 }
 
 zathura_error_t
-pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document)
+pdf_document_free(zathura_document_t* document, void* data)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
@@ -100,15 +100,16 @@ pdf_document_free(zathura_document_t* document, mupdf_document_t* mupdf_document
 }
 
 zathura_error_t
-pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
-    mupdf_document, const char* path)
+pdf_document_save_as(zathura_document_t* document, void* data, const char* path)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL || path == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
   fz_try (mupdf_document->ctx) {
-    pdf_save_document(mupdf_document->ctx, (pdf_document*) mupdf_document->document, (char*) path, NULL);
+    pdf_save_document(mupdf_document->ctx, (pdf_document*) mupdf_document->document, path, NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }
@@ -117,9 +118,10 @@ pdf_document_save_as(zathura_document_t* document, mupdf_document_t*
 }
 
 girara_list_t*
-pdf_document_get_information(zathura_document_t* document, mupdf_document_t*
-    mupdf_document, zathura_error_t* error)
+pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error)
 {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL || mupdf_document == NULL || error == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;

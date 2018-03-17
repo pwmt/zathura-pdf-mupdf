@@ -1,14 +1,12 @@
 /* See LICENSE file for license and copyright information */
 
-#define _POSIX_C_SOURCE 1
-
 #include <glib.h>
 
 #include "plugin.h"
 
 static zathura_error_t
 pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
-			  unsigned char* image, int rowstride, int components,
+			  unsigned char* image, int GIRARA_UNUSED(rowstride), int GIRARA_UNUSED(components),
 			  unsigned int page_width, unsigned int page_height,
 			  double scalex, double scaley)
 {
@@ -55,8 +53,10 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_
 }
 
 zathura_image_buffer_t*
-pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t* error)
+pdf_page_render(zathura_page_t* page, void* data, zathura_error_t* error)
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL || mupdf_page == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -105,8 +105,10 @@ pdf_page_render(zathura_page_t* page, mupdf_page_t* mupdf_page, zathura_error_t*
 }
 
 zathura_error_t
-pdf_page_render_cairo(zathura_page_t* page, mupdf_page_t* mupdf_page, cairo_t* cairo, bool GIRARA_UNUSED(printing))
+pdf_page_render_cairo(zathura_page_t* page, void* data, cairo_t* cairo, bool GIRARA_UNUSED(printing))
 {
+  mupdf_page_t* mupdf_page = data;
+
   if (page == NULL || mupdf_page == NULL) {
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
