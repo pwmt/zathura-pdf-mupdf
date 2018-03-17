@@ -1,5 +1,5 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.3.2',
+  version: '0.3.3',
   meson_version: '>=0.43',
   default_options: 'c_std=c11'
 )
@@ -15,7 +15,7 @@ metainfodir = join_paths(datadir, 'metainfo')
 desktopdir = join_paths(datadir, 'applications')
 
 # required dependencies
-zathura = dependency('zathura', version: '>=0.3.8')
+zathura = dependency('zathura', version: '>=0.3.9')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
