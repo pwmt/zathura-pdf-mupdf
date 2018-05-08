@@ -21,8 +21,21 @@ glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = cc.find_library('mupdf')
 mupdfthird = cc.find_library('mupdfthird')
+libjpeg = dependency('libjpeg')
+libjbig2dec = cc.find_library('libjbig2dec')
+libopenjp2 = dependency('libopenjp2')
 
-build_dependencies = [zathura, girara, glib, cairo, mupdf, mupdfthird]
+build_dependencies = [
+  zathura,
+  girara,
+  glib,
+  cairo,
+  mupdf,
+  mupdfthird,
+  libjpeg,
+  libjbig2dec,
+  libopenjp2
+]
 
 # defines
 defines = [
