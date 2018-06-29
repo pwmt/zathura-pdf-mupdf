@@ -5,5 +5,7 @@ option('link-external',
 )
 
 option('plugindir',
-       type: 'string', value: '',
-       description: 'Install to a different location than Zathuras plugin directory')
+  type: 'string',
+  value: '',
+  description: 'Install to a different location than Zathura\'s plugin directory'
+)

@@ -13,11 +13,6 @@ prefix = get_option('prefix')
 datadir = get_option('datadir')
 metainfodir = join_paths(datadir, 'metainfo')
 desktopdir = join_paths(datadir, 'applications')
-if get_option('plugindir') == ''
-  plugindir = zathura.get_pkgconfig_variable('plugindir')
-else
-  plugindir = get_option('plugindir')
-endif
 
 # required dependencies
 zathura = dependency('zathura', version: '>=0.3.9')
@@ -46,6 +41,12 @@ if get_option('link-external')
     libjbig2dec,
     libopenjp2
   ]
+endif
+
+if get_option('plugindir') == ''
+  plugindir = zathura.get_pkgconfig_variable('plugindir')
+else
+  plugindir = get_option('plugindir')
 endif
 
 # defines
