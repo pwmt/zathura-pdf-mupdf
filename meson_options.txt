@@ -4,3 +4,6 @@ option('link-external',
   description: 'Link external libraries required by mupdf.'
 )
 
+option('plugindir',
+       type: 'string', value: '',
+       description: 'Install to a different location than Zathuras plugin directory')
