@@ -20,7 +20,7 @@ girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = cc.find_library('mupdf')
-mupdfthird = cc.find_library('mupdfthird')
+mupdfthird = cc.find_library('mupdf-third')
 
 build_dependencies = [
   zathura,
