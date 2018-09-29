@@ -33,7 +33,7 @@ build_dependencies = [
 
 if get_option('link-external')
   libjpeg = dependency('libjpeg')
-  libjbig2dec = cc.find_library('libjbig2dec')
+  libjbig2dec = cc.find_library('jbig2dec')
   libopenjp2 = dependency('libopenjp2')
 
   build_dependencies += [
