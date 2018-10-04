@@ -1,5 +1,5 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.3.3',
+  version: '0.3.4',
   meson_version: '>=0.43',
   default_options: 'c_std=c11'
 )
@@ -20,9 +20,34 @@ girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = cc.find_library('mupdf')
-mupdfthird = cc.find_library('mupdfthird')
+mupdfthird = cc.find_library('mupdf-third')
 
-build_dependencies = [zathura, girara, glib, cairo, mupdf, mupdfthird]
+build_dependencies = [
+  zathura,
+  girara,
+  glib,
+  cairo,
+  mupdf,
+  mupdfthird
+]
+
+if get_option('link-external')
+  libjpeg = dependency('libjpeg')
+  libjbig2dec = cc.find_library('jbig2dec')
+  libopenjp2 = dependency('libopenjp2')
+
+  build_dependencies += [
+    libjpeg,
+    libjbig2dec,
+    libopenjp2
+  ]
+endif
+
+if get_option('plugindir') == ''
+  plugindir = zathura.get_pkgconfig_variable('plugindir')
+else
+  plugindir = get_option('plugindir')
+endif
 
 # defines
 defines = [
@@ -61,7 +86,7 @@ pdf = shared_module('pdf-mupdf',
   dependencies: build_dependencies,
   c_args: defines + flags,
   install: true,
-  install_dir: zathura.get_pkgconfig_variable('plugindir')
+  install_dir: plugindir
 )
 
 subdir('data')

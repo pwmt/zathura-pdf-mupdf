@@ -1,0 +1,11 @@
+option('link-external',
+  type: 'boolean',
+  value: false,
+  description: 'Link external libraries required by mupdf.'
+)
+
+option('plugindir',
+  type: 'string',
+  value: '',
+  description: 'Install to a different location than Zathura\'s plugin directory'
+)

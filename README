@@ -7,7 +7,7 @@ Requirements
 ------------
 zathura (>= 0.2.0)
 girara
-mupdf (>= 1.12)
+mupdf (>= 1.14)
 
 Installation
 ------------
