@@ -1,4 +1,4 @@
-/* See LICENSE file for license and copyright information */
+/* SPDX-License-Identifier: Zlib */
 
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
