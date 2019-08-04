@@ -21,6 +21,9 @@ glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = cc.find_library('mupdf')
 mupdfthird = cc.find_library('mupdf-third')
+libjpeg = dependency('libjpeg')
+libjbig2dec = cc.find_library('jbig2dec')
+libopenjp2 = dependency('libopenjp2')
 
 build_dependencies = [
   zathura,
@@ -28,20 +31,13 @@ build_dependencies = [
   glib,
   cairo,
   mupdf,
-  mupdfthird
+  mupdfthird,
+  libjpeg,
+  libjbig2dec,
+  libopenjp2
+
 ]
 
-if get_option('link-external')
-  libjpeg = dependency('libjpeg')
-  libjbig2dec = cc.find_library('jbig2dec')
-  libopenjp2 = dependency('libopenjp2')
-
-  build_dependencies += [
-    libjpeg,
-    libjbig2dec,
-    libopenjp2
-  ]
-endif
 
 if get_option('plugindir') == ''
   plugindir = zathura.get_pkgconfig_variable('plugindir')
