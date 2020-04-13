@@ -151,7 +151,6 @@ pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
       }
 
       *images = zathura_list_append(*images, zathura_image);
-      fprintf(stderr, "A{{END}}\n");
     }
   }
 

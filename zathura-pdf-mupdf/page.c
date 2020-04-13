@@ -70,7 +70,8 @@ pdf_page_init(zathura_page_t* page)
   /* setup text */
   mupdf_page->extracted_text = false;
 
-  mupdf_page->text = fz_new_stext_page(mupdf_page->ctx, mupdf_page->bbox);
+  fz_stext_options stext_options = { FZ_STEXT_PRESERVE_IMAGES };
+  mupdf_page->text = fz_new_stext_page_from_page(mupdf_page->ctx, mupdf_page->page, &stext_options);
   if (mupdf_page->text == NULL) {
     goto error_free;
   }
