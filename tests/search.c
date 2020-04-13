@@ -53,10 +53,11 @@ compare_rectangle(zathura_rectangle_t* rect1, zathura_rectangle_t* rect2)
 }
 
 START_TEST(test_pdf_page_search_text_default) {
-  zathura_list_t* results;
+  zathura_list_t* results = NULL;
 
   /* no results */
   fail_unless(pdf_page_search_text(page, "efg", ZATHURA_SEARCH_WHOLE_WORDS_ONLY, &results) == ZATHURA_ERROR_SEARCH_NO_RESULTS);
+  fail_unless(results == NULL);
 
   fail_unless(pdf_page_search_text(page, "abc", ZATHURA_SEARCH_DEFAULT, &results) == ZATHURA_ERROR_OK);
   fail_unless(results != NULL);

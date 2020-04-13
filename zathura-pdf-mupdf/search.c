@@ -51,7 +51,7 @@ zathura_error_t pdf_page_search_text(zathura_page_t* page, const char* text,
     goto error_out;
   }
 
-  for (int i = 0; i < num_results; i++) {
+  for (int i = 0; i < num_results/2; i++) { // TODO: Understand the div 2
     zathura_rectangle_t* rectangle = calloc(1, sizeof(zathura_rectangle_t));
     if (rectangle == NULL) {
       error = ZATHURA_ERROR_OUT_OF_MEMORY;
