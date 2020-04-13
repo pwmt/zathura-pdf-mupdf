@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define _POSIX_C_SOURCE 1
-
 #include "plugin.h"
 #include "internal.h"
 
@@ -43,7 +41,7 @@ pdf_page_get_form_fields(zathura_page_t* page, zathura_list_t** form_fields)
     goto error_out;
   }
 
-  pdf_widget* widget = pdf_first_widget(mupdf_document->ctx, (pdf_document*) mupdf_document->document, (pdf_page*) mupdf_page->page);
+  pdf_widget* widget = pdf_first_widget(mupdf_document->ctx, (pdf_page*) mupdf_page->page);
   while (widget != NULL) {
     zathura_form_field_mapping_t* mapping = calloc(1, sizeof(zathura_form_field_mapping_t));
     if (mapping == NULL) {
@@ -57,8 +55,7 @@ pdf_page_get_form_fields(zathura_page_t* page, zathura_list_t** form_fields)
       continue;
     }
 
-    fz_rect bounding_box;
-    pdf_bound_widget(mupdf_document->ctx, widget, &bounding_box);
+    fz_rect bounding_box = pdf_bound_widget(mupdf_document->ctx, widget);
 
     zathura_rectangle_t position = {
       {bounding_box.x0, bounding_box.y0},
@@ -93,13 +90,13 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
   zathura_error_t error = ZATHURA_ERROR_OK;
   zathura_form_field_type_t zathura_type = ZATHURA_FORM_FIELD_UNKNOWN;
 
-  int widget_type = pdf_widget_get_type(mupdf_document->ctx, widget);
+  enum pdf_widget_type widget_type = pdf_widget_type(mupdf_document->ctx, widget);
 
   switch (widget_type) {
-    case PDF_WIDGET_TYPE_NOT_WIDGET:
+    case PDF_WIDGET_TYPE_UNKNOWN:
       zathura_type = ZATHURA_FORM_FIELD_UNKNOWN;
       break;
-    case PDF_WIDGET_TYPE_PUSHBUTTON:
+    case PDF_WIDGET_TYPE_BUTTON:
     case PDF_WIDGET_TYPE_RADIOBUTTON:
     case PDF_WIDGET_TYPE_CHECKBOX:
       zathura_type = ZATHURA_FORM_FIELD_BUTTON;
@@ -137,10 +134,10 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
   // TODO: Get name, partial name and mapping name
 
   pdf_annot* annot = (pdf_annot*) widget;
-  int field_flags = pdf_get_field_flags(mupdf_document->ctx, (pdf_document*) mupdf_document->document, annot->obj);
+  int field_flags = pdf_field_flags(mupdf_document->ctx, annot->obj);
 
   /* set general properties */
-  gboolean is_read_only = (field_flags & Ff_ReadOnly) ? true : false;
+  gboolean is_read_only = (field_flags & PDF_FIELD_IS_READ_ONLY) ? true : false;
   if (is_read_only == TRUE && (error =
         zathura_form_field_set_flags(*form_field, ZATHURA_FORM_FIELD_FLAG_READ_ONLY)) !=
       ZATHURA_ERROR_OK) {
@@ -156,7 +153,7 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
         zathura_form_field_button_type_t button_type = ZATHURA_FORM_FIELD_BUTTON_TYPE_PUSH;
 
         switch (widget_type) {
-          case PDF_WIDGET_TYPE_PUSHBUTTON:
+          case PDF_WIDGET_TYPE_BUTTON:
             button_type = ZATHURA_FORM_FIELD_BUTTON_TYPE_PUSH;
             break;
           case PDF_WIDGET_TYPE_RADIOBUTTON:
@@ -164,6 +161,8 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
             break;
           case PDF_WIDGET_TYPE_CHECKBOX:
             button_type = ZATHURA_FORM_FIELD_BUTTON_TYPE_CHECK;
+            break;
+          default:
             break;
         }
 
@@ -173,7 +172,7 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
 
         bool state = false;
 
-        pdf_obj* as = pdf_dict_get(mupdf_document->ctx, annot->obj, PDF_NAME_AS);
+        pdf_obj* as = pdf_dict_get(mupdf_document->ctx, annot->obj, PDF_NAME(AS));
         if (as != NULL && strcmp(pdf_to_name(mupdf_document->ctx, as), "Yes") == 0) {
           state = true;
         }
@@ -189,9 +188,9 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
       {
         zathura_form_field_text_type_t text_type = ZATHURA_FORM_FIELD_TEXT_TYPE_NORMAL;
 
-        if (field_flags & Ff_Multiline) {
+        if (field_flags & PDF_TX_FIELD_IS_MULTILINE) {
           text_type = ZATHURA_FORM_FIELD_TEXT_TYPE_MULTILINE;
-        } else if (field_flags & Ff_FileSelect) {
+        } else if (field_flags & PDF_TX_FIELD_IS_FILE_SELECT) {
           text_type = ZATHURA_FORM_FIELD_TEXT_TYPE_FILE_SELECT;
         } else {
           text_type = ZATHURA_FORM_FIELD_TEXT_TYPE_NORMAL;
@@ -207,32 +206,32 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
           goto error_free;
         }
 
-        gchar* text = pdf_text_widget_text(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget);
+        const char* text = pdf_field_value(mupdf_document->ctx, widget->obj);
         if (text != NULL && (error =
               zathura_form_field_text_set_text(*form_field, text)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
         }
 
-        bool do_scroll = (field_flags & Ff_DoNotScroll) ? false : true;
+        bool do_scroll = (field_flags & PDF_TX_FIELD_IS_DO_NOT_SCROLL) ? false : true;
         if ((error = zathura_form_field_text_set_scroll(*form_field, do_scroll)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
         }
 
-        bool do_spell_check = (field_flags & Ff_DoNotSpellCheck) ? false : true;
+        bool do_spell_check = (field_flags & PDF_TX_FIELD_IS_DO_NOT_SPELL_CHECK) ? false : true;
         if ((error = zathura_form_field_text_set_spell_check(*form_field, do_spell_check)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
         }
 
-        bool is_password = (field_flags & Ff_Password) ? true : false;
+        bool is_password = (field_flags & PDF_TX_FIELD_IS_PASSWORD) ? true : false;
         if ((error = zathura_form_field_text_set_password(*form_field, is_password)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
         }
 
-        bool is_rich_text = (field_flags & Ff_RichText) ? true : false;
+        bool is_rich_text = (field_flags & PDF_TX_FIELD_IS_RICH_TEXT) ? true : false;
         if ((error = zathura_form_field_text_set_rich_text(*form_field, is_rich_text)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
@@ -247,8 +246,11 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
         switch (widget_type) {
           case PDF_WIDGET_TYPE_LISTBOX:
             choice_type = ZATHURA_FORM_FIELD_CHOICE_TYPE_LIST;
+            break;
           case PDF_WIDGET_TYPE_COMBOBOX:
             choice_type = ZATHURA_FORM_FIELD_CHOICE_TYPE_COMBO;
+            break;
+          default:
             break;
         }
 
@@ -256,19 +258,19 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
           goto error_free;
         }
 
-        bool can_select_multiple = (field_flags & Ff_MultiSelect) ? true : false;
+        bool can_select_multiple = (field_flags & PDF_CH_FIELD_IS_MULTI_SELECT) ? true : false;
         if ((error = zathura_form_field_choice_set_multiselect(*form_field, can_select_multiple)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
         }
 
-        bool is_editable = (field_flags & Ff_Edit) ? true : false;
+        bool is_editable = (field_flags & PDF_CH_FIELD_IS_EDIT) ? true : false;
         if ((error = zathura_form_field_choice_set_editable(*form_field, is_editable)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
         }
 
-        bool do_spell_check = (field_flags & Ff_DoNotSpellCheck) ? false : true;
+        bool do_spell_check = (field_flags & PDF_CH_FIELD_IS_DO_NOT_SPELL_CHECK) ? false : true;
         if ((error = zathura_form_field_choice_set_spell_check(*form_field, do_spell_check)) !=
             ZATHURA_ERROR_OK) {
           goto error_free;
@@ -283,9 +285,9 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
 
         if (number_of_items > 0) {
           char* options[number_of_items];
-          pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, 0, options);
+          pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, 0, (const char**) options);
           char* values[number_of_values];
-          pdf_choice_widget_value(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, values);
+          pdf_choice_widget_value(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, (const char**) values);
 
           for (unsigned int i = 0; i < number_of_items; i++) {
             char* name = options[i];
@@ -361,8 +363,8 @@ pdf_form_field_save(zathura_form_field_t* form_field)
         }
 
         pdf_annot* annot = (pdf_annot*) widget;
-        pdf_obj* value = pdf_new_name(mupdf_document->ctx, (pdf_document*) mupdf_document->document, state ? "Yes" : "Off");
-        pdf_dict_put_drop(mupdf_document->ctx, annot->obj, PDF_NAME_AS, value);
+        pdf_obj* value = pdf_new_name(mupdf_document->ctx, state ? "Yes" : "Off");
+        pdf_dict_put_drop(mupdf_document->ctx, annot->obj, PDF_NAME(AS), value);
       }
       break;
     case ZATHURA_FORM_FIELD_TEXT:
@@ -372,7 +374,7 @@ pdf_form_field_save(zathura_form_field_t* form_field)
           return ZATHURA_ERROR_INVALID_ARGUMENTS;
         }
 
-        pdf_text_widget_set_text(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, text);
+        pdf_set_text_field_value(mupdf_document->ctx, widget, text);
       }
       break;
     case ZATHURA_FORM_FIELD_CHOICE:
@@ -389,7 +391,7 @@ pdf_form_field_save(zathura_form_field_t* form_field)
 
         char* options[number_of_items];
         pdf_choice_widget_options(mupdf_document->ctx, (pdf_document*)
-            mupdf_document->document, widget, 0, options);
+            mupdf_document->document, widget, number_of_items, (const char**) options);
 
         char** values = NULL;
         unsigned int number_of_values = 0;
@@ -417,7 +419,7 @@ pdf_form_field_save(zathura_form_field_t* form_field)
         }
 
         if (number_of_values > 0) {
-          pdf_choice_widget_set_value(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, number_of_values, values);
+          pdf_choice_widget_set_value(mupdf_document->ctx, (pdf_document*) mupdf_document->document, widget, number_of_values, (const char**) values);
           free(values);
         }
       }

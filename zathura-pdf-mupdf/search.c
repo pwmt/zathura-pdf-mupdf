@@ -42,7 +42,7 @@ zathura_error_t pdf_page_search_text(zathura_page_t* page, const char* text,
     mupdf_page_extract_text(mupdf_document, mupdf_page);
   }
 
-  fz_rect* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, sizeof(fz_rect));
+  fz_quad* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, fz_quad);
   int num_results = fz_search_stext_page(mupdf_page->ctx, mupdf_page->text,
       (char*) text, hit_bbox, N_SEARCH_RESULTS);
 
@@ -58,10 +58,11 @@ zathura_error_t pdf_page_search_text(zathura_page_t* page, const char* text,
       goto error_free;
     }
 
-    rectangle->p1.x = hit_bbox[i].x0;
-    rectangle->p1.y = hit_bbox[i].y1;
-    rectangle->p2.x = hit_bbox[i].x1;
-    rectangle->p2.y = hit_bbox[i].y0;
+    fz_rect r = fz_rect_from_quad(hit_bbox[i]);
+    rectangle->p1.x = r.x0;
+    rectangle->p1.y = r.y1;
+    rectangle->p2.x = r.x1;
+    rectangle->p2.y = r.y0;
 
     *results = zathura_list_prepend(*results, rectangle);
   }

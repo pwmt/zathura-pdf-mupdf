@@ -1,0 +1,4 @@
+[wrap-git]
+directory=libzathura
+url=https://git.pwmt.org/pwmt/libzathura.git
+revision=develop

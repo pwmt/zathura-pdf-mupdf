@@ -11,22 +11,22 @@
 void
 mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page) {
   if (mupdf_document == NULL || mupdf_document->ctx == NULL || mupdf_page == NULL ||
-      mupdf_page->sheet == NULL || mupdf_page->text == NULL) {
+      mupdf_page->text == NULL) {
     return;
   }
 
-  fz_device* text_device = NULL;
+  fz_device* volatile text_device = NULL;
 
   fz_try (mupdf_page->ctx) {
-    text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->sheet, mupdf_page->text);
+    text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, NULL);
 
-    /* Disable FZ_IGNORE_IMAGE to collect image blocks */
-    fz_disable_device_hints(mupdf_page->ctx, text_device, FZ_IGNORE_IMAGE);
+    /* Disable FZ_DONT_INTERPOLATE_IMAGES to collect image blocks */
+    fz_disable_device_hints(mupdf_page->ctx, text_device, FZ_DONT_INTERPOLATE_IMAGES);
 
-    fz_matrix ctm;
-    fz_scale(&ctm, 1.0, 1.0);
-    fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, &ctm, NULL);
+    fz_matrix ctm = fz_scale(1.0, 1.0);
+    fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, ctm, NULL);
   } fz_always (mupdf_document->ctx) {
+    fz_close_device(mupdf_page->ctx, text_device);
     fz_drop_device(mupdf_page->ctx, text_device);
   } fz_catch(mupdf_document->ctx) {
   }
@@ -35,49 +35,51 @@ mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_pa
 }
 
 bool
-mupdf_to_zathura_action(fz_link_dest* link, zathura_action_t** action)
+mupdf_to_zathura_action(char* link, zathura_action_t** action)
 {
   if (link == NULL || action == NULL) {
     return false;
   }
 
-  switch (link->kind) {
-    case FZ_LINK_NONE:
-      if (zathura_action_new(action, ZATHURA_ACTION_NONE) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_URI:
-      if (zathura_action_new(action, ZATHURA_ACTION_URI) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_GOTO:
-      if (zathura_action_new(action, ZATHURA_ACTION_GOTO) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_LAUNCH:
-      if (zathura_action_new(action, ZATHURA_ACTION_LAUNCH) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_NAMED:
-      if (zathura_action_new(action, ZATHURA_ACTION_NAMED) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    case FZ_LINK_GOTOR:
-      if (zathura_action_new(action, ZATHURA_ACTION_GOTO_REMOTE) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-    default:
-      if (zathura_action_new(action, ZATHURA_ACTION_UNKNOWN) != ZATHURA_ERROR_OK) {
-        return false;
-      }
-      break;
-  }
+  fprintf(stderr, "%s\n", link);
+
+  /* switch (link->kind) { */
+  /*   case FZ_LINK_NONE: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_NONE) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /*   case FZ_LINK_URI: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_URI) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /*   case FZ_LINK_GOTO: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_GOTO) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /*   case FZ_LINK_LAUNCH: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_LAUNCH) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /*   case FZ_LINK_NAMED: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_NAMED) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /*   case FZ_LINK_GOTOR: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_GOTO_REMOTE) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /*   default: */
+  /*     if (zathura_action_new(action, ZATHURA_ACTION_UNKNOWN) != ZATHURA_ERROR_OK) { */
+  /*       return false; */
+  /*     } */
+  /*     break; */
+  /* } */
 
   return true;
 }
@@ -154,19 +156,19 @@ mupdf_color_to_zathura_color(fz_context* ctx, pdf_obj* obj)
 }
 
 zathura_annotation_border_t
-mupdf_border_to_zathura_border(fz_context* ctx, pdf_document* document, pdf_obj* annotation)
+mupdf_border_to_zathura_border(fz_context* ctx, pdf_obj* annotation)
 {
   /* Initialize border with default values */
   zathura_annotation_border_t border;
   zathura_annotation_border_init(&border);
 
   /* Parse border style */
-  pdf_obj* dict = pdf_dict_get(ctx, annotation, PDF_NAME_BS);
+  pdf_obj* dict = pdf_dict_get(ctx, annotation, PDF_NAME(BS));
   pdf_obj* obj = NULL;
 
   if (pdf_is_dict(ctx, dict) != 0) {
     /* Parse width */
-    obj = pdf_dict_get(ctx, dict, PDF_NAME_W);
+    obj = pdf_dict_get(ctx, dict, PDF_NAME(W));
     if (pdf_is_number(ctx, obj)) {
       border.width = pdf_to_int(ctx, obj);
     }
@@ -185,9 +187,9 @@ mupdf_border_to_zathura_border(fz_context* ctx, pdf_document* document, pdf_obj*
       { "U", ZATHURA_ANNOTATION_BORDER_STYLE_UNDERLINE },
     };
 
-    obj = pdf_dict_get(ctx, dict, PDF_NAME_S);
+    obj = pdf_dict_get(ctx, dict, PDF_NAME(S));
     if (pdf_is_name(ctx, obj)) {
-      char* name = pdf_to_name(ctx, obj);
+      const char* name = pdf_to_name(ctx, obj);
       for (unsigned int i = 0; i < LENGTH(border_style_mapping); i++) {
         if (strncmp(name, border_style_mapping[i].name, 1) == 0) {
           border.style = border_style_mapping[i].style;
@@ -196,7 +198,7 @@ mupdf_border_to_zathura_border(fz_context* ctx, pdf_document* document, pdf_obj*
     }
 
     /* Parse dash array */
-    obj = pdf_dict_get(ctx, dict, PDF_NAME_D);
+    obj = pdf_dict_get(ctx, dict, PDF_NAME(D));
     if (pdf_is_array(ctx, obj)) {
       zathura_list_t* dash_array = NULL;
 
@@ -205,7 +207,7 @@ mupdf_border_to_zathura_border(fz_context* ctx, pdf_document* document, pdf_obj*
         pdf_obj* entry = pdf_array_get(ctx, obj, i);
         if (pdf_is_number(ctx, entry)) {
           int number = pdf_to_int(ctx, entry);
-          dash_array = zathura_list_append(dash_array, number);
+          dash_array = zathura_list_append(dash_array, (gpointer) (size_t) number);
         }
       }
 
@@ -215,21 +217,19 @@ mupdf_border_to_zathura_border(fz_context* ctx, pdf_document* document, pdf_obj*
   }
 
   /* Parse border effect */
-  pdf_obj* key = pdf_new_name(ctx, document, "BE");
-  dict = pdf_dict_get(ctx, annotation, key);
-  pdf_drop_obj(ctx, key);
+  dict = pdf_dict_get(ctx, annotation, PDF_NAME(BE));
 
   if (pdf_is_dict(ctx, dict) != 0) {
     /* Parse intensity */
-    obj = pdf_dict_get(ctx, dict, PDF_NAME_I);
+    obj = pdf_dict_get(ctx, dict, PDF_NAME(I));
     if (pdf_is_number(ctx, obj)) {
       border.intensity = pdf_to_int(ctx, obj);
     }
 
     /* Parse style */
-    obj = pdf_dict_get(ctx, dict, PDF_NAME_S);
+    obj = pdf_dict_get(ctx, dict, PDF_NAME(S));
     if (pdf_is_name(ctx, obj)) {
-      char* name = pdf_to_name(ctx, obj);
+      const char* name = pdf_to_name(ctx, obj);
       if (strncmp(name, "C", 1) == 0) {
         border.effect = ZATHURA_ANNOTATION_BORDER_EFFECT_CLOUDY;
       } else {

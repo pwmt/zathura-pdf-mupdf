@@ -5,8 +5,9 @@
 
 #define	__USE_POSIX 1
 
+#include <stdbool.h>
+
 #include <mupdf/fitz.h>
-#include <mupdf/xps.h>
 #include <mupdf/pdf.h>
 
 typedef struct mupdf_document_s
@@ -19,7 +20,6 @@ typedef struct mupdf_page_s
 {
   fz_page* page; /**< Reference to the mupdf page */
   fz_context* ctx; /**< Context */
-  fz_stext_sheet* sheet; /**< Text sheet */
   fz_stext_page* text; /**< Page text */
   fz_rect bbox; /**< Bbox */
   bool extracted_text; /**< If text has already been extracted */

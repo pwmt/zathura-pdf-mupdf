@@ -40,13 +40,13 @@ pdf_document_get_attachments(zathura_document_t* document, zathura_list_t** atta
     goto error_out;
   }
 
-  pdf_obj* root_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME_Root);
+  pdf_obj* root_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME(Root));
   if (root_dict == NULL) {
     error = ZATHURA_ERROR_UNKNOWN;
     goto error_out;
   }
 
-  pdf_obj* names_dict = pdf_dict_get(mupdf_document->ctx, root_dict, PDF_NAME_Names);
+  pdf_obj* names_dict = pdf_dict_get(mupdf_document->ctx, root_dict, PDF_NAME(Names));
   if (names_dict == NULL) {
     error = ZATHURA_ERROR_UNKNOWN;
     goto error_out;
@@ -59,7 +59,7 @@ pdf_document_get_attachments(zathura_document_t* document, zathura_list_t** atta
   }
 
   pdf_obj* embedded_files_names = pdf_dict_get(mupdf_document->ctx, embedded_files_dict,
-      PDF_NAME_Names);
+      PDF_NAME(Names));
   if (embedded_files_names == NULL) {
     error = ZATHURA_ERROR_UNKNOWN;
     goto error_out;
@@ -124,7 +124,7 @@ parse_mupdf_attachment(mupdf_document_t* mupdf_document, pdf_obj* file)
   }
 
   mupdf_attachment->document = mupdf_document;
-  mupdf_attachment->file     = embedded_file;
+  mupdf_attachment->file     = embedded_file_indirect;
   mupdf_attachment->num      = pdf_to_num(mupdf_document->ctx, embedded_file_indirect);
   mupdf_attachment->gen      = pdf_to_gen(mupdf_document->ctx, embedded_file_indirect);
 
@@ -174,14 +174,11 @@ pdf_attachment_save(zathura_attachment_t* attachment, const char* path, void* us
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  /* if (pdf_is_stream(mupdf_document->ctx, (pdf_document*) */
-  /*       mupdf_document->document, mupdf_attachment->num, mupdf_attachment->gen) */
   if (pdf_is_stream(mupdf_document->ctx, file) == 0) {
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  fz_buffer* buffer = pdf_load_stream(mupdf_document->ctx, (pdf_document*)
-      mupdf_document->document, mupdf_attachment->num, mupdf_attachment->gen);
+  fz_buffer* buffer = pdf_load_stream(mupdf_document->ctx, file);
   if (buffer == NULL) {
     return ZATHURA_ERROR_UNKNOWN;
   }

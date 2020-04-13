@@ -28,7 +28,7 @@ pdf_image_get_cairo_surface(zathura_image_t* image, cairo_surface_t** surface)
 
   mupdf_page_t* mupdf_page = mupdf_image->page;
 
-  fz_pixmap* pixmap = fz_get_pixmap_from_image(mupdf_page->ctx, mupdf_image->image, 0, 0);
+  fz_pixmap* pixmap = fz_get_pixmap_from_image(mupdf_page->ctx, mupdf_image->image, NULL, NULL, 0, 0);
   if (pixmap == NULL) {
     goto error_free;
   }
@@ -112,14 +112,12 @@ pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
   /* Extract images */
   mupdf_page_extract_text(mupdf_document, mupdf_page);
 
-  fz_page_block* block;
-  for (block = mupdf_page->text->blocks; block < mupdf_page->text->blocks + mupdf_page->text->len; block++) {
-    if (block->type == FZ_PAGE_BLOCK_IMAGE) {
-      fz_image_block *image_block = block->u.image;
-
+  fz_stext_block* block;
+  for (block = mupdf_page->text->first_block; block; block = block->next) {
+    if (block->type == FZ_STEXT_BLOCK_IMAGE) {
       zathura_rectangle_t position = {
-        { image_block->bbox.x0, image_block->bbox.y0 },
-        { image_block->bbox.x1, image_block->bbox.y1 }
+        { block->bbox.x0, block->bbox.y0 },
+        { block->bbox.x1, block->bbox.y1 }
       };
 
       zathura_image_t* zathura_image;
@@ -144,7 +142,7 @@ pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
       }
 
       mupdf_image->page  = mupdf_page;
-      mupdf_image->image = image_block->image;
+      mupdf_image->image = block->u.i.image;
 
       if (zathura_image_set_user_data(zathura_image, mupdf_image, free) != ZATHURA_ERROR_OK) {
         zathura_image_free(zathura_image);
@@ -153,6 +151,7 @@ pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
       }
 
       *images = zathura_list_append(*images, zathura_image);
+      fprintf(stderr, "A{{END}}\n");
     }
   }
 

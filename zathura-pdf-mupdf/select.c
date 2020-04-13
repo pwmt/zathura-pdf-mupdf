@@ -66,9 +66,14 @@ pdf_page_get_selected_text(zathura_page_t* page, char** text, zathura_rectangle_
     mupdf_page_extract_text(mupdf_document, mupdf_page);
   }
 
-  fz_rect rect = { rectangle.p1.x, rectangle.p1.y, rectangle.p2.x, rectangle.p2.y };
+  fz_point a = { rectangle.p1.x, rectangle.p1.y };
+  fz_point b = { rectangle.p2.x, rectangle.p2.y };
 
-  *text = fz_copy_selection(mupdf_page->ctx, mupdf_page->text, rect);
+#ifdef _WIN32
+  *text = fz_copy_selection(mupdf_page->ctx, mupdf_page->text, a, b, 1);
+#else
+  *text = fz_copy_selection(mupdf_page->ctx, mupdf_page->text, a, b, 0);
+#endif
 
 error_out:
 

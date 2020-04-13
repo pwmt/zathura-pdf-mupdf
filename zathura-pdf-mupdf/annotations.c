@@ -53,9 +53,7 @@ pdf_page_get_annotations(zathura_page_t* page, zathura_list_t** annotations)
       continue;
     }
 
-    fz_rect bounding_box;
-    pdf_bound_annot(mupdf_document->ctx, mupdf_annotation, &bounding_box);
-
+    fz_rect bounding_box = pdf_bound_annot(mupdf_document->ctx, mupdf_annotation);
     zathura_rectangle_t position = {
       {bounding_box.x0, bounding_box.y0},
       {bounding_box.x1, bounding_box.y1}
@@ -83,41 +81,41 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
     mupdf_document, pdf_annot* mupdf_annotation,
     zathura_annotation_t** annotation)
 {
-  fz_annot_type mupdf_type = pdf_annot_type(mupdf_document->ctx, mupdf_annotation);
+  enum pdf_annot_type mupdf_type = pdf_annot_type(mupdf_document->ctx, mupdf_annotation);
   zathura_annotation_type_t zathura_type = ZATHURA_ANNOTATION_UNKNOWN;
 
   zathura_error_t error = ZATHURA_ERROR_OK;
 
   typedef struct annotation_type_mapping_s {
-    fz_annot_type mupdf;
+    enum pdf_annot_type mupdf;
     zathura_annotation_type_t zathura;
   } annotation_type_mapping_t;
 
   annotation_type_mapping_t type_mapping[] = {
-    { FZ_ANNOT_TEXT,           ZATHURA_ANNOTATION_TEXT },
-    { FZ_ANNOT_FREETEXT,       ZATHURA_ANNOTATION_FREE_TEXT },
-    { FZ_ANNOT_LINE,           ZATHURA_ANNOTATION_LINE },
-    { FZ_ANNOT_SQUARE,         ZATHURA_ANNOTATION_SQUARE },
-    { FZ_ANNOT_CIRCLE,         ZATHURA_ANNOTATION_CIRCLE },
-    { FZ_ANNOT_POLYGON,        ZATHURA_ANNOTATION_POLYGON },
-    { FZ_ANNOT_POLYLINE,       ZATHURA_ANNOTATION_POLY_LINE },
-    { FZ_ANNOT_HIGHLIGHT,      ZATHURA_ANNOTATION_HIGHLIGHT },
-    { FZ_ANNOT_UNDERLINE,      ZATHURA_ANNOTATION_UNDERLINE },
-    { FZ_ANNOT_SQUIGGLY,       ZATHURA_ANNOTATION_SQUIGGLY },
-    { FZ_ANNOT_STRIKEOUT,      ZATHURA_ANNOTATION_STRIKE_OUT },
-    { FZ_ANNOT_STAMP,          ZATHURA_ANNOTATION_STAMP },
-    { FZ_ANNOT_CARET,          ZATHURA_ANNOTATION_CARET },
-    { FZ_ANNOT_INK,            ZATHURA_ANNOTATION_INK },
-    { FZ_ANNOT_POPUP,          ZATHURA_ANNOTATION_POPUP },
-    { FZ_ANNOT_FILEATTACHMENT, ZATHURA_ANNOTATION_FILE_ATTACHMENT },
-    { FZ_ANNOT_SOUND,          ZATHURA_ANNOTATION_SOUND },
-    { FZ_ANNOT_MOVIE,          ZATHURA_ANNOTATION_MOVIE },
-    { FZ_ANNOT_WIDGET,         ZATHURA_ANNOTATION_WIDGET },
-    { FZ_ANNOT_SCREEN,         ZATHURA_ANNOTATION_SCREEN },
-    { FZ_ANNOT_PRINTERMARK,    ZATHURA_ANNOTATION_PRINTER_MARK },
-    { FZ_ANNOT_TRAPNET,        ZATHURA_ANNOTATION_TRAP_NET },
-    { FZ_ANNOT_WATERMARK,      ZATHURA_ANNOTATION_WATERMARK },
-    { FZ_ANNOT_3D,             ZATHURA_ANNOTATION_3D }
+    { PDF_ANNOT_TEXT,            ZATHURA_ANNOTATION_TEXT },
+    { PDF_ANNOT_FREE_TEXT,       ZATHURA_ANNOTATION_FREE_TEXT },
+    { PDF_ANNOT_LINE,            ZATHURA_ANNOTATION_LINE },
+    { PDF_ANNOT_SQUARE,          ZATHURA_ANNOTATION_SQUARE },
+    { PDF_ANNOT_CIRCLE,          ZATHURA_ANNOTATION_CIRCLE },
+    { PDF_ANNOT_POLYGON,         ZATHURA_ANNOTATION_POLYGON },
+    { PDF_ANNOT_POLY_LINE,       ZATHURA_ANNOTATION_POLY_LINE },
+    { PDF_ANNOT_HIGHLIGHT,       ZATHURA_ANNOTATION_HIGHLIGHT },
+    { PDF_ANNOT_UNDERLINE,       ZATHURA_ANNOTATION_UNDERLINE },
+    { PDF_ANNOT_SQUIGGLY,        ZATHURA_ANNOTATION_SQUIGGLY },
+    { PDF_ANNOT_STRIKE_OUT,      ZATHURA_ANNOTATION_STRIKE_OUT },
+    { PDF_ANNOT_STAMP,           ZATHURA_ANNOTATION_STAMP },
+    { PDF_ANNOT_CARET,           ZATHURA_ANNOTATION_CARET },
+    { PDF_ANNOT_INK,             ZATHURA_ANNOTATION_INK },
+    { PDF_ANNOT_POPUP,           ZATHURA_ANNOTATION_POPUP },
+    { PDF_ANNOT_FILE_ATTACHMENT, ZATHURA_ANNOTATION_FILE_ATTACHMENT },
+    { PDF_ANNOT_SOUND,           ZATHURA_ANNOTATION_SOUND },
+    { PDF_ANNOT_MOVIE,           ZATHURA_ANNOTATION_MOVIE },
+    { PDF_ANNOT_WIDGET,          ZATHURA_ANNOTATION_WIDGET },
+    { PDF_ANNOT_SCREEN,          ZATHURA_ANNOTATION_SCREEN },
+    { PDF_ANNOT_PRINTER_MARK,    ZATHURA_ANNOTATION_PRINTER_MARK },
+    { PDF_ANNOT_TRAP_NET,        ZATHURA_ANNOTATION_TRAP_NET },
+    { PDF_ANNOT_WATERMARK,       ZATHURA_ANNOTATION_WATERMARK },
+    { PDF_ANNOT_3D,              ZATHURA_ANNOTATION_3D }
   };
 
   for (unsigned int i = 0; i < LENGTH(type_mapping); i++) {
@@ -137,7 +135,7 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   }
 
   /* set general properties */
-  char* content = pdf_annot_contents(mupdf_document->ctx, (pdf_document*) mupdf_document->document, mupdf_annotation);
+  const char* content = pdf_annot_contents(mupdf_document->ctx, mupdf_annotation);
   if (content != NULL && (error = zathura_annotation_set_content(*annotation, content) != ZATHURA_ERROR_OK)) {
     goto error_free;
   }
@@ -156,7 +154,7 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   pdf_obj* obj = NULL;
 
   /* Get color */
-  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_C);
+  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME(C));
   zathura_annotation_color_t color = mupdf_color_to_zathura_color(mupdf_document->ctx, obj);
 
   if ((error = zathura_annotation_set_color(*annotation, color)) != ZATHURA_ERROR_OK) {
@@ -167,7 +165,7 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   // XXX: The mupdf annotation rendering evaluates opacity already
   if (has_appearance_stream == false) {
     float opacity = 1.0;
-    obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_CA);
+    obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME(CA));
     if (pdf_is_number(mupdf_document->ctx, obj)) {
       opacity = pdf_to_real(mupdf_document->ctx, obj);
     }
@@ -178,13 +176,13 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   }
 
   /* Check blend mode */
-  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME_BM);
+  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME(BM));
   if (pdf_is_array(mupdf_document->ctx, obj)) {
     obj = pdf_array_get(mupdf_document->ctx, obj, 0);
   }
 
   if (pdf_is_name(mupdf_document->ctx, obj)) {
-    char* blend_mode_str = pdf_to_name(mupdf_document->ctx, obj);
+    const char* blend_mode_str = pdf_to_name(mupdf_document->ctx, obj);
 
     zathura_blend_mode_t blend_mode = mupdf_blend_mode_to_zathura_blend_mode(blend_mode_str);
     if ((error = zathura_annotation_set_blend_mode(*annotation, blend_mode)) != ZATHURA_ERROR_OK) {
@@ -223,7 +221,7 @@ parse_annotation_circle(fz_context* ctx, pdf_document* document, pdf_annot* mupd
   zathura_error_t error = ZATHURA_ERROR_OK;
 
   /* Get color */
-  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME_C);
+  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME(C));
   zathura_annotation_color_t color = mupdf_color_to_zathura_color(ctx, obj);
 
   if ((error = zathura_annotation_circle_set_color(annotation, color)) != ZATHURA_ERROR_OK) {
@@ -231,7 +229,7 @@ parse_annotation_circle(fz_context* ctx, pdf_document* document, pdf_annot* mupd
   }
 
   /* Parse border style */
-  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, document, mupdf_annotation->obj);
+  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, mupdf_annotation->obj);
 
   if ((error = zathura_annotation_circle_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
     goto error_out;
@@ -248,7 +246,7 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
   zathura_error_t error = ZATHURA_ERROR_OK;
 
   /* Get color */
-  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME_C);
+  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME(C));
   zathura_annotation_color_t color = mupdf_color_to_zathura_color(ctx, obj);
 
   if ((error = zathura_annotation_set_color(annotation, color)) != ZATHURA_ERROR_OK) {
@@ -256,11 +254,7 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
   }
 
   /* Get vertices */
-  pdf_obj* key = pdf_new_name(ctx, document, "Vertices");
-  obj = pdf_dict_get(ctx, mupdf_annotation->obj, key);
-  pdf_drop_obj(ctx, key);
-
-  const fz_matrix* page_ctm = &(mupdf_annotation->page->ctm);
+  obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME(Vertices));
 
   if (pdf_is_array(ctx, obj) != 0) {
     int length = pdf_array_len(ctx, obj);
@@ -285,7 +279,7 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
         rect.x1 = x;
         rect.y1 = y;
 
-        fz_transform_rect(&rect, page_ctm);
+        fz_transform_rect(rect, fz_identity);
 
         zathura_point_t* point = calloc(1, sizeof(zathura_point_t));
         if (point != NULL) {
@@ -305,7 +299,7 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
     }
   }
 
-  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, document, mupdf_annotation->obj);
+  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, mupdf_annotation->obj);
 
   if ((error = zathura_annotation_polygon_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
     goto error_out;
@@ -316,6 +310,7 @@ error_out:
   return error;
 }
 
+#if HAVE_CAIRO
 static void argb_to_rgb(fz_context *ctx, fz_colorspace *colorspace, const float *argb, float *rgb)
 {
   (void) ctx;
@@ -353,13 +348,15 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx);
+  fz_irect irect = { .x1 = annotation_width, .y1 = annotation_height};
+  fz_rect rect = { .x1 = annotation_width, .y1 = annotation_height };
+
+  fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx, rect);
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
   fz_try (mupdf_document->ctx) {
-    fz_matrix m;
-    fz_scale(&m, scalex, scaley);
-    pdf_run_annot(mupdf_document->ctx, mupdf_annotation, device, &m, NULL);
+    fz_matrix m = fz_scale(scalex, scaley);
+    pdf_run_annot(mupdf_document->ctx, mupdf_annotation, device, m, NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }
@@ -367,34 +364,33 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
   fz_drop_device(mupdf_page->ctx, device);
 
   /* Prepare rendering */
-  fz_irect irect = { .x1 = annotation_width, .y1 = annotation_height};
 
-  fz_rect rect;
   rect.x0 = position.p1.x * scalex;
   rect.y0 = position.p1.y * scaley;
   rect.x1 = position.p2.x * scalex;
   rect.y1 = position.p2.y * scaley;
 
-  fz_rect_from_irect(&rect, fz_round_rect(&irect, &rect));
+  irect = fz_round_rect(rect);
+  rect = fz_rect_from_irect(irect);
 
   /* Create correct pixmap */
   fz_pixmap* pixmap = NULL;
 
   if (cairo_format == CAIRO_FORMAT_RGB24) {
     fz_colorspace* colorspace = fz_device_bgr(mupdf_document->ctx);
-    pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, &irect, image);
+    pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, irect, NULL, 1, image);
   } else if (cairo_format == CAIRO_FORMAT_ARGB32) {
-    /* Define new color space */
-    fz_colorspace* colorspace = fz_new_colorspace(mupdf_document->ctx, "argb", 3);
-    colorspace->to_rgb = argb_to_rgb;
-    colorspace->from_rgb = rgb_to_argb;
-
-    /* Create pixmap */
-    pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, &irect, image);
+    /* #<{(| Define new color space |)}># */
+    /* fz_colorspace* colorspace = fz_new_colorspace(mupdf_document->ctx, FZ_COLORSPACE_RGB, FZ_COLORSPACE_IS_DEVICE, 3, "ARGB"); */
+    /* colorspace->to_rgb = argb_to_rgb; */
+    /* colorspace->from_rgb = rgb_to_argb; */
+    /*  */
+    /* #<{(| Create pixmap |)}># */
+    /* pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, irect, NULL, 1, image); */
   }
 
-  device = fz_new_draw_device(mupdf_page->ctx, pixmap);
-  fz_run_display_list(mupdf_page->ctx, display_list, device, &fz_identity, &rect, NULL);
+  device = fz_new_draw_device(mupdf_page->ctx, fz_identity, pixmap);
+  fz_run_display_list(mupdf_page->ctx, display_list, device, fz_identity, rect, NULL);
   fz_drop_device(mupdf_page->ctx, device);
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
@@ -403,7 +399,6 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
   return ZATHURA_ERROR_OK;
 }
 
-#ifdef HAVE_CAIRO
 zathura_error_t pdf_annotation_render_cairo(zathura_annotation_t* annotation, cairo_t* cairo,
     double scale)
 {

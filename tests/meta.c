@@ -8,7 +8,7 @@
 #include <libzathura/plugin-api.h>
 #include <libzathura/libzathura.h>
 
-#include "plugin.h"
+#include <zathura-pdf-mupdf/plugin.h>
 #include "utils.h"
 
 zathura_document_t* document;
@@ -41,7 +41,7 @@ START_TEST(test_pdf_document_get_metadata_simple) {
 } END_TEST
 
 Suite*
-suite_metadata(void)
+create_suite(void)
 {
   TCase* tcase = NULL;
   Suite* suite = suite_create("metadata");

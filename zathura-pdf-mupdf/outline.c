@@ -67,7 +67,7 @@ build_index(fz_outline* mupdf_outline, zathura_node_t* root)
 
   while (mupdf_outline != NULL) {
     zathura_action_t* action;
-    if (mupdf_to_zathura_action(&(mupdf_outline->dest), &action) == false) {
+    if (mupdf_to_zathura_action(mupdf_outline->uri, &action) == false) {
       continue;
     }
 

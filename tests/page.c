@@ -5,7 +5,7 @@
 #include <libzathura/plugin-manager.h>
 #include <libzathura/plugin-api.h>
 
-#include "plugin.h"
+#include <zathura-pdf-mupdf/plugin.h>
 #include "utils.h"
 
 zathura_document_t* document;
@@ -59,7 +59,7 @@ START_TEST(test_pdf_page_get_height) {
 } END_TEST
 
 Suite*
-suite_page(void)
+create_suite(void)
 {
   TCase* tcase = NULL;
   Suite* suite = suite_create("page");

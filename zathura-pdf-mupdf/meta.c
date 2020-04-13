@@ -25,7 +25,7 @@ pdf_document_get_metadata(zathura_document_t* document,
 
   fz_try (mupdf_document->ctx) {
     pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, (pdf_document*) mupdf_document->document);
-    pdf_obj* info_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME_Info);
+    pdf_obj* info_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME(Info));
 
     /* get string values */
     typedef struct info_value_s {

@@ -12,7 +12,7 @@
 #include <libzathura/libzathura.h>
 #include <libzathura/libzathura.h>
 
-#include "plugin.h"
+#include <zathura-pdf-mupdf/plugin.h>
 #include "utils.h"
 
 zathura_document_t* document;
@@ -69,7 +69,7 @@ START_TEST(test_pdf_page_get_selected_text_valid) {
 } END_TEST
 
 Suite*
-suite_select(void)
+create_suite(void)
 {
   TCase* tcase = NULL;
   Suite* suite = suite_create("select");

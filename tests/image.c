@@ -12,7 +12,7 @@
 #include <libzathura/plugin-api.h>
 #include <libzathura/libzathura.h>
 
-#include "plugin.h"
+#include <zathura-pdf-mupdf/plugin.h>
 #include "utils.h"
 
 zathura_document_t* document;
@@ -56,7 +56,7 @@ START_TEST(test_pdf_page_get_images) {
   fail_unless((int) position.p2.x == (int) 306);
   fail_unless((int) position.p2.y == (int) 57);
 
-  zathura_list_free_full(images, zathura_image_free);
+  zathura_list_free_full(images, (GDestroyNotify) zathura_image_free);
 } END_TEST
 
 START_TEST(test_pdf_page_get_images_fault_injection) {
@@ -82,12 +82,12 @@ START_TEST(test_pdf_page_get_image_cairo_buffer) {
 
   cairo_surface_destroy(surface);
 
-  zathura_list_free_full(images, zathura_image_free);
+  zathura_list_free_full(images, (GDestroyNotify) zathura_image_free);
 } END_TEST
 #endif
 
 Suite*
-suite_images(void)
+create_suite(void)
 {
   TCase* tcase = NULL;
   Suite* suite = suite_create("images");

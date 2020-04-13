@@ -1,0 +1,25 @@
+option('link-external',
+  type: 'boolean',
+  value: false,
+  description: 'Link external libraries required by mupdf.'
+)
+option('plugindir',
+  type: 'string',
+  value: '',
+  description: 'Install to a different location than Zathura\'s plugin directory'
+)
+option('enable-cairo',
+  type: 'boolean',
+  value: true,
+  description: 'Enable cairo support if available.'
+)
+option('tests',
+  type: 'feature',
+  value: 'auto',
+  description: 'run tests'
+)
+option('enable-libfiu',
+  type: 'boolean',
+  value: true,
+  description: 'Enable libfiu fault injection support for testing if available.'
+)

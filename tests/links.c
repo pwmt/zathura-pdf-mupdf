@@ -11,7 +11,7 @@
 #include <libzathura/plugin-api.h>
 #include <libzathura/libzathura.h>
 
-#include "plugin.h"
+#include <zathura-pdf-mupdf/plugin.h>
 #include "utils.h"
 
 zathura_document_t* document;
@@ -50,7 +50,7 @@ START_TEST(test_pdf_page_get_links_simple) {
 } END_TEST
 
 Suite*
-suite_links(void)
+create_suite(void)
 {
   TCase* tcase = NULL;
   Suite* suite = suite_create("links");
