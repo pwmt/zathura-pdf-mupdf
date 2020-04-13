@@ -1,8 +1,10 @@
 /* See LICENSE file for license and copyright information */
 
 #include <check.h>
+#if WITH_LIBFIU
 #include <fiu.h>
 #include <fiu-control.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,12 +23,15 @@ zathura_page_t* page;
 
 static void setup_document_form_fields(void) {
   setup_document_with_path(&plugin_manager, &document, "files/form-fields.pdf");
+  fail_unless(document != NULL);
   fail_unless(zathura_document_get_page(document, 0, &page) == ZATHURA_ERROR_OK);
   fail_unless(page != NULL);
 }
 
 static void teardown_document(void) {
-  fail_unless(zathura_document_free(document) == ZATHURA_ERROR_OK);
+  if (document != NULL) {
+    fail_unless(zathura_document_free(document) == ZATHURA_ERROR_OK);
+  }
   document = NULL;
 
   fail_unless(zathura_plugin_manager_free(plugin_manager) == ZATHURA_ERROR_OK);
@@ -143,7 +148,7 @@ START_TEST(test_pdf_page_save_form_field) {
   fail_unless(zathura_document_free(document) == ZATHURA_ERROR_OK);
 
   /* open saved document */
-  setup_document_with_path(&plugin_manager, &document, path);
+  setup_document_with_full_path(&plugin_manager, &document, path);
   fail_unless(zathura_document_get_page(document, 0, &page) == ZATHURA_ERROR_OK);
   fail_unless(page != NULL);
 

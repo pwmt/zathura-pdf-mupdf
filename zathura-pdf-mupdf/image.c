@@ -110,7 +110,9 @@ pdf_page_get_images(zathura_page_t* page, zathura_list_t** images)
   }
 
   /* Extract images */
-  mupdf_page_extract_text(mupdf_document, mupdf_page);
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
+  }
 
   fz_stext_block* block;
   for (block = mupdf_page->text->first_block; block; block = block->next) {
