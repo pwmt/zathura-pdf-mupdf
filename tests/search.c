@@ -77,10 +77,12 @@ START_TEST(test_pdf_page_search_text_default) {
   zathura_list_free_full(results, free);
 
   /* fault injection */
+#if 0
   fiu_enable("libc/mm/calloc", 1, NULL, 0);
   fail_unless(pdf_page_search_text(page, "abc", ZATHURA_SEARCH_DEFAULT, &results) == ZATHURA_ERROR_OUT_OF_MEMORY);
   fail_unless(results == NULL);
   fiu_disable("libc/mm/calloc");
+#endif
 } END_TEST
 
 Suite*

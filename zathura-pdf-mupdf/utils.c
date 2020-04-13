@@ -35,51 +35,58 @@ mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_pa
 }
 
 bool
-mupdf_to_zathura_action(char* link, zathura_action_t** action)
+mupdf_link_to_zathura_action(fz_context* ctx, const char* uri, zathura_action_t** action)
 {
-  if (link == NULL || action == NULL) {
+  if (uri == NULL || action == NULL) {
     return false;
   }
 
-  fprintf(stderr, "%s\n", link);
+  if (uri == NULL) {
+    if (zathura_action_new(action, ZATHURA_ACTION_NONE) != ZATHURA_ERROR_OK) {
+      return false;
+    }
 
-  /* switch (link->kind) { */
-  /*   case FZ_LINK_NONE: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_NONE) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /*   case FZ_LINK_URI: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_URI) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /*   case FZ_LINK_GOTO: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_GOTO) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /*   case FZ_LINK_LAUNCH: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_LAUNCH) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /*   case FZ_LINK_NAMED: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_NAMED) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /*   case FZ_LINK_GOTOR: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_GOTO_REMOTE) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /*   default: */
-  /*     if (zathura_action_new(action, ZATHURA_ACTION_UNKNOWN) != ZATHURA_ERROR_OK) { */
-  /*       return false; */
-  /*     } */
-  /*     break; */
-  /* } */
+    return true;
+  } else if (fz_is_external_link(ctx, uri) == 1) {
+    if (strstr(uri, "file://") == uri) {
+      if (zathura_action_new(action, ZATHURA_ACTION_GOTO_REMOTE) != ZATHURA_ERROR_OK) {
+        return false;
+      }
+
+      return true;
+    } else {
+      if (zathura_action_new(action, ZATHURA_ACTION_URI) != ZATHURA_ERROR_OK) {
+        return false;
+      }
+
+      return true;
+    }
+  } else {
+    if (zathura_action_new(action, ZATHURA_ACTION_GOTO) != ZATHURA_ERROR_OK) {
+      return false;
+    }
+
+    return true;
+  }
+
+  if (zathura_action_new(action, ZATHURA_ACTION_UNKNOWN) != ZATHURA_ERROR_OK) {
+    return false;
+  }
+
+  // FIXME: Support the following
+#if 0
+    case FZ_LINK_LAUNCH:
+      if (zathura_action_new(action, ZATHURA_ACTION_LAUNCH) != ZATHURA_ERROR_OK) {
+        return false;
+      }
+      break;
+    case FZ_LINK_NAMED:
+      if (zathura_action_new(action, ZATHURA_ACTION_NAMED) != ZATHURA_ERROR_OK) {
+        return false;
+      }
+      break;
+  }
+#endif
 
   return true;
 }

@@ -6,7 +6,7 @@
 #include "internal.h"
 #include "utils.h"
 
-static void build_index(fz_outline* outline, zathura_node_t* root);
+static void build_index(fz_context* ctx, fz_outline* outline, zathura_node_t* root);
 
 zathura_error_t
 pdf_document_get_outline(zathura_document_t* document, zathura_node_t** outline)
@@ -41,7 +41,7 @@ pdf_document_get_outline(zathura_document_t* document, zathura_node_t** outline)
     goto error_free;
   }
 
-  build_index(mupdf_outline, *outline);
+  build_index(mupdf_document->ctx, mupdf_outline, *outline);
 
   /* free outline */
   fz_drop_outline(mupdf_document->ctx, mupdf_outline);
@@ -59,7 +59,7 @@ error_out:
 }
 
 static void
-build_index(fz_outline* mupdf_outline, zathura_node_t* root)
+build_index(fz_context* ctx, fz_outline* mupdf_outline, zathura_node_t* root)
 {
   if (mupdf_outline == NULL || root == NULL) {
     return;
@@ -67,7 +67,7 @@ build_index(fz_outline* mupdf_outline, zathura_node_t* root)
 
   while (mupdf_outline != NULL) {
     zathura_action_t* action;
-    if (mupdf_to_zathura_action(mupdf_outline->uri, &action) == false) {
+    if (mupdf_link_to_zathura_action(ctx, mupdf_outline->uri, &action) == false) {
       continue;
     }
 
@@ -80,7 +80,7 @@ build_index(fz_outline* mupdf_outline, zathura_node_t* root)
     zathura_node_t* node = zathura_node_append_data(root, outline_element);
 
     if (mupdf_outline->down != NULL) {
-      build_index(mupdf_outline->down, node);
+      build_index(ctx, mupdf_outline->down, node);
     }
 
     mupdf_outline = mupdf_outline->next;

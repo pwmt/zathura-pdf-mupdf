@@ -2,8 +2,10 @@
 
 #include <check.h>
 #include <stdbool.h>
+#if WITH_LIBFIU
 #include <fiu.h>
 #include <fiu-control.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib/gstdio.h>
@@ -59,12 +61,14 @@ START_TEST(test_pdf_page_get_images) {
   zathura_list_free_full(images, (GDestroyNotify) zathura_image_free);
 } END_TEST
 
+#if WITH_LIBFIU
 START_TEST(test_pdf_page_get_images_fault_injection) {
   zathura_list_t* images;
   fiu_enable("libc/mm/calloc", 1, NULL, 0);
   fail_unless(zathura_page_get_images(page, &images) == ZATHURA_ERROR_OUT_OF_MEMORY);
   fiu_disable("libc/mm/calloc");
 } END_TEST
+#endif
 
 #if HAVE_CAIRO
 START_TEST(test_pdf_page_get_image_cairo_buffer) {
@@ -96,7 +100,9 @@ create_suite(void)
   tcase_add_checked_fixture(tcase, setup_document_images, teardown_document);
   tcase_add_test(tcase, test_pdf_page_get_images_invalid);
   tcase_add_test(tcase, test_pdf_page_get_images);
+#if WITH_LIBFIU
   tcase_add_test(tcase, test_pdf_page_get_images_fault_injection);
+#endif
 #if HAVE_CAIRO
   tcase_add_test(tcase, test_pdf_page_get_image_cairo_buffer);
 #endif

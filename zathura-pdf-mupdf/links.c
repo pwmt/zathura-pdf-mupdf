@@ -41,7 +41,7 @@ pdf_page_get_links(zathura_page_t* page, zathura_list_t** links)
     position.p2.y = link->rect.y1;
 
     zathura_action_t* action;
-    if (mupdf_to_zathura_action(&(link->uri), &action) == false) {
+    if (mupdf_link_to_zathura_action(mupdf_document->ctx, link->uri, &action) == false) {
       continue;
     }
 

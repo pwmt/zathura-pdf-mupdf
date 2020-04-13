@@ -17,7 +17,7 @@ if check.found()
     '-D_TEST_FILES_PATH=@0@'.format(meson.current_source_dir()),
   ]
 
-  if libfiu.found()
+  if get_option('enable-libfiu') and libfiu.found()
     fiu_run = find_program('fiu-run')
   else
     fiu_run = disabler()

@@ -15,7 +15,7 @@ zathura_document_t* document;
 zathura_plugin_manager_t* plugin_manager;
 
 static void setup_document_empty(void) {
-  setup_document_with_path(&plugin_manager, &document, "files/empty.pdf");
+  setup_document_plugin(&plugin_manager, &document);
 }
 
 static void setup_document_outline(void) {

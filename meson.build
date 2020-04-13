@@ -66,7 +66,7 @@ if cairo.found()
   defines += '-DHAVE_CAIRO'
 endif
 
-if libfiu.found()
+if get_option('enable-libfiu') and libfiu.found()
   build_dependencies += libfiu
   defines += '-DWITH_LIBFIU'
 endif
