@@ -7,4 +7,4 @@ Exec=zathura %U
 Terminal=false
 NoDisplay=true
 Categories=Office;Viewer;
-MimeType=application/pdf;application/oxps;application/epub+zip;
+MimeType=application/pdf;application/oxps;application/epub+zip;application/x-fictionbook;

@@ -1,7 +1,7 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.3.5',
+  version: '0.3.6',
   meson_version: '>=0.43',
-  default_options: 'c_std=c11'
+  default_options: ['c_std=c11', 'warning_level=3']
 )
 
 version = meson.project_version()
@@ -59,9 +59,6 @@ defines = [
 
 # compile flags
 flags = [
-  '-Wall',
-  '-Wextra',
-  '-pedantic',
   '-Werror=implicit-function-declaration',
   '-Werror=vla',
   '-fvisibility=hidden'
