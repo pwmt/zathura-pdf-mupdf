@@ -35,11 +35,13 @@ if get_option('link-external')
   libjpeg = dependency('libjpeg')
   libjbig2dec = cc.find_library('jbig2dec')
   libopenjp2 = dependency('libopenjp2')
+  gumbo = dependency('gumbo')
 
   build_dependencies += [
     libjpeg,
     libjbig2dec,
-    libopenjp2
+    libopenjp2,
+    gumbo
   ]
 endif
 
