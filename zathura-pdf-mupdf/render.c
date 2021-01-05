@@ -33,7 +33,7 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t*
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  fz_colorspace* colorspace = fz_device_bgr(mupdf_document->ctx);
+  fz_colorspace* colorspace = fz_device_rgb(mupdf_document->ctx);
   fz_pixmap* pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, irect, NULL, 1, image);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 

@@ -391,6 +391,7 @@ pdf_annotation_render_to_buffer(pdf_annot* mupdf_annotation, mupdf_document_t* m
 
   device = fz_new_draw_device(mupdf_page->ctx, fz_identity, pixmap);
   fz_run_display_list(mupdf_page->ctx, display_list, device, fz_identity, rect, NULL);
+  fz_close_device(mupdf_page->ctx, device);
   fz_drop_device(mupdf_page->ctx, device);
 
   fz_drop_pixmap(mupdf_page->ctx, pixmap);
