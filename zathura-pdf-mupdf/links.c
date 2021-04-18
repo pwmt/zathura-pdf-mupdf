@@ -58,7 +58,7 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
 
       type                    = ZATHURA_LINK_GOTO_DEST;
       target.destination_type = ZATHURA_LINK_DESTINATION_XYZ;
-      target.page_number      = location.page;
+      target.page_number      = fz_page_number_from_location (mupdf_document->ctx, mupdf_document->document, location);
       target.left  = x;
       target.top   = y;
       target.zoom  = 0.0;
