@@ -1,5 +1,5 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.3.6',
+  version: '0.3.7',
   meson_version: '>=0.43',
   default_options: ['c_std=c11', 'warning_level=3']
 )
@@ -35,11 +35,13 @@ if get_option('link-external')
   libjpeg = dependency('libjpeg')
   libjbig2dec = cc.find_library('jbig2dec')
   libopenjp2 = dependency('libopenjp2')
+  gumbo = dependency('gumbo')
 
   build_dependencies += [
     libjpeg,
     libjbig2dec,
-    libopenjp2
+    libopenjp2,
+    gumbo
   ]
 endif
 
