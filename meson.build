@@ -36,12 +36,16 @@ if get_option('link-external')
   libjbig2dec = cc.find_library('jbig2dec')
   libopenjp2 = dependency('libopenjp2')
   gumbo = dependency('gumbo')
+  tesseract = dependency('tesseract')
+  leptonica = dependency('lept')
 
   build_dependencies += [
     libjpeg,
     libjbig2dec,
     libopenjp2,
-    gumbo
+    gumbo,
+    tesseract,
+    leptonica
   ]
 endif
 
