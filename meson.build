@@ -19,7 +19,7 @@ zathura = dependency('zathura', version: '>=0.3.9')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
-mupdf = cc.find_library('mupdf')
+mupdf = dependency('mupdf', required: false)
 mupdfthird = cc.find_library('mupdf-third')
 
 build_dependencies = [
@@ -27,17 +27,23 @@ build_dependencies = [
   girara,
   glib,
   cairo,
-  mupdf,
-  mupdfthird
 ]
 
-if get_option('link-external')
+if not mupdf.found()
+  # normal build of mupdf
+  mupdf = cc.find_library('mupdf')
+  build_dependencies += [mupdf, mupdfthird]
+else
+  # build from Debian's libmupdf-dev
+  build_dependencies += [mupdf, mupdfthird]
+
   libjpeg = dependency('libjpeg')
   libjbig2dec = cc.find_library('jbig2dec')
   libopenjp2 = dependency('libopenjp2')
   gumbo = dependency('gumbo')
   tesseract = dependency('tesseract')
   leptonica = dependency('lept')
+  mujs = dependency('mujs')
 
   build_dependencies += [
     libjpeg,
@@ -45,7 +51,8 @@ if get_option('link-external')
     libopenjp2,
     gumbo,
     tesseract,
-    leptonica
+    leptonica,
+    mujs
   ]
 endif
 

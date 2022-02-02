@@ -1,9 +1,3 @@
-option('link-external',
-  type: 'boolean',
-  value: false,
-  description: 'Link external libraries required by mupdf.'
-)
-
 option('plugindir',
   type: 'string',
   value: '',
