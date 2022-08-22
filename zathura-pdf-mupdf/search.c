@@ -41,7 +41,7 @@ pdf_page_search_text(zathura_page_t* page, void* data, const char* text, zathura
 
   fz_quad* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, fz_quad);
   int num_results = fz_search_stext_page(mupdf_page->ctx, mupdf_page->text,
-      text, hit_bbox, N_SEARCH_RESULTS);
+      text, NULL, hit_bbox, N_SEARCH_RESULTS);
 
   fz_rect r;
   for (int i = 0; i < num_results; i++) {
