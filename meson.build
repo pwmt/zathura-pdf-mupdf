@@ -1,6 +1,6 @@
 project('zathura-pdf-mupdf', 'c',
   version: '0.3.9',
-  meson_version: '>=0.43',
+  meson_version: '>=0.56',
   default_options: ['c_std=c11', 'warning_level=3']
 )
 
@@ -57,7 +57,7 @@ else
 endif
 
 if get_option('plugindir') == ''
-  plugindir = zathura.get_pkgconfig_variable('plugindir')
+  plugindir = zathura.get_variable(pkgconfig: 'plugindir')
 else
   plugindir = get_option('plugindir')
 endif
