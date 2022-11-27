@@ -1,6 +1,6 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.3.9',
-  meson_version: '>=0.43',
+  version: '0.4.0',
+  meson_version: '>=0.56',
   default_options: ['c_std=c11', 'warning_level=3']
 )
 
@@ -15,7 +15,7 @@ metainfodir = join_paths(datadir, 'metainfo')
 desktopdir = join_paths(datadir, 'applications')
 
 # required dependencies
-zathura = dependency('zathura', version: '>=0.3.9')
+zathura = dependency('zathura', version: '>=0.5.2')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
@@ -57,7 +57,7 @@ else
 endif
 
 if get_option('plugindir') == ''
-  plugindir = zathura.get_pkgconfig_variable('plugindir')
+  plugindir = zathura.get_variable(pkgconfig: 'plugindir')
 else
   plugindir = get_option('plugindir')
 endif

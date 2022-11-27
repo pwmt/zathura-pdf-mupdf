@@ -134,6 +134,16 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void*
 char* pdf_page_get_text(zathura_page_t* page, void* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
 
 /**
+ * Gets rectangles of highlighted text
+ * @param page Page
+ * @param rectangle Selection
+ * @error Set to an error value (see \ref zathura_error_t) if an error
+ * occurred
+ * @return List of rectangles or NULL if an error occurred.
+ */
+girara_list_t* pdf_page_get_selection(zathura_page_t* page, void* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
+
+/**
  * Returns a list of document information entries of the document
  *
  * @param document Zathura document
