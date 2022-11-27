@@ -77,15 +77,15 @@ pdf_page_get_selection(zathura_page_t* page, void* data, zathura_rectangle_t rec
 
   fz_rect r;
   for (int i = 0; i < num_results; i++) {
-    zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));
+    zathura_rectangle_t* inner_rectangle = g_malloc0(sizeof(zathura_rectangle_t));
 
     r = fz_rect_from_quad(hits[i]);
-    rectangle->x1 = r.x0;
-    rectangle->x2 = r.x1;
-    rectangle->y1 = r.y0;
-    rectangle->y2 = r.y1;
+    inner_rectangle->x1 = r.x0;
+    inner_rectangle->x2 = r.x1;
+    inner_rectangle->y1 = r.y0;
+    inner_rectangle->y2 = r.y1;
 
-    girara_list_append(list, rectangle);
+    girara_list_append(list, inner_rectangle);
   }
 
   fz_free(mupdf_page->ctx, hits);
