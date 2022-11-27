@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Zlib */
 
-#include <mupdf/pdf.h>
+#define MAX_QUADS 1000
 
 #include "plugin.h"
 #include "utils.h"
@@ -41,3 +41,69 @@ error_ret:
 
   return NULL;
 }
+
+girara_list_t*
+pdf_page_get_selection(zathura_page_t* page, void* data, zathura_rectangle_t rectangle, zathura_error_t* error) {
+
+  mupdf_page_t* mupdf_page = data;
+
+  if (page == NULL || mupdf_page == NULL || mupdf_page->text == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
+    }
+    goto error_ret;
+  }
+
+  zathura_document_t* document     = zathura_page_get_document(page);
+  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+
+  if (mupdf_page->extracted_text == false) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
+  }
+
+  fz_point a = { rectangle.x1, rectangle.y1 };
+  fz_point b = { rectangle.x2, rectangle.y2 };
+
+  girara_list_t* list = girara_list_new2(g_free);
+  if (list == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_OUT_OF_MEMORY;
+    }
+    goto error_free;
+  }
+
+  fz_quad* hits = fz_malloc_array(mupdf_page->ctx, MAX_QUADS, fz_quad);
+  int num_results = fz_highlight_selection(mupdf_page->ctx, mupdf_page->text, a, b, hits, MAX_QUADS);
+
+  fz_rect r;
+  for (int i = 0; i < num_results; i++) {
+    zathura_rectangle_t* rectangle = g_malloc0(sizeof(zathura_rectangle_t));
+
+    r = fz_rect_from_quad(hits[i]);
+    rectangle->x1 = r.x0;
+    rectangle->x2 = r.x1;
+    rectangle->y1 = r.y0;
+    rectangle->y2 = r.y1;
+
+    girara_list_append(list, rectangle);
+  }
+
+  fz_free(mupdf_page->ctx, hits);
+
+  return list;
+
+error_free:
+
+  if (list != NULL ) {
+      girara_list_free(list);
+  }
+
+error_ret:
+
+  if (error != NULL && *error == ZATHURA_ERROR_OK) {
+    *error = ZATHURA_ERROR_UNKNOWN;
+  }
+
+  return NULL;
+}
+
