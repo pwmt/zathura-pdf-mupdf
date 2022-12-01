@@ -1,7 +1,7 @@
 project('zathura-pdf-mupdf', 'c',
   version: '0.3.5',
-  meson_version: '>=0.47',
-  default_options: 'c_std=c11'
+  meson_version: '>=0.56',
+  default_options: ['c_std=c11', 'warning_level=3']
 )
 
 version = meson.project_version()
@@ -17,15 +17,42 @@ desktopdir = join_paths(datadir, 'applications')
 # required dependencies
 libzathura = dependency('libzathura', version: '>=0.0.1', fallback: ['libzathura', 'libzathura_dependency'])
 glib = dependency('glib-2.0')
-mupdf = cc.find_library('mupdf', version: '>=1.16')
+mupdf = dependency('mupdf', version: '>=1.21', required: false)
 mupdfthird = cc.find_library('mupdf-third')
+m = cc.find_library('m', required : false)
 
 build_dependencies = [
   libzathura,
   glib,
-  mupdf,
-  mupdfthird
+  m
 ]
+
+if not mupdf.found()
+  # normal build of mupdf
+  mupdf = cc.find_library('mupdf')
+  build_dependencies += [mupdf, mupdfthird]
+else
+  # build from Debian's libmupdf-dev
+  build_dependencies += [mupdf, mupdfthird]
+
+  libjpeg = dependency('libjpeg')
+  libjbig2dec = cc.find_library('jbig2dec')
+  libopenjp2 = dependency('libopenjp2')
+  gumbo = dependency('gumbo')
+  tesseract = dependency('tesseract')
+  leptonica = dependency('lept')
+  mujs = dependency('mujs')
+
+  build_dependencies += [
+    libjpeg,
+    libjbig2dec,
+    libopenjp2,
+    gumbo,
+    tesseract,
+    leptonica,
+    mujs
+  ]
+endif
 
 # defines
 defines = [
@@ -40,12 +67,18 @@ if get_option('link-external')
   libjbig2dec = cc.find_library('jbig2dec')
   libopenjp2 = dependency('libopenjp2')
   gumbo = dependency('gumbo')
+  freetype2 = dependency('freetype2')
+  zlib = dependency('zlib')
+  harfbuzz = dependency('harfbuzz')
 
   build_dependencies += [
     libjpeg,
     libjbig2dec,
     libopenjp2,
-    gumbo
+    gumbo,
+    freetype2,
+    zlib,
+    harfbuzz
   ]
 endif
 
@@ -105,7 +138,7 @@ sources = files(
   'zathura-pdf-mupdf/utils.c'
 )
 
-pdf = shared_module('pdf-mupdf',
+pdf = shared_library('pdf-mupdf',
   sources,
   dependencies: build_dependencies,
   c_args: defines + flags,

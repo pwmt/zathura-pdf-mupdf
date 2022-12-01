@@ -141,20 +141,21 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
   }
 
   /* Check if annotation has an appearance stream */
-  bool has_appearance_stream = false;
-  if (mupdf_annotation->ap != NULL) {
-    has_appearance_stream = true;
-  }
-
-  if ((error = zathura_annotation_set_appearance_stream(*annotation, has_appearance_stream)) != ZATHURA_ERROR_OK) {
-    goto error_out;
-  }
+  // bool has_appearance_stream = false;
+  // if (mupdf_annotation->ap != NULL) {
+  //   has_appearance_stream = true;
+  // }
+  //
+  // if ((error = zathura_annotation_set_appearance_stream(*annotation, has_appearance_stream)) != ZATHURA_ERROR_OK) {
+  //   goto error_out;
+  // }
 
   /* Parse properties */
   pdf_obj* obj = NULL;
 
   /* Get color */
-  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME(C));
+  pdf_obj* annot_obj = pdf_annot_obj(mupdf_document->ctx, mupdf_annotation);
+  obj = pdf_dict_get(mupdf_document->ctx, annot_obj, PDF_NAME(C));
   zathura_annotation_color_t color = mupdf_color_to_zathura_color(mupdf_document->ctx, obj);
 
   if ((error = zathura_annotation_set_color(*annotation, color)) != ZATHURA_ERROR_OK) {
@@ -163,20 +164,20 @@ mupdf_annotation_to_zathura_annotation(zathura_page_t* page, mupdf_document_t*
 
   /* Check opacity */
   // XXX: The mupdf annotation rendering evaluates opacity already
-  if (has_appearance_stream == false) {
-    float opacity = 1.0;
-    obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME(CA));
-    if (pdf_is_number(mupdf_document->ctx, obj)) {
-      opacity = pdf_to_real(mupdf_document->ctx, obj);
-    }
-
-    if ((error = zathura_annotation_set_opacity(*annotation, opacity)) != ZATHURA_ERROR_OK) {
-      goto error_out;
-    }
-  }
+  // if (has_appearance_stream == false) {
+  //   float opacity = 1.0;
+  //   obj = pdf_dict_get(mupdf_document->ctx, annot_obj, PDF_NAME(CA));
+  //   if (pdf_is_number(mupdf_document->ctx, obj)) {
+  //     opacity = pdf_to_real(mupdf_document->ctx, obj);
+  //   }
+  //
+  //   if ((error = zathura_annotation_set_opacity(*annotation, opacity)) != ZATHURA_ERROR_OK) {
+  //     goto error_out;
+  //   }
+  // }
 
   /* Check blend mode */
-  obj = pdf_dict_get(mupdf_document->ctx, mupdf_annotation->obj, PDF_NAME(BM));
+  obj = pdf_dict_get(mupdf_document->ctx, annot_obj, PDF_NAME(BM));
   if (pdf_is_array(mupdf_document->ctx, obj)) {
     obj = pdf_array_get(mupdf_document->ctx, obj, 0);
   }
@@ -221,7 +222,8 @@ parse_annotation_circle(fz_context* ctx, pdf_document* document, pdf_annot* mupd
   zathura_error_t error = ZATHURA_ERROR_OK;
 
   /* Get color */
-  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME(C));
+  pdf_obj* annot_obj = pdf_annot_obj(ctx, mupdf_annotation);
+  pdf_obj* obj = pdf_dict_get(ctx, annot_obj, PDF_NAME(C));
   zathura_annotation_color_t color = mupdf_color_to_zathura_color(ctx, obj);
 
   if ((error = zathura_annotation_circle_set_color(annotation, color)) != ZATHURA_ERROR_OK) {
@@ -229,7 +231,7 @@ parse_annotation_circle(fz_context* ctx, pdf_document* document, pdf_annot* mupd
   }
 
   /* Parse border style */
-  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, mupdf_annotation->obj);
+  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, annot_obj);
 
   if ((error = zathura_annotation_circle_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
     goto error_out;
@@ -246,7 +248,8 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
   zathura_error_t error = ZATHURA_ERROR_OK;
 
   /* Get color */
-  pdf_obj* obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME(C));
+  pdf_obj* annot_obj = pdf_annot_obj(ctx, mupdf_annotation);
+  pdf_obj* obj = pdf_dict_get(ctx, annot_obj, PDF_NAME(C));
   zathura_annotation_color_t color = mupdf_color_to_zathura_color(ctx, obj);
 
   if ((error = zathura_annotation_set_color(annotation, color)) != ZATHURA_ERROR_OK) {
@@ -254,7 +257,7 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
   }
 
   /* Get vertices */
-  obj = pdf_dict_get(ctx, mupdf_annotation->obj, PDF_NAME(Vertices));
+  obj = pdf_dict_get(ctx, annot_obj, PDF_NAME(Vertices));
 
   if (pdf_is_array(ctx, obj) != 0) {
     int length = pdf_array_len(ctx, obj);
@@ -299,7 +302,7 @@ parse_annotation_polygon(fz_context* ctx, pdf_document* document, pdf_annot* mup
     }
   }
 
-  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, mupdf_annotation->obj);
+  zathura_annotation_border_t border = mupdf_border_to_zathura_border(ctx, annot_obj);
 
   if ((error = zathura_annotation_polygon_set_border(annotation, border)) != ZATHURA_ERROR_OK) {
     goto error_out;

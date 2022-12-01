@@ -1,5 +1,6 @@
 /* See LICENSE file for license and copyright information */
 
+#include <mupdf/pdf/form.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,11 +8,11 @@
 #include "internal.h"
 
 static zathura_error_t mupdf_form_field_to_zathura_form_field(zathura_page_t*
-    page, mupdf_document_t* mupdf_document, pdf_widget* widget,
+    page, mupdf_document_t* mupdf_document, pdf_annot* widget,
     zathura_form_field_t** form_field);
 
 typedef struct mupdf_form_field_s {
-  pdf_widget* widget;
+  pdf_annot* widget;
   mupdf_document_t* document;
 } mupdf_form_field_t;
 
@@ -41,7 +42,7 @@ pdf_page_get_form_fields(zathura_page_t* page, zathura_list_t** form_fields)
     goto error_out;
   }
 
-  pdf_widget* widget = pdf_first_widget(mupdf_document->ctx, (pdf_page*) mupdf_page->page);
+  pdf_annot* widget = pdf_first_widget(mupdf_document->ctx, (pdf_page*) mupdf_page->page);
   while (widget != NULL) {
     zathura_form_field_mapping_t* mapping = calloc(1, sizeof(zathura_form_field_mapping_t));
     if (mapping == NULL) {
@@ -89,7 +90,7 @@ error_out:
 
 static zathura_error_t
 mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
-    mupdf_document, pdf_widget* widget, zathura_form_field_t** form_field)
+    mupdf_document, pdf_annot* widget, zathura_form_field_t** form_field)
 {
   zathura_error_t error = ZATHURA_ERROR_OK;
   zathura_form_field_type_t zathura_type = ZATHURA_FORM_FIELD_UNKNOWN;
@@ -138,10 +139,12 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
   // TODO: Get name, partial name and mapping name
 
   pdf_annot* annot = (pdf_annot*) widget;
-  int field_flags = pdf_field_flags(mupdf_document->ctx, annot->obj);
+  pdf_obj* obj = pdf_annot_obj(mupdf_document->ctx, annot);
+  int field_flags = pdf_field_flags(mupdf_document->ctx, obj);
 
   /* set general properties */
-  gboolean is_read_only = (field_flags & PDF_FIELD_IS_READ_ONLY) ? true : false;
+  gboolean is_read_only = pdf_widget_is_readonly(mupdf_document->ctx, widget);
+     // (field_flags & PDF_FIELD_IS_READ_ONLY) ? true : false;
   if (is_read_only == TRUE && (error =
         zathura_form_field_set_flags(*form_field, ZATHURA_FORM_FIELD_FLAG_READ_ONLY)) !=
       ZATHURA_ERROR_OK) {
@@ -176,7 +179,7 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
 
         bool state = false;
 
-        pdf_obj* as = pdf_dict_get(mupdf_document->ctx, annot->obj, PDF_NAME(AS));
+        pdf_obj* as = pdf_dict_get(mupdf_document->ctx, obj, PDF_NAME(AS));
         if (as != NULL && strcmp(pdf_to_name(mupdf_document->ctx, as), "Yes") == 0) {
           state = true;
         }
@@ -210,7 +213,8 @@ mupdf_form_field_to_zathura_form_field(zathura_page_t* page, mupdf_document_t*
           goto error_free;
         }
 
-        const char* text = pdf_field_value(mupdf_document->ctx, widget->obj);
+        pdf_obj* obj = pdf_annot_obj(mupdf_document->ctx, annot);
+        const char* text = pdf_field_value(mupdf_document->ctx, obj);
         if (text != NULL && (error =
               zathura_form_field_text_set_text(*form_field, text)) !=
             ZATHURA_ERROR_OK) {
@@ -346,7 +350,7 @@ pdf_form_field_save(zathura_form_field_t* form_field)
   }
 
   mupdf_document_t* mupdf_document = mupdf_form_field->document;
-  pdf_widget* widget = mupdf_form_field->widget;
+  pdf_annot* widget = mupdf_form_field->widget;
 
   switch (type) {
     case ZATHURA_FORM_FIELD_UNKNOWN:
@@ -365,8 +369,9 @@ pdf_form_field_save(zathura_form_field_t* form_field)
         }
 
         pdf_annot* annot = (pdf_annot*) widget;
+        pdf_obj* obj = pdf_annot_obj(mupdf_document->ctx, annot);
         pdf_obj* value = pdf_new_name(mupdf_document->ctx, state ? "Yes" : "Off");
-        pdf_dict_put_drop(mupdf_document->ctx, annot->obj, PDF_NAME(AS), value);
+        pdf_dict_put_drop(mupdf_document->ctx, obj, PDF_NAME(AS), value);
       }
       break;
     case ZATHURA_FORM_FIELD_TEXT:
@@ -431,7 +436,7 @@ pdf_form_field_save(zathura_form_field_t* form_field)
 }
 
 static zathura_error_t
-pdf_form_field_render_to_buffer(pdf_widget* mupdf_widget, mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
+pdf_form_field_render_to_buffer(pdf_annot* mupdf_widget, mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page,
 			  unsigned char* image,
 			  unsigned int form_field_width, unsigned int form_field_height,
         zathura_rectangle_t position,
@@ -446,8 +451,9 @@ pdf_form_field_render_to_buffer(pdf_widget* mupdf_widget, mupdf_document_t* mupd
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  fz_irect irect = { .x1 = form_field_width, .y1 = form_field_height};
-  fz_rect rect = { .x1 = form_field_width, .y1 = form_field_height };
+  fz_irect irect = { 0, 0, form_field_width, form_field_height};
+  fz_rect rect = { 0, 0, form_field_width, form_field_height };
+
 
   fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx, rect);
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
@@ -459,12 +465,12 @@ pdf_form_field_render_to_buffer(pdf_widget* mupdf_widget, mupdf_document_t* mupd
     return ZATHURA_ERROR_UNKNOWN;
   }
 
-  /* Prepare rendering */
   rect.x0 = position.p1.x * scalex;
   rect.y0 = position.p1.y * scaley;
   rect.x1 = position.p2.x * scalex;
   rect.y1 = position.p2.y * scaley;
 
+  /* Prepare rendering */
   irect = fz_round_rect(rect);
   rect = fz_rect_from_irect(irect);
 
@@ -473,17 +479,7 @@ pdf_form_field_render_to_buffer(pdf_widget* mupdf_widget, mupdf_document_t* mupd
 
   fz_colorspace* colorspace = fz_device_rgb(mupdf_document->ctx);
   pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, irect, NULL, 1, image);
-  fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
-  /* } else if (cairo_format == CAIRO_FORMAT_ARGB32) { */
-  /*   fprintf(stderr, "ARGB\n"); */
-  /*   #<{(| #<{(| Define new color space |)}># |)}># */
-  /*   #<{(| fz_colorspace* colorspace = fz_new_colorspace(mupdf_document->ctx, FZ_COLORSPACE_RGB, FZ_COLORSPACE_IS_DEVICE, 3, "ARGB"); |)}># */
-  /*   #<{(| colorspace->to_rgb = argb_to_rgb; |)}># */
-  /*   #<{(| colorspace->from_rgb = rgb_to_argb; |)}># */
-  /*   #<{(|  |)}># */
-  /*   #<{(| #<{(| Create pixmap |)}># |)}># */
-  /*   #<{(| pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, irect, NULL, 1, image); |)}># */
-  /* } */
+  /* fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xCC); */
 
   device = fz_new_draw_device(mupdf_page->ctx, fz_identity, pixmap);
   fz_run_display_list(mupdf_page->ctx, display_list, device, fz_identity, rect, NULL);
@@ -521,7 +517,7 @@ pdf_form_field_render_cairo(zathura_form_field_t* form_field, cairo_t* cairo, do
     goto error_out;
   }
 
-  pdf_widget* mupdf_widget;
+  pdf_annot* mupdf_widget;
   if ((error = zathura_form_field_get_user_data(form_field, (void**) &mupdf_widget)) != ZATHURA_ERROR_OK) {
     goto error_out;
   }
@@ -555,8 +551,10 @@ pdf_form_field_render_cairo(zathura_form_field_t* form_field, cairo_t* cairo, do
 
   cairo_surface_flush(surface);
 
-  unsigned int annotation_width  = cairo_image_surface_get_width(surface);
-  unsigned int annotation_height = cairo_image_surface_get_height(surface);
+  /* unsigned int annotation_width  = cairo_image_surface_get_width(surface); */
+  /* unsigned int annotation_height = cairo_image_surface_get_height(surface); */
+  unsigned int annotation_width  = position.p2.x - position.p1.x;
+  unsigned int annotation_height = position.p2.y - position.p1.y;
 
   unsigned char* image = cairo_image_surface_get_data(surface);
 

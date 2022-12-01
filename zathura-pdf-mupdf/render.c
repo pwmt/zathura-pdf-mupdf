@@ -29,6 +29,7 @@ pdf_page_render_to_buffer(mupdf_document_t* mupdf_document, mupdf_page_t*
   fz_try (mupdf_document->ctx) {
     fz_matrix m = fz_scale(scalex, scaley);
     pdf_run_page_contents(mupdf_document->ctx, (pdf_page*) mupdf_page->page, device, m, NULL);
+    pdf_run_page_widgets(mupdf_document->ctx, (pdf_page*) mupdf_page->page, device, m, NULL);
   } fz_catch (mupdf_document->ctx) {
     return ZATHURA_ERROR_UNKNOWN;
   }

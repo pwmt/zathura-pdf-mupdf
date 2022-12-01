@@ -6,7 +6,7 @@ option('link-external',
 option('plugindir',
   type: 'string',
   value: '',
-  description: 'Install to a different location than Zathura\'s plugin directory'
+  description: 'Install to a different location than libzathura\'s plugin directory'
 )
 option('enable-cairo',
   type: 'boolean',

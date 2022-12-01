@@ -44,7 +44,7 @@ zathura_error_t pdf_page_search_text(zathura_page_t* page, const char* text,
 
   fz_quad* hit_bbox = fz_malloc_array(mupdf_page->ctx, N_SEARCH_RESULTS, fz_quad);
   int num_results = fz_search_stext_page(mupdf_page->ctx, mupdf_page->text,
-      (char*) text, hit_bbox, N_SEARCH_RESULTS);
+      (char*) text, NULL, hit_bbox, N_SEARCH_RESULTS);
 
   if (num_results == 0) {
     error = ZATHURA_ERROR_SEARCH_NO_RESULTS;

@@ -11,7 +11,7 @@ if check.found()
 
   # Set plugin path for tests
   defines += [
-    '-D_TEST_PLUGIN_DIR_PATH=@0@/@1@'.format(meson.build_root(), pdf.outdir()),
+    '-D_TEST_PLUGIN_DIR_PATH=@0@/@1@'.format(meson.project_build_root(), pdf.outdir()),
     '-D_TEST_PLUGIN_FILE_PATH=@0@'.format(pdf.full_path()),
     '-D_TEST_FILE_PATH=@0@'.format(meson.current_source_dir() + '/files/empty.pdf'),
     '-D_TEST_FILES_PATH=@0@'.format(meson.current_source_dir()),
