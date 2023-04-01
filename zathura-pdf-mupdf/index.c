@@ -2,6 +2,7 @@
 
 #include <girara/datastructures.h>
 
+#include "math.h"
 #include "plugin.h"
 
 static void build_index(fz_context* ctx, fz_document* document, fz_outline*
@@ -70,8 +71,8 @@ build_index(fz_context* ctx, fz_document* document, fz_outline* outline, girara_
       type                    = ZATHURA_LINK_GOTO_DEST;
       target.destination_type = ZATHURA_LINK_DESTINATION_XYZ;
       target.page_number      = fz_page_number_from_location (ctx, document, location);
-      target.left  = x;
-      target.top   = y;
+      if (!isnan(x)) target.left  = x;
+      if (!isnan(y)) target.top   = y;
       target.zoom  = 0.0;
     }
 
