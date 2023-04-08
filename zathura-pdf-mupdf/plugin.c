@@ -26,6 +26,7 @@ ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS(
     "application/pdf",
     "application/oxps",
     "application/epub+zip",
+    "application/zip", /* mupdf supports cbz */
     "application/x-fictionbook",
     "text/xml"
   })
