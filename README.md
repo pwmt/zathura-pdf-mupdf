@@ -34,4 +34,4 @@ refer to the meson documentation for platform specific dependencies.
 Bugs
 ----
 
-Please report bugs at http://git.pwmt.org/pwmt/zathura-pdf-poppler.
+Please report bugs at http://git.pwmt.org/pwmt/zathura-pdf-mupdf.
