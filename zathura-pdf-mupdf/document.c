@@ -137,7 +137,14 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
   }
 
   fz_try (mupdf_document->ctx) {
-    pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, (pdf_document*) mupdf_document->document);
+    pdf_document* pdf_document = pdf_specifics(mupdf_document->ctx, mupdf_document->document);
+    if (pdf_document == NULL) {
+      girara_list_free(list);
+      list = NULL;
+      break;
+    }
+
+    pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, pdf_document);
     pdf_obj* info_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME(Info));
 
     /* get string values */
