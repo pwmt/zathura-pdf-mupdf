@@ -219,3 +219,25 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
 
   return list;
 }
+
+zathura_error_t
+pdf_page_get_label(zathura_page_t* page, void* data, char** label)
+{
+  if (page == NULL || data == NULL || label == NULL) {
+    return ZATHURA_ERROR_INVALID_ARGUMENTS;
+  }
+
+  mupdf_page_t* mupdf_page = data;
+  char buf[16];
+
+  fz_page_label(mupdf_page->ctx, mupdf_page->page, buf, sizeof(buf));
+
+  // fz_page_label() may return an empty string if the label is undefined.
+  if (buf[0] != '\0') {
+      *label = g_strdup(buf);
+  } else {
+      *label = NULL;
+  }
+
+  return ZATHURA_ERROR_OK;
+}

@@ -155,6 +155,17 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document,
     void* mupdf_document, zathura_error_t* error);
 
 /**
+ * Get the page label
+ *
+ * @param page Page
+ * @param data Mupdf page representation
+ * @param label Label
+ * @return ZATHURA_ERROR_OK when no error occurred, otherwise see
+ *    zathura_error_t
+ */
+zathura_error_t pdf_page_get_label(zathura_page_t* page, void* data, char** label);
+
+/**
  * Renders a page and returns a allocated image buffer which has to be freed
  * with zathura_image_buffer_free
  *
