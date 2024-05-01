@@ -12,11 +12,11 @@ The following dependencies are required:
 
 * `zathura` (>= 0.2.0)
 * `girara`
-* `mupdf` (>= 1.20.0)
+* `mupdf` (>= 1.24.0)
 
 For building plugin, the following dependencies are also required:
 
-* `meson` (>= 0.56)
+* `meson` (>= 0.51)
 
 Installation
 ------------
