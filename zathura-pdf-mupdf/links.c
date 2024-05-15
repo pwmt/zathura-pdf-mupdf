@@ -41,7 +41,7 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
     position.y2 = link->rect.y1;
 
     zathura_link_type_t type     = ZATHURA_LINK_INVALID;
-    zathura_link_target_t target = { 0 };
+    zathura_link_target_t target = { ZATHURA_LINK_DESTINATION_UNKNOWN, NULL, 0, -1, -1, -1, -1, 0 };
 
     if (fz_is_external_link(mupdf_document->ctx, link->uri) == 1) {
       if (strstr(link->uri, "file://") == link->uri) {
@@ -59,9 +59,13 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
 
       type                    = ZATHURA_LINK_GOTO_DEST;
       target.destination_type = ZATHURA_LINK_DESTINATION_XYZ;
-      target.page_number      = fz_page_number_from_location (mupdf_document->ctx, mupdf_document->document, location);
-      if (!isnan(x)) target.left  = x;
-      if (!isnan(y)) target.top   = y;
+      target.page_number      = fz_page_number_from_location(mupdf_document->ctx, mupdf_document->document, location);
+      if (!isnan(x)) {
+        target.left = x;
+      }
+      if (!isnan(y)) {
+        target.top = y;
+      }
       target.zoom  = 0.0;
     }
 

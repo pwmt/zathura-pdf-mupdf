@@ -12,11 +12,11 @@ The following dependencies are required:
 
 * `zathura` (>= 0.2.0)
 * `girara`
-* `mupdf` (>= 1.20.0)
+* `mupdf` (>= 1.24.0)
 
 For building plugin, the following dependencies are also required:
 
-* `meson` (>= 0.56)
+* `meson` (>= 0.61)
 
 Installation
 ------------
@@ -34,4 +34,4 @@ refer to the meson documentation for platform specific dependencies.
 Bugs
 ----
 
-Please report bugs at http://git.pwmt.org/pwmt/zathura-pdf-mupdf.
+Please report bugs at https://github.com/pwmt/zathura-pdf-mupdf.

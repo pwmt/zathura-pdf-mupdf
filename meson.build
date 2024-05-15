@@ -1,7 +1,7 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.4.1',
-  meson_version: '>=0.56',
-  default_options: ['c_std=c11', 'warning_level=3']
+  version: '0.4.2',
+  meson_version: '>=0.61',
+  default_options: ['c_std=c17', 'warning_level=3']
 )
 
 version = meson.project_version()
@@ -74,7 +74,6 @@ defines = [
 flags = [
   '-Werror=implicit-function-declaration',
   '-Werror=vla',
-  '-fvisibility=hidden'
 ]
 flags = cc.get_supported_arguments(flags)
 
@@ -96,7 +95,8 @@ pdf = shared_module('pdf-mupdf',
   dependencies: build_dependencies,
   c_args: defines + flags,
   install: true,
-  install_dir: plugindir
+  install_dir: plugindir,
+  gnu_symbol_visibility: 'hidden'
 )
 
 subdir('data')

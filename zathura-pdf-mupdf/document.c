@@ -137,7 +137,14 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
   }
 
   fz_try (mupdf_document->ctx) {
-    pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, (pdf_document*) mupdf_document->document);
+    pdf_document* pdf_document = pdf_specifics(mupdf_document->ctx, mupdf_document->document);
+    if (pdf_document == NULL) {
+      girara_list_free(list);
+      list = NULL;
+      break;
+    }
+
+    pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, pdf_document);
     pdf_obj* info_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME(Info));
 
     /* get string values */
@@ -211,4 +218,26 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
   }
 
   return list;
+}
+
+zathura_error_t
+pdf_page_get_label(zathura_page_t* page, void* data, char** label)
+{
+  if (page == NULL || data == NULL || label == NULL) {
+    return ZATHURA_ERROR_INVALID_ARGUMENTS;
+  }
+
+  mupdf_page_t* mupdf_page = data;
+  char buf[16];
+
+  fz_page_label(mupdf_page->ctx, mupdf_page->page, buf, sizeof(buf));
+
+  // fz_page_label() may return an empty string if the label is undefined.
+  if (buf[0] != '\0') {
+      *label = g_strdup(buf);
+  } else {
+      *label = NULL;
+  }
+
+  return ZATHURA_ERROR_OK;
 }
