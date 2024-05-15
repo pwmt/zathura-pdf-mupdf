@@ -16,7 +16,7 @@ The following dependencies are required:
 
 For building plugin, the following dependencies are also required:
 
-* `meson` (>= 0.51)
+* `meson` (>= 0.61)
 
 Installation
 ------------
