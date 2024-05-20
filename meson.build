@@ -19,7 +19,7 @@ zathura = dependency('zathura', version: '>=0.5.2')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
-mupdf = dependency('mupdf', required: false)
+mupdf = dependency('mupdf', required: false, version: '>=1.24')
 mupdfthird = cc.find_library('mupdf-third')
 
 build_dependencies = [
@@ -32,6 +32,17 @@ build_dependencies = [
 if not mupdf.found()
   # normal build of mupdf
   mupdf = cc.find_library('mupdf')
+  cc.check_header('mupdf/fitz/version.h', required: true)
+  if not cc.compiles('
+#include <mupdf/fitz/version.h>
+
+#if FZ_VERSION_MAJOR < 1 || (FZ_VERSION_MAJOR == 1 && FZ_VERSION_MINOR < 24)
+#error "mupdf 1.24 or newer is requried"
+#endif
+')
+    error('mupdf 1.24 or newer is required')
+  endif
+
   build_dependencies += [mupdf, mupdfthird]
 else
   # build from Debian's libmupdf-dev
