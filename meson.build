@@ -31,15 +31,15 @@ build_dependencies = [
 
 if not mupdf.found()
   # normal build of mupdf
-  mupdf = cc.find_library('mupdf')
-  cc.check_header('mupdf/fitz/version.h', required: true)
-  if not cc.compiles('
+  mupdf = cc.find_library('mupdf', has_headers: ['mupdf/fitz/version.h', 'mupdf/fitz.h', 'mupdf/pdf.h'], required: true)
+  version_check = '
 #include <mupdf/fitz/version.h>
 
 #if FZ_VERSION_MAJOR < 1 || (FZ_VERSION_MAJOR == 1 && FZ_VERSION_MINOR < 24)
 #error "mupdf 1.24 or newer is requried"
 #endif
-')
+'
+  if not cc.compiles(version_check, dependencies: [mupdf])
     error('mupdf 1.24 or newer is required')
   endif
 
