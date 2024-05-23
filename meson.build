@@ -35,13 +35,13 @@ build_dependencies = [
 if not mupdf.found()
   # normal build of mupdf
   mupdf = cc.find_library('mupdf', has_headers: ['mupdf/fitz/version.h', 'mupdf/fitz.h', 'mupdf/pdf.h'], required: true)
-  version_check = '
+  version_check = '''
 #include <mupdf/fitz/version.h>
 
 #if FZ_VERSION_MAJOR < @0@ || (FZ_VERSION_MAJOR == @0@ && FZ_VERSION_MINOR < @1@)
 #error "mupdf @0@.@1@ or newer is requried"
 #endif
-'.format(mupdf_required_version_major, mupdf_required_version_minor)
+'''.format(mupdf_required_version_major, mupdf_required_version_minor)
   if not cc.compiles(version_check, dependencies: [mupdf])
     error('mupdf @0@.@1@ or newer is required'.format(mupdf_required_version_major, mupdf_required_version_minor))
   endif
