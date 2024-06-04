@@ -24,6 +24,8 @@ pdf_document_open(zathura_document_t* document)
     goto error_ret;
   }
 
+  g_mutex_init(&mupdf_document->mutex);
+
   mupdf_document->ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
   if (mupdf_document->ctx == NULL) {
     error = ZATHURA_ERROR_UNKNOWN;
@@ -65,6 +67,7 @@ pdf_document_open(zathura_document_t* document)
 error_free:
 
   if (mupdf_document != NULL) {
+    g_mutex_clear(&mupdf_document->mutex);
     if (mupdf_document->document != NULL) {
       fz_drop_document(mupdf_document->ctx, mupdf_document->document);
     }
@@ -91,8 +94,14 @@ pdf_document_free(zathura_document_t* document, void* data)
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
+  g_mutex_lock(&mupdf_document->mutex);
+
   fz_drop_document(mupdf_document->ctx, mupdf_document->document);
   fz_drop_context(mupdf_document->ctx);
+
+  g_mutex_unlock(&mupdf_document->mutex);
+  g_mutex_clear(&mupdf_document->mutex);
+
   free(mupdf_document);
   zathura_document_set_data(document, NULL);
 
@@ -108,11 +117,14 @@ pdf_document_save_as(zathura_document_t* document, void* data, const char* path)
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
+  g_mutex_lock(&mupdf_document->mutex);
   fz_try (mupdf_document->ctx) {
     pdf_save_document(mupdf_document->ctx, (pdf_document*) mupdf_document->document, path, NULL);
   } fz_catch (mupdf_document->ctx) {
+    g_mutex_unlock(&mupdf_document->mutex);
     return ZATHURA_ERROR_UNKNOWN;
   }
+  g_mutex_unlock(&mupdf_document->mutex);
 
   return ZATHURA_ERROR_OK;
 }
@@ -136,6 +148,7 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
     return NULL;
   }
 
+  g_mutex_lock(&mupdf_document->mutex);
   fz_try (mupdf_document->ctx) {
     pdf_document* pdf_document = pdf_specifics(mupdf_document->ctx, mupdf_document->document);
     if (pdf_document == NULL) {
@@ -159,7 +172,7 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
       { "Subject",  ZATHURA_DOCUMENT_INFORMATION_SUBJECT },
       { "Keywords", ZATHURA_DOCUMENT_INFORMATION_KEYWORDS },
       { "Creator",  ZATHURA_DOCUMENT_INFORMATION_CREATOR },
-      { "Producer", ZATHURA_DOCUMENT_INFORMATION_PRODUCER }
+      { "Producer", ZATHURA_DOCUMENT_INFORMATION_PRODUCER },
     };
 
     for (unsigned int i = 0; i < LENGTH(string_values); i++) {
@@ -186,7 +199,7 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
 
     static const info_value_t time_values[] = {
       { "CreationDate", ZATHURA_DOCUMENT_INFORMATION_CREATION_DATE },
-      { "ModDate",      ZATHURA_DOCUMENT_INFORMATION_MODIFICATION_DATE }
+      { "ModDate",      ZATHURA_DOCUMENT_INFORMATION_MODIFICATION_DATE },
     };
 
     for (unsigned int i = 0; i < LENGTH(time_values); i++) {
@@ -217,32 +230,8 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
     girara_list_free(list);
     list = NULL;
   }
+  g_mutex_unlock(&mupdf_document->mutex);
 
   return list;
 }
 
-zathura_error_t
-pdf_page_get_label(zathura_page_t* page, void* data, char** label)
-{
-  if (page == NULL || data == NULL || label == NULL) {
-    return ZATHURA_ERROR_INVALID_ARGUMENTS;
-  }
-
-  mupdf_page_t* mupdf_page = data;
-  char buf[16];
-
-  fz_try(mupdf_page->ctx) {
-    fz_page_label(mupdf_page->ctx, mupdf_page->page, buf, sizeof(buf));
-  } fz_catch(mupdf_page->ctx) {
-    return ZATHURA_ERROR_UNKNOWN;
-  }
-
-  // fz_page_label() may return an empty string if the label is undefined.
-  if (buf[0] != '\0') {
-      *label = g_strdup(buf);
-  } else {
-      *label = NULL;
-  }
-
-  return ZATHURA_ERROR_OK;
-}

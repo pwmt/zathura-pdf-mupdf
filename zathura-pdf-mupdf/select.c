@@ -19,6 +19,7 @@ pdf_page_get_text(zathura_page_t* page, void* data, zathura_rectangle_t rectangl
 
   zathura_document_t* document     = zathura_page_get_document(page);
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+  g_mutex_lock(&mupdf_document->mutex);
 
   if (mupdf_page->extracted_text == false) {
     mupdf_page_extract_text(mupdf_document, mupdf_page);
@@ -27,11 +28,14 @@ pdf_page_get_text(zathura_page_t* page, void* data, zathura_rectangle_t rectangl
   fz_point a = { rectangle.x1, rectangle.y1 };
   fz_point b = { rectangle.x2, rectangle.y2 };
 
+  char* ret = NULL;
 #ifdef _WIN32
-  return fz_copy_selection(mupdf_page->ctx, mupdf_page->text, a, b, 1);
+  ret = fz_copy_selection(mupdf_page->ctx, mupdf_page->text, a, b, 1);
 #else
-  return fz_copy_selection(mupdf_page->ctx, mupdf_page->text, a, b, 0);
+  ret = fz_copy_selection(mupdf_page->ctx, mupdf_page->text, a, b, 0);
 #endif
+  g_mutex_unlock(&mupdf_document->mutex);
+  return ret;
 
 error_ret:
 
@@ -56,6 +60,7 @@ pdf_page_get_selection(zathura_page_t* page, void* data, zathura_rectangle_t rec
 
   zathura_document_t* document     = zathura_page_get_document(page);
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+  g_mutex_lock(&mupdf_document->mutex);
 
   if (mupdf_page->extracted_text == false) {
     mupdf_page_extract_text(mupdf_document, mupdf_page);
@@ -89,10 +94,12 @@ pdf_page_get_selection(zathura_page_t* page, void* data, zathura_rectangle_t rec
   }
 
   fz_free(mupdf_page->ctx, hits);
+  g_mutex_unlock(&mupdf_document->mutex);
 
   return list;
 
 error_free:
+  g_mutex_unlock(&mupdf_document->mutex);
 
   if (list != NULL ) {
       girara_list_free(list);

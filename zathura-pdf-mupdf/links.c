@@ -31,6 +31,8 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
     goto error_free;
   }
 
+  g_mutex_lock(&mupdf_document->mutex);
+
   fz_link* link = fz_load_links(mupdf_document->ctx, mupdf_page->page);
   for (; link != NULL; link = link->next) {
     /* extract position */
@@ -74,6 +76,7 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
       girara_list_append(list, zathura_link);
     }
   }
+  g_mutex_unlock(&mupdf_document->mutex);
 
   return list;
 

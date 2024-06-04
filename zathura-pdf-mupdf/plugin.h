@@ -14,6 +14,7 @@ typedef struct mupdf_document_s
 {
   fz_context* ctx; /**< Context */
   fz_document* document; /**< mupdf document */
+  GMutex mutex;
 } mupdf_document_t;
 
 typedef struct mupdf_page_s

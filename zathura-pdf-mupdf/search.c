@@ -10,8 +10,6 @@
 girara_list_t*
 pdf_page_search_text(zathura_page_t* page, void* data, const char* text, zathura_error_t* error)
 {
-  mupdf_page_t* mupdf_page = data;
-
   if (page == NULL || text == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -19,6 +17,7 @@ pdf_page_search_text(zathura_page_t* page, void* data, const char* text, zathura
     goto error_ret;
   }
 
+  mupdf_page_t* mupdf_page = data;
   zathura_document_t* document = zathura_page_get_document(page);
   if (document == NULL || mupdf_page == NULL || mupdf_page->text == NULL) {
     goto error_ret;
@@ -33,6 +32,8 @@ pdf_page_search_text(zathura_page_t* page, void* data, const char* text, zathura
     }
     goto error_free;
   }
+
+  g_mutex_lock(&mupdf_document->mutex);
 
   /* extract text */
   if (mupdf_page->extracted_text == false) {
@@ -57,6 +58,7 @@ pdf_page_search_text(zathura_page_t* page, void* data, const char* text, zathura
   }
 
   fz_free(mupdf_page->ctx, hit_bbox);
+  g_mutex_unlock(&mupdf_document->mutex);
 
   return list;
 

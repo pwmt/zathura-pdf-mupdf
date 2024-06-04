@@ -11,18 +11,20 @@ static void build_index(fz_context* ctx, fz_document* document, fz_outline*
 girara_tree_node_t*
 pdf_document_index_generate(zathura_document_t* document, void* data, zathura_error_t* error)
 {
-  mupdf_document_t* mupdf_document = data;
-
-  if (document == NULL || mupdf_document == NULL) {
+  if (document == NULL || data == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
     }
     return NULL;
   }
 
+  mupdf_document_t* mupdf_document = data;
+  g_mutex_lock(&mupdf_document->mutex);
+
   /* get outline */
   fz_outline* outline = fz_load_outline(mupdf_document->ctx, mupdf_document->document);
   if (outline == NULL) {
+    g_mutex_unlock(&mupdf_document->mutex);
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
     }
@@ -36,6 +38,7 @@ pdf_document_index_generate(zathura_document_t* document, void* data, zathura_er
   /* free outline */
   fz_drop_outline(mupdf_document->ctx, outline);
 
+  g_mutex_unlock(&mupdf_document->mutex);
   return root;
 }
 
