@@ -214,7 +214,8 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
     }
-    return NULL;
+    girara_list_free(list);
+    list = NULL;
   }
 
   return list;
