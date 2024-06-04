@@ -1,0 +1,15 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+AlignConsecutiveAssignments: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: true
+BreakBeforeBraces: Attach
+ConstructorInitializerIndentWidth: 2
+NamespaceIndentation: All
+PointerAlignment: Left
+TabWidth: 2
+ColumnLimit: 120
+SortIncludes: false
+...
