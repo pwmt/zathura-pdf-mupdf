@@ -9,9 +9,7 @@
 
 static void pdf_zathura_image_free(zathura_image_t* image);
 
-girara_list_t*
-pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error)
-{
+girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error) {
   mupdf_page_t* mupdf_page = data;
 
   if (page == NULL) {
@@ -21,7 +19,7 @@ pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error)
     goto error_ret;
   }
 
-  girara_list_t* list = NULL;
+  girara_list_t* list          = NULL;
   zathura_document_t* document = zathura_page_get_document(page);
   if (document == NULL) {
     goto error_ret;
@@ -38,7 +36,7 @@ pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error)
     goto error_free;
   }
 
-  girara_list_set_free_function(list, (girara_free_function_t) pdf_zathura_image_free);
+  girara_list_set_free_function(list, (girara_free_function_t)pdf_zathura_image_free);
 
   /* Extract images */
   g_mutex_lock(&mupdf_document->mutex);
@@ -77,10 +75,8 @@ error_ret:
   return NULL;
 }
 
-cairo_surface_t*
-pdf_page_image_get_cairo(zathura_page_t* page, void* data,
-    zathura_image_t* image, zathura_error_t* error)
-{
+cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* data, zathura_image_t* image,
+                                          zathura_error_t* error) {
   mupdf_page_t* mupdf_page = data;
 
   if (page == NULL || mupdf_page == NULL || image == NULL || image->data == NULL) {
@@ -100,7 +96,7 @@ pdf_page_image_get_cairo(zathura_page_t* page, void* data,
 
   fz_image* mupdf_image = image->data;
 
-  fz_pixmap* pixmap = NULL;
+  fz_pixmap* pixmap        = NULL;
   cairo_surface_t* surface = NULL;
 
   g_mutex_lock(&mupdf_document->mutex);
@@ -115,7 +111,7 @@ pdf_page_image_get_cairo(zathura_page_t* page, void* data,
   }
 
   unsigned char* surface_data = cairo_image_surface_get_data(surface);
-  int rowstride = cairo_image_surface_get_stride(surface);
+  int rowstride               = cairo_image_surface_get_stride(surface);
 
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
   unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
@@ -131,7 +127,7 @@ pdf_page_image_get_cairo(zathura_page_t* page, void* data,
         p[0] = s[2];
         p[1] = s[1];
         p[2] = s[0];
-      // Gray-scale or mask
+        // Gray-scale or mask
       } else {
         p[0] = s[0];
         p[1] = s[0];
@@ -162,9 +158,7 @@ error_ret:
   return NULL;
 }
 
-static void
-pdf_zathura_image_free(zathura_image_t* image)
-{
+static void pdf_zathura_image_free(zathura_image_t* image) {
   if (image == NULL) {
     return;
   }

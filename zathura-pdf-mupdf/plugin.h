@@ -10,19 +10,17 @@
 #include <mupdf/fitz.h>
 #include <cairo.h>
 
-typedef struct mupdf_document_s
-{
-  fz_context* ctx; /**< Context */
+typedef struct mupdf_document_s {
+  fz_context* ctx;       /**< Context */
   fz_document* document; /**< mupdf document */
   GMutex mutex;
 } mupdf_document_t;
 
-typedef struct mupdf_page_s
-{
-  fz_page* page; /**< Reference to the mupdf page */
-  fz_context* ctx; /**< Context */
+typedef struct mupdf_page_s {
+  fz_page* page;       /**< Reference to the mupdf page */
+  fz_context* ctx;     /**< Context */
   fz_stext_page* text; /**< Page text */
-  fz_rect bbox; /**< Bbox */
+  fz_rect bbox;        /**< Bbox */
   bool extracted_text; /**< If text has already been extracted */
 } mupdf_page_t;
 
@@ -50,8 +48,7 @@ zathura_error_t pdf_document_free(zathura_document_t* document, void* mupdf_docu
  * @return ZATHURA_ERROR_OK when no error occurred, otherwise see
  *    zathura_error_t
  */
-zathura_error_t pdf_document_save_as(zathura_document_t* document,
-    void* mupdf_document, const char* path);
+zathura_error_t pdf_document_save_as(zathura_document_t* document, void* mupdf_document, const char* path);
 
 /**
  * Generates the index of the document
@@ -62,8 +59,8 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document,
  * @return Tree node object or NULL if an error occurred (e.g.: the document has
  *   no index)
  */
-girara_tree_node_t* pdf_document_index_generate(zathura_document_t* document,
-    void* mupdf_document, zathura_error_t* error);
+girara_tree_node_t* pdf_document_index_generate(zathura_document_t* document, void* mupdf_document,
+                                                zathura_error_t* error);
 
 /**
  * Returns a reference to a page
@@ -121,8 +118,8 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, void* mupdf_page, zathu
  *   error occurred
  * @return The cairo image surface or NULL if an error occurred
  */
-cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void*
-    mupdf_page, zathura_image_t* image, zathura_error_t* error);
+cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* mupdf_page, zathura_image_t* image,
+                                          zathura_error_t* error);
 
 /**
  * Get text for selection
@@ -142,7 +139,8 @@ char* pdf_page_get_text(zathura_page_t* page, void* mupdf_page, zathura_rectangl
  * occurred
  * @return List of rectangles or NULL if an error occurred.
  */
-girara_list_t* pdf_page_get_selection(zathura_page_t* page, void* mupdf_page, zathura_rectangle_t rectangle, zathura_error_t* error);
+girara_list_t* pdf_page_get_selection(zathura_page_t* page, void* mupdf_page, zathura_rectangle_t rectangle,
+                                      zathura_error_t* error);
 
 /**
  * Returns a list of document information entries of the document
@@ -152,8 +150,7 @@ girara_list_t* pdf_page_get_selection(zathura_page_t* page, void* mupdf_page, za
  *   error occurred
  * @return List of information entries or NULL if an error occurred
  */
-girara_list_t* pdf_document_get_information(zathura_document_t* document,
-    void* mupdf_document, zathura_error_t* error);
+girara_list_t* pdf_document_get_information(zathura_document_t* document, void* mupdf_document, zathura_error_t* error);
 
 /**
  * Get the page label

@@ -7,11 +7,9 @@
 
 #include "plugin.h"
 
-#define LENGTH(x) (sizeof(x)/sizeof((x)[0]))
+#define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
-zathura_error_t
-pdf_document_open(zathura_document_t* document)
-{
+zathura_error_t pdf_document_open(zathura_document_t* document) {
   zathura_error_t error = ZATHURA_ERROR_OK;
   if (document == NULL) {
     error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -36,12 +34,12 @@ pdf_document_open(zathura_document_t* document)
   const char* path     = zathura_document_get_path(document);
   const char* password = zathura_document_get_password(document);
 
-  fz_try(mupdf_document->ctx){
+  fz_try(mupdf_document->ctx) {
     fz_register_document_handlers(mupdf_document->ctx);
 
     mupdf_document->document = fz_open_document(mupdf_document->ctx, path);
   }
-  fz_catch(mupdf_document->ctx){
+  fz_catch(mupdf_document->ctx) {
     error = ZATHURA_ERROR_UNKNOWN;
     return error;
   }
@@ -85,9 +83,7 @@ error_ret:
   return error;
 }
 
-zathura_error_t
-pdf_document_free(zathura_document_t* document, void* data)
-{
+zathura_error_t pdf_document_free(zathura_document_t* document, void* data) {
   mupdf_document_t* mupdf_document = data;
 
   if (document == NULL || mupdf_document == NULL) {
@@ -108,9 +104,7 @@ pdf_document_free(zathura_document_t* document, void* data)
   return ZATHURA_ERROR_OK;
 }
 
-zathura_error_t
-pdf_document_save_as(zathura_document_t* document, void* data, const char* path)
-{
+zathura_error_t pdf_document_save_as(zathura_document_t* document, void* data, const char* path) {
   mupdf_document_t* mupdf_document = data;
 
   if (document == NULL || mupdf_document == NULL || path == NULL) {
@@ -118,9 +112,10 @@ pdf_document_save_as(zathura_document_t* document, void* data, const char* path)
   }
 
   g_mutex_lock(&mupdf_document->mutex);
-  fz_try (mupdf_document->ctx) {
-    pdf_save_document(mupdf_document->ctx, (pdf_document*) mupdf_document->document, path, NULL);
-  } fz_catch (mupdf_document->ctx) {
+  fz_try(mupdf_document->ctx) {
+    pdf_save_document(mupdf_document->ctx, (pdf_document*)mupdf_document->document, path, NULL);
+  }
+  fz_catch(mupdf_document->ctx) {
     g_mutex_unlock(&mupdf_document->mutex);
     return ZATHURA_ERROR_UNKNOWN;
   }
@@ -129,9 +124,7 @@ pdf_document_save_as(zathura_document_t* document, void* data, const char* path)
   return ZATHURA_ERROR_OK;
 }
 
-girara_list_t*
-pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error)
-{
+girara_list_t* pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error) {
   mupdf_document_t* mupdf_document = data;
 
   if (document == NULL || mupdf_document == NULL || error == NULL) {
@@ -149,7 +142,7 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
   }
 
   g_mutex_lock(&mupdf_document->mutex);
-  fz_try (mupdf_document->ctx) {
+  fz_try(mupdf_document->ctx) {
     pdf_document* pdf_document = pdf_specifics(mupdf_document->ctx, mupdf_document->document);
     if (pdf_document == NULL) {
       girara_list_free(list);
@@ -157,7 +150,7 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
       break;
     }
 
-    pdf_obj* trailer = pdf_trailer(mupdf_document->ctx, pdf_document);
+    pdf_obj* trailer   = pdf_trailer(mupdf_document->ctx, pdf_document);
     pdf_obj* info_dict = pdf_dict_get(mupdf_document->ctx, trailer, PDF_NAME(Info));
 
     /* get string values */
@@ -167,12 +160,9 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
     } info_value_t;
 
     static const info_value_t string_values[] = {
-      { "Title",    ZATHURA_DOCUMENT_INFORMATION_TITLE },
-      { "Author",   ZATHURA_DOCUMENT_INFORMATION_AUTHOR },
-      { "Subject",  ZATHURA_DOCUMENT_INFORMATION_SUBJECT },
-      { "Keywords", ZATHURA_DOCUMENT_INFORMATION_KEYWORDS },
-      { "Creator",  ZATHURA_DOCUMENT_INFORMATION_CREATOR },
-      { "Producer", ZATHURA_DOCUMENT_INFORMATION_PRODUCER },
+        {"Title", ZATHURA_DOCUMENT_INFORMATION_TITLE},     {"Author", ZATHURA_DOCUMENT_INFORMATION_AUTHOR},
+        {"Subject", ZATHURA_DOCUMENT_INFORMATION_SUBJECT}, {"Keywords", ZATHURA_DOCUMENT_INFORMATION_KEYWORDS},
+        {"Creator", ZATHURA_DOCUMENT_INFORMATION_CREATOR}, {"Producer", ZATHURA_DOCUMENT_INFORMATION_PRODUCER},
     };
 
     for (unsigned int i = 0; i < LENGTH(string_values); i++) {
@@ -187,19 +177,16 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
       }
 
       zathura_document_information_entry_t* entry =
-        zathura_document_information_entry_new(
-          string_values[i].type,
-          str_value
-        );
+          zathura_document_information_entry_new(string_values[i].type, str_value);
 
-    if (entry != NULL) {
-      girara_list_append(list, entry);
-    }
+      if (entry != NULL) {
+        girara_list_append(list, entry);
+      }
     }
 
     static const info_value_t time_values[] = {
-      { "CreationDate", ZATHURA_DOCUMENT_INFORMATION_CREATION_DATE },
-      { "ModDate",      ZATHURA_DOCUMENT_INFORMATION_MODIFICATION_DATE },
+        {"CreationDate", ZATHURA_DOCUMENT_INFORMATION_CREATION_DATE},
+        {"ModDate", ZATHURA_DOCUMENT_INFORMATION_MODIFICATION_DATE},
     };
 
     for (unsigned int i = 0; i < LENGTH(time_values); i++) {
@@ -214,16 +201,16 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
       }
 
       zathura_document_information_entry_t* entry =
-        zathura_document_information_entry_new(
-          time_values[i].type,
-          str_value // FIXME: Convert to common format
-        );
+          zathura_document_information_entry_new(time_values[i].type,
+                                                 str_value // FIXME: Convert to common format
+          );
 
       if (entry != NULL) {
         girara_list_append(list, entry);
       }
     }
-  } fz_catch (mupdf_document->ctx) {
+  }
+  fz_catch(mupdf_document->ctx) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
     }
@@ -234,4 +221,3 @@ pdf_document_get_information(zathura_document_t* document, void* data, zathura_e
 
   return list;
 }
-

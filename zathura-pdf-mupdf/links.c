@@ -5,9 +5,7 @@
 #include "plugin.h"
 #include "math.h"
 
-girara_list_t*
-pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
-{
+girara_list_t* pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error) {
   if (page == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -15,15 +13,16 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
     goto error_ret;
   }
 
-  mupdf_page_t* mupdf_page = data;
+  mupdf_page_t* mupdf_page     = data;
   zathura_document_t* document = zathura_page_get_document(page);
   if (document == NULL || mupdf_page == NULL || mupdf_page->page == NULL) {
     goto error_ret;
   }
 
-  mupdf_document_t* mupdf_document = zathura_document_get_data(document);;
+  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+  ;
 
-  girara_list_t* list = girara_list_new2((girara_free_function_t) zathura_link_free);
+  girara_list_t* list = girara_list_new2((girara_free_function_t)zathura_link_free);
   if (list == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;
@@ -43,7 +42,7 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
     position.y2 = link->rect.y1;
 
     zathura_link_type_t type     = ZATHURA_LINK_INVALID;
-    zathura_link_target_t target = { ZATHURA_LINK_DESTINATION_UNKNOWN, NULL, 0, -1, -1, -1, -1, 0 };
+    zathura_link_target_t target = {ZATHURA_LINK_DESTINATION_UNKNOWN, NULL, 0, -1, -1, -1, -1, 0};
 
     if (fz_is_external_link(mupdf_document->ctx, link->uri) == 1) {
       if (strstr(link->uri, "file://") == link->uri) {
@@ -68,7 +67,7 @@ pdf_page_links_get(zathura_page_t* page, void* data, zathura_error_t* error)
       if (!isnan(y)) {
         target.top = y;
       }
-      target.zoom  = 0.0;
+      target.zoom = 0.0;
     }
 
     zathura_link_t* zathura_link = zathura_link_new(type, position, target);
@@ -90,4 +89,3 @@ error_ret:
 
   return NULL;
 }
-
