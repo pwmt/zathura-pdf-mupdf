@@ -1,5 +1,5 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.4.2',
+  version: '0.4.3',
   meson_version: '>=0.61',
   default_options: ['c_std=c17', 'warning_level=3']
 )
@@ -15,11 +15,14 @@ metainfodir = join_paths(datadir, 'metainfo')
 desktopdir = join_paths(datadir, 'applications')
 
 # required dependencies
+mupdf_required_version_major = 1
+mupdf_required_version_minor = 24
+
 zathura = dependency('zathura', version: '>=0.5.2')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
-mupdf = dependency('mupdf', required: false)
+mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
 mupdfthird = cc.find_library('mupdf-third')
 
 build_dependencies = [
@@ -31,7 +34,18 @@ build_dependencies = [
 
 if not mupdf.found()
   # normal build of mupdf
-  mupdf = cc.find_library('mupdf')
+  mupdf = cc.find_library('mupdf', has_headers: ['mupdf/fitz/version.h', 'mupdf/fitz.h', 'mupdf/pdf.h'], required: true)
+  version_check = '''
+#include <mupdf/fitz/version.h>
+
+#if FZ_VERSION_MAJOR < @0@ || (FZ_VERSION_MAJOR == @0@ && FZ_VERSION_MINOR < @1@)
+#error "mupdf @0@.@1@ or newer is requried"
+#endif
+'''.format(mupdf_required_version_major, mupdf_required_version_minor)
+  if not cc.compiles(version_check, dependencies: [mupdf])
+    error('mupdf @0@.@1@ or newer is required'.format(mupdf_required_version_major, mupdf_required_version_minor))
+  endif
+
   build_dependencies += [mupdf, mupdfthird]
 else
   # build from Debian's libmupdf-dev
