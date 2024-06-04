@@ -231,7 +231,11 @@ pdf_page_get_label(zathura_page_t* page, void* data, char** label)
   mupdf_page_t* mupdf_page = data;
   char buf[16];
 
-  fz_page_label(mupdf_page->ctx, mupdf_page->page, buf, sizeof(buf));
+  fz_try(mupdf_page->ctx) {
+    fz_page_label(mupdf_page->ctx, mupdf_page->page, buf, sizeof(buf));
+  } fz_catch(mupdf_page->ctx) {
+    return ZATHURA_ERROR_UNKNOWN;
+  }
 
   // fz_page_label() may return an empty string if the label is undefined.
   if (buf[0] != '\0') {
