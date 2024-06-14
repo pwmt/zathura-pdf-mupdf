@@ -164,17 +164,6 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document, void* 
 zathura_error_t pdf_page_get_label(zathura_page_t* page, void* data, char** label);
 
 /**
- * Renders a page and returns a allocated image buffer which has to be freed
- * with zathura_image_buffer_free
- *
- * @param page Page
- * @param error Set to an error value (see zathura_error_t) if an
- *   error occurred
- * @return Image buffer or NULL if an error occurred
- */
-zathura_image_buffer_t* pdf_page_render(zathura_page_t* page, void* mupdf_page, zathura_error_t* error);
-
-/**
  * Renders a page onto a cairo object
  *
  * @param page Page
