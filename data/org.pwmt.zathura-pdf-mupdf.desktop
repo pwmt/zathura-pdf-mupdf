@@ -4,6 +4,7 @@ Type=Application
 Name=Zathura
 Comment=A minimalistic document viewer
 Exec=zathura %U
+Icon=org.pwmt.zathura
 Terminal=false
 NoDisplay=true
 Categories=Office;Viewer;
