@@ -15,10 +15,7 @@ static zathura_error_t pdf_page_render_to_buffer(mupdf_document_t* mupdf_documen
 
   g_mutex_lock(&mupdf_document->mutex);
 
-  fz_irect irect = {.x1 = page_width, .y1 = page_height};
-  fz_rect rect   = {.x1 = page_width, .y1 = page_height};
-
-  fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx, rect);
+  fz_display_list* display_list = fz_new_display_list(mupdf_page->ctx, (fz_rect){.x1 = page_width, .y1 = page_height});
   fz_device* device             = fz_new_list_device(mupdf_page->ctx, display_list);
 
   fz_try(mupdf_document->ctx) {
@@ -36,11 +33,13 @@ static zathura_error_t pdf_page_render_to_buffer(mupdf_document_t* mupdf_documen
 
   fz_colorspace* colorspace = fz_device_bgr(mupdf_document->ctx);
   /* TODO: What are separations used for? */
-  fz_pixmap* pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace, irect, NULL, 1, image);
+  fz_pixmap* pixmap = fz_new_pixmap_with_bbox_and_data(mupdf_page->ctx, colorspace,
+                                                       (fz_irect){.x1 = page_width, .y1 = page_height}, NULL, 1, image);
   fz_clear_pixmap_with_value(mupdf_page->ctx, pixmap, 0xFF);
 
   device = fz_new_draw_device(mupdf_page->ctx, fz_identity, pixmap);
-  fz_run_display_list(mupdf_page->ctx, display_list, device, fz_identity, rect, NULL);
+  fz_run_display_list(mupdf_page->ctx, display_list, device, fz_identity,
+                      (fz_rect){.x1 = page_width, .y1 = page_height}, NULL);
   fz_close_device(mupdf_page->ctx, device);
   fz_drop_device(mupdf_page->ctx, device);
 
