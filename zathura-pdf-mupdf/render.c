@@ -23,13 +23,15 @@ static zathura_error_t pdf_page_render_to_buffer(mupdf_document_t* mupdf_documen
     m = fz_scale(scalex, scaley);
     fz_run_page(mupdf_document->ctx, mupdf_page->page, device, m, NULL);
   }
+  fz_always(mupdf_document->ctx) {
+    fz_close_device(mupdf_page->ctx, device);
+    fz_drop_device(mupdf_page->ctx, device);
+  }
   fz_catch(mupdf_document->ctx) {
+    fz_drop_display_list(mupdf_page->ctx, display_list);
     g_mutex_unlock(&mupdf_document->mutex);
     return ZATHURA_ERROR_UNKNOWN;
   }
-
-  fz_close_device(mupdf_page->ctx, device);
-  fz_drop_device(mupdf_page->ctx, device);
 
   fz_colorspace* colorspace = fz_device_bgr(mupdf_document->ctx);
   /* TODO: What are separations used for? */
