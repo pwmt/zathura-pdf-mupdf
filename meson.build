@@ -9,6 +9,10 @@ version_array = version.split('.')
 
 cc = meson.get_compiler('c')
 
+if get_option('pdf')
+  add_project_arguments('-DHAVE_PDF', language:['c'])
+endif
+datadir = get_option('datadir')
 prefix = get_option('prefix')
 datadir = get_option('datadir')
 metainfodir = join_paths(datadir, 'metainfo')

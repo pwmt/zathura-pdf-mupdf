@@ -8,3 +8,8 @@ option('tests',
   value: 'auto',
   description: 'run tests'
 )
+option('pdf',
+  type: 'boolean',
+  value: 'true',
+  description: 'enable pdf support which bring conflict with zathura-pdf-poppler'
+)
