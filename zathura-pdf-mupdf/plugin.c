@@ -21,7 +21,9 @@ ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR
                                            .page_get_label           = pdf_page_get_label,
                                        }),
                                        ZATHURA_PLUGIN_MIMETYPES({
+#if HAVE_PDF
                                            "application/pdf",
+#endif
                                            "application/oxps",
                                            "application/epub+zip",
                                            "application/x-fictionbook",
