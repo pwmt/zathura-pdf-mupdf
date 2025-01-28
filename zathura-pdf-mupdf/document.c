@@ -127,7 +127,7 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document, void* data, c
 girara_list_t* pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error) {
   mupdf_document_t* mupdf_document = data;
 
-  if (document == NULL || mupdf_document == NULL || error == NULL) {
+  if (document == NULL || mupdf_document == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
     }
@@ -171,7 +171,7 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document, void* 
         continue;
       }
 
-      char* str_value = pdf_to_str_buf(mupdf_document->ctx, value);
+      const char* str_value = pdf_to_text_string(mupdf_document->ctx, value);
       if (str_value == NULL || strlen(str_value) == 0) {
         continue;
       }
@@ -195,7 +195,7 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document, void* 
         continue;
       }
 
-      char* str_value = pdf_to_str_buf(mupdf_document->ctx, value);
+      const char* str_value = pdf_to_text_string(mupdf_document->ctx, value);
       if (str_value == NULL || strlen(str_value) == 0) {
         continue;
       }
