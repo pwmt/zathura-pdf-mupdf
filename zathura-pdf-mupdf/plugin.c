@@ -2,6 +2,12 @@
 
 #include "plugin.h"
 
+#if defined(HAVE_PDF)
+#define PDF_MIMETYPE "application/pdf",
+#else
+#define PDF_MIMETYPE
+#endif
+
 ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR, VERSION_REV,
                                        ZATHURA_PLUGIN_FUNCTIONS({
                                            .document_open            = pdf_document_open,
@@ -21,9 +27,7 @@ ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR
                                            .page_get_label           = pdf_page_get_label,
                                        }),
                                        ZATHURA_PLUGIN_MIMETYPES({
-#if HAVE_PDF
-                                           "application/pdf",
-#endif
+                                           PDF_MIMETYPE
                                            "application/oxps",
                                            "application/epub+zip",
                                            "application/x-fictionbook",

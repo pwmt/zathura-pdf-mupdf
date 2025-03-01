@@ -9,9 +9,6 @@ version_array = version.split('.')
 
 cc = meson.get_compiler('c')
 
-if get_option('pdf')
-  add_project_arguments('-DHAVE_PDF', language:['c'])
-endif
 datadir = get_option('datadir')
 prefix = get_option('prefix')
 datadir = get_option('datadir')
@@ -87,6 +84,9 @@ defines = [
   '-DVERSION_REV=@0@'.format(version_array[2]),
   '-D_DEFAULT_SOURCE',
 ]
+if get_option('pdf').enabled()
+  defines += ['-DHAVE_PDF']
+endif
 
 # compile flags
 flags = [
