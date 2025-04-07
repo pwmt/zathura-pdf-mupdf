@@ -8,4 +8,4 @@ Icon=org.pwmt.zathura
 Terminal=false
 NoDisplay=true
 Categories=Office;Viewer;
-MimeType=@PDF@application/oxps;application/epub+zip;application/x-fictionbook;
+MimeType=@PDF@application/oxps;application/epub+zip;application/x-fictionbook;application/x-mobipocket-ebook;

@@ -31,5 +31,6 @@ ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR
                                            "application/oxps",
                                            "application/epub+zip",
                                            "application/x-fictionbook",
+                                           "application/x-mobipocket-ebook",
                                            "text/xml",
                                        }))
