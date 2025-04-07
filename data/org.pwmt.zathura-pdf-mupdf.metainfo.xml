@@ -8,5 +8,4 @@
   <name>Zathura-PDF-MuPDF</name>
   <summary>PDF plugin for zathura based on MuPDF</summary>
   <url type="homepage">https://pwmt.org/projects/zathura-pdf-mupdf/</url>
-  <update_contact>zathura@lists.pwmt.org</update_contact>
 </component>
