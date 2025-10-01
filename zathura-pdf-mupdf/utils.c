@@ -14,9 +14,7 @@ void mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mup
     stext_options.flags = FZ_STEXT_PRESERVE_IMAGES;
     text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, &stext_options);
 
-    fz_matrix ctm;
-    ctm = fz_scale(1.0, 1.0);
-    fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, ctm, NULL);
+    fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, fz_identity, NULL);
   }
   fz_always(mupdf_document->ctx) {
     fz_close_device(mupdf_page->ctx, text_device);
