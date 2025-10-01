@@ -66,7 +66,7 @@ defines = [
   '-DVERSION_REV=@0@'.format(version_array[2]),
   '-D_DEFAULT_SOURCE',
 ]
-if get_option('pdf').enabled()
+if get_option('pdf').allowed()
   defines += ['-DHAVE_PDF']
 endif
 
