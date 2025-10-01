@@ -40,7 +40,9 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_err
 
   /* Extract images */
   g_mutex_lock(&mupdf_document->mutex);
-  mupdf_page_extract_text(mupdf_document, mupdf_page);
+  if (!mupdf_page->extracted_text) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
+  }
 
   fz_stext_block* block;
   for (block = mupdf_page->text->first_block; block; block = block->next) {
