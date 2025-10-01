@@ -31,8 +31,8 @@ To build and install the plugin using meson's ninja backend:
 > **Note:** The default backend for meson might vary based on the platform. Please
 refer to the meson documentation for platform specific dependencies.
 
-> **Note:** Enabling PDF support requires extra steps to avoid conflicts with `zathura-pdf-poppler`.
-Instead of `meson build`, use `meson build -Dpdf=enabled`.
+> **Note:** To avoid conflicts with `zathura-pdf-poppler`, PDF support can be disabled
+at compile time by using `meson build -Dpdf=disabled` instead of `meson build`.
 
 Bugs
 ----
