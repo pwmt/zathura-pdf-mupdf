@@ -40,7 +40,9 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_err
 
   /* Extract images */
   g_mutex_lock(&mupdf_document->mutex);
-  mupdf_page_extract_text(mupdf_document, mupdf_page);
+  if (!mupdf_page->extracted_text) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
+  }
 
   fz_stext_block* block;
   for (block = mupdf_page->text->first_block; block; block = block->next) {
@@ -123,7 +125,7 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* data, zath
       guchar* p = surface_data + y * rowstride + x * 4;
 
       // RGB
-      if (n == 4) {
+      if (n == 3) {
         p[0] = s[2];
         p[1] = s[1];
         p[2] = s[0];
