@@ -125,7 +125,7 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* data, zath
       guchar* p = surface_data + y * rowstride + x * 4;
 
       // RGB
-      if (n == 4) {
+      if (n == 3) {
         p[0] = s[2];
         p[1] = s[1];
         p[2] = s[0];
