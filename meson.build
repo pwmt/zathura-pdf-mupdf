@@ -80,6 +80,7 @@ flags = cc.get_supported_arguments(flags)
 sources = files(
   'zathura-pdf-mupdf/document.c',
   'zathura-pdf-mupdf/image.c',
+  'zathura-pdf-mupdf/attachment.c',
   'zathura-pdf-mupdf/index.c',
   'zathura-pdf-mupdf/links.c',
   'zathura-pdf-mupdf/page.c',

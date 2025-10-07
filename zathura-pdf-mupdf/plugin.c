@@ -15,6 +15,8 @@ ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR
                                            .document_save_as         = pdf_document_save_as,
                                            .document_index_generate  = pdf_document_index_generate,
                                            .document_get_information = pdf_document_get_information,
+                                           .document_attachments_get = pdf_document_attachments_get,
+                                           .document_attachment_save = pdf_document_attachment_save,
                                            .page_init                = pdf_page_init,
                                            .page_clear               = pdf_page_clear,
                                            .page_search_text         = pdf_page_search_text,
