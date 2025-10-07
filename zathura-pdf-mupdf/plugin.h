@@ -172,4 +172,8 @@ zathura_error_t pdf_page_get_label(zathura_page_t* page, void* data, char** labe
  */
 zathura_error_t pdf_page_render_cairo(zathura_page_t* page, void* mupdf_page, cairo_t* cairo, bool printing);
 
+girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* data, zathura_error_t* error);
+
+zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* attachmentname, const char* file);
+
 #endif // PDF_H
