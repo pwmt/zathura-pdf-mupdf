@@ -39,7 +39,6 @@ ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR
                                            "image/jpeg",
                                            "image/png",
                                            "image/bmp",
-                                           "image/x-bmp",
                                            "image/tiff",
                                            "image/tiff-fx",
                                        }))
