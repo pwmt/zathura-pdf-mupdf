@@ -3,16 +3,15 @@
 #include <mupdf/pdf.h>
 
 girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* data, zathura_error_t* error) {
-  mupdf_document_t* mupdf_document = data;
-
-  if (document == NULL) {
+  if (document == NULL || data == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
     }
     goto error_ret;
   }
 
-  girara_list_t* list = NULL;
+  mupdf_document_t* mupdf_document = data;
+  girara_list_t* list              = NULL;
 
   /* Setup attachment list */
   list = girara_list_new();
@@ -65,8 +64,11 @@ error_ret:
   return NULL;
 }
 
-zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* UNUSED(data), const char* attachmentname, const char* file) {
-  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
+zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* attachmentname, const char* file) {
+  if (document == NULL || data == NULL) {
+      return ZATHURA_ERROR_INVALID_ARGUMENTS;
+  }
+  mupdf_document_t* mupdf_document = data;
 
   g_mutex_lock(&mupdf_document->mutex);
   fz_try(mupdf_document->ctx) {
