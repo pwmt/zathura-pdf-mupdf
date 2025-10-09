@@ -63,7 +63,7 @@ error_ret:
   return NULL;
 }
 
-zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* attachmentname, const char* file) {
+zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* name, const char* file) {
   if (document == NULL || data == NULL) {
       return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
@@ -79,7 +79,7 @@ zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void*
       pdf_obj* obj = pdf_load_object(mupdf_document->ctx, pdf_doc, i);
       if (pdf_is_embedded_file(mupdf_document->ctx, obj)) {
         pdf_get_filespec_params(mupdf_document->ctx, obj, &fs_params);
-        if (strcmp(fs_params.filename, attachmentname) != 0) {
+        if (strcmp(fs_params.filename, name) != 0) {
           continue;
         }
         fz_save_buffer(mupdf_document->ctx, pdf_load_embedded_file_contents(mupdf_document->ctx, obj), file);

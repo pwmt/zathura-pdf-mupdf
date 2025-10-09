@@ -100,6 +100,29 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, void* mupdf_page, cons
 girara_list_t* pdf_page_links_get(zathura_page_t* page, void* mupdf_page, zathura_error_t* error);
 
 /**
+ * Returns a list of attachment names included in the document
+ *
+ * @param document Zathura document
+ * @param data Mupdf document representation
+ * @param error Set to an error value (see zathura_error_t) if an
+ *   error occurred
+ * @return List of attachments
+ */
+girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* data, zathura_error_t* error);
+
+/**
+ * Saves an attachment to a file
+ *
+ * @param document Zathura document
+ * @param data Mupdf document representation
+ * @param name Name of the attachment
+ * @param file Target file path
+ * @return ZATHURA_ERROR_OK when no error occurred, otherwise see
+ *    zathura_error_t
+ */
+zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* name, const char* file);
+
+/**
  * Returns a list of images included on the zathura page
  *
  * @param page The page
@@ -171,9 +194,5 @@ zathura_error_t pdf_page_get_label(zathura_page_t* page, void* data, char** labe
  * @return  true if no error occurred, otherwise false
  */
 zathura_error_t pdf_page_render_cairo(zathura_page_t* page, void* mupdf_page, cairo_t* cairo, bool printing);
-
-girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* data, zathura_error_t* error);
-
-zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* attachmentname, const char* file);
 
 #endif // PDF_H
