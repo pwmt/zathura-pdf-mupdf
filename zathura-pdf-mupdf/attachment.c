@@ -15,6 +15,8 @@ girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* 
     goto error_free;
   }
 
+  girara_list_set_free_function(list, (girara_free_function_t)g_free);
+
   /* Extract attachments */
   g_mutex_lock(&mupdf_document->mutex);
   pdf_document* pdf_doc = pdf_specifics(mupdf_document->ctx, mupdf_document->document);
