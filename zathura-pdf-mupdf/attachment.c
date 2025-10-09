@@ -3,6 +3,13 @@
 #include <mupdf/pdf.h>
 
 girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* UNUSED(data), zathura_error_t* error) {
+  if (document == NULL) {
+    if (error != NULL) {
+      *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
+    }
+    goto error_ret;
+  }
+
   girara_list_t* list = NULL;
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
 
@@ -43,6 +50,8 @@ error_free:
   if (list != NULL) {
     girara_list_free(list);
   }
+
+error_ret:
 
   return NULL;
 }
