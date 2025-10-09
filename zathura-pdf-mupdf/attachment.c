@@ -2,7 +2,9 @@
 #include "utils.h"
 #include <mupdf/pdf.h>
 
-girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* UNUSED(data), zathura_error_t* error) {
+girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* data, zathura_error_t* error) {
+  mupdf_document_t* mupdf_document = data;
+
   if (document == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
@@ -11,7 +13,6 @@ girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* 
   }
 
   girara_list_t* list = NULL;
-  mupdf_document_t* mupdf_document = zathura_document_get_data(document);
 
   /* Setup attachment list */
   list = girara_list_new();
