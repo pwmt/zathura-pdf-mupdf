@@ -7,4 +7,6 @@
 
 void mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mupdf_page);
 
+char* read_xdg_config_file(const char* filename);
+
 #endif // UTILS_H
