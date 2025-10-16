@@ -44,8 +44,7 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_err
     mupdf_page_extract_text(mupdf_document, mupdf_page);
   }
 
-  fz_stext_block* block;
-  for (block = mupdf_page->text->first_block; block; block = block->next) {
+  for (fz_stext_block* block = mupdf_page->text->first_block; block; block = block->next) {
     if (block->type == FZ_STEXT_BLOCK_IMAGE) {
       zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
 
