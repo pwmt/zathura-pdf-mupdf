@@ -11,15 +11,14 @@ girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* 
   }
 
   mupdf_document_t* mupdf_document = data;
-  girara_list_t* list              = NULL;
 
   /* Setup attachment list */
-  list = girara_list_new_with_free((girara_free_function_t)g_free);
+  girara_list_t* list = girara_list_new_with_free((girara_free_function_t)g_free);
   if (list == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;
     }
-    goto error_free;
+    return NULL;
   }
 
   /* Extract attachments */
