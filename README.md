@@ -12,7 +12,7 @@ The following dependencies are required:
 
 * `zathura` (>= 0.2.0)
 * `girara`
-* `mupdf` (>= 1.25.0)
+* `mupdf` (>= 1.26)
 
 For building plugin, the following dependencies are also required:
 
