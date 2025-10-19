@@ -41,7 +41,7 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
     /* read user css from zathura/epub.css */
     char* xdg_path = girara_get_xdg_path(XDG_CONFIG);
     if (xdg_path) {
-        char* css_path = g_strconcat(xdg_path, "/epub.css", NULL);
+        char* css_path = g_strconcat(xdg_path, "/zathura/epub.css", NULL);
         char* user_css = girara_file_read(css_path);
         g_free(css_path);
 
