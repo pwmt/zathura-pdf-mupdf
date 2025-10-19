@@ -6,7 +6,7 @@
 #include <glib-2.0/glib.h>
 
 #include "plugin.h"
-#include "utils.h"
+#include <girara/utils.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -37,10 +37,19 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
 
   fz_try(mupdf_document->ctx) {
     fz_register_document_handlers(mupdf_document->ctx);
-    char* user_css = read_xdg_config_file("zathura/epub.css");
-    if (user_css) {
-        fz_set_user_css(mupdf_document->ctx, user_css);
-        free(user_css);
+
+    /* read user css from zathura/epub.css */
+    char* xdg_path = girara_get_xdg_path(XDG_CONFIG);
+    if (xdg_path) {
+        char* css_path = g_strconcat(xdg_path, "/epub.css", NULL);
+        char* user_css = girara_file_read(css_path);
+        g_free(css_path);
+
+        if (user_css) {
+            fz_set_user_css(mupdf_document->ctx, user_css);
+            g_free(user_css);
+        }
+        g_free(xdg_path);
     }
 
     mupdf_document->document = fz_open_document(mupdf_document->ctx, path);
