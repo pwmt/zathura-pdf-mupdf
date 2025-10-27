@@ -16,6 +16,7 @@
   <url type="contact">https://pwmt.org/contact</url>
   <url type="vcs-browser">https://github.com/pwmt/zathura-pdf-mupdf</url>
   <releases>
+    <release version="0.4.5" date="2025-10-27" />
     <release version="0.4.4" date="2024-08-04" />
   </releases>
 </component>
