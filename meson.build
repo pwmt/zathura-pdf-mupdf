@@ -1,6 +1,6 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.4.4',
-  meson_version: '>=0.61',
+  version: '0.4.5',
+  meson_version: '>=1',
   default_options: ['c_std=c17', 'warning_level=3']
 )
 
@@ -9,6 +9,7 @@ version_array = version.split('.')
 
 cc = meson.get_compiler('c')
 
+datadir = get_option('datadir')
 prefix = get_option('prefix')
 datadir = get_option('datadir')
 metainfodir = join_paths(datadir, 'metainfo')
@@ -16,14 +17,13 @@ desktopdir = join_paths(datadir, 'applications')
 
 # required dependencies
 mupdf_required_version_major = 1
-mupdf_required_version_minor = 24
+mupdf_required_version_minor = 26
 
 zathura = dependency('zathura', version: '>=0.5.2')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
-mupdfthird = cc.find_library('mupdf-third')
 
 build_dependencies = [
   zathura,
@@ -35,6 +35,7 @@ build_dependencies = [
 if not mupdf.found()
   # normal build of mupdf
   mupdf = cc.find_library('mupdf', has_headers: ['mupdf/fitz/version.h', 'mupdf/fitz.h', 'mupdf/pdf.h'], required: true)
+  mupdfthird = cc.find_library('mupdf-third')
   version_check = '''
 #include <mupdf/fitz/version.h>
 
@@ -49,25 +50,7 @@ if not mupdf.found()
   build_dependencies += [mupdf, mupdfthird]
 else
   # build from Debian's libmupdf-dev
-  build_dependencies += [mupdf, mupdfthird]
-
-  libjpeg = dependency('libjpeg')
-  libjbig2dec = cc.find_library('jbig2dec')
-  libopenjp2 = dependency('libopenjp2')
-  gumbo = dependency('gumbo')
-  tesseract = dependency('tesseract')
-  leptonica = dependency('lept')
-  mujs = dependency('mujs')
-
-  build_dependencies += [
-    libjpeg,
-    libjbig2dec,
-    libopenjp2,
-    gumbo,
-    tesseract,
-    leptonica,
-    mujs
-  ]
+  build_dependencies += [mupdf]
 endif
 
 if get_option('plugindir') == ''
@@ -83,6 +66,9 @@ defines = [
   '-DVERSION_REV=@0@'.format(version_array[2]),
   '-D_DEFAULT_SOURCE',
 ]
+if get_option('pdf').allowed()
+  defines += ['-DHAVE_PDF']
+endif
 
 # compile flags
 flags = [
@@ -94,6 +80,7 @@ flags = cc.get_supported_arguments(flags)
 sources = files(
   'zathura-pdf-mupdf/document.c',
   'zathura-pdf-mupdf/image.c',
+  'zathura-pdf-mupdf/attachment.c',
   'zathura-pdf-mupdf/index.c',
   'zathura-pdf-mupdf/links.c',
   'zathura-pdf-mupdf/page.c',

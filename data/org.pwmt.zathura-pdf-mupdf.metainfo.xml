@@ -4,9 +4,19 @@
   <id>org.pwmt.zathura-pdf-mupdf</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>Zlib</project_license>
+  <developer id="org.pwmt">
+    <name>pwmt</name>
+  </developer>
   <extends>org.pwmt.zathura</extends>
   <name>Zathura-PDF-MuPDF</name>
   <summary>PDF plugin for zathura based on MuPDF</summary>
   <url type="homepage">https://pwmt.org/projects/zathura-pdf-mupdf/</url>
-  <update_contact>zathura@lists.pwmt.org</update_contact>
+  <url type="bugtracker">https://github.com/pwmt/zathura-pdf-mupdf/issues</url>
+  <url type="donation">https://pwmt.org/help/donate</url>
+  <url type="contact">https://pwmt.org/contact</url>
+  <url type="vcs-browser">https://github.com/pwmt/zathura-pdf-mupdf</url>
+  <releases>
+    <release version="0.4.5" date="2025-10-27" />
+    <release version="0.4.4" date="2024-08-04" />
+  </releases>
 </component>

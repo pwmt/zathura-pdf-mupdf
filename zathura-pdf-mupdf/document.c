@@ -6,6 +6,7 @@
 #include <glib-2.0/glib.h>
 
 #include "plugin.h"
+#include <girara/utils.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -36,6 +37,20 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
 
   fz_try(mupdf_document->ctx) {
     fz_register_document_handlers(mupdf_document->ctx);
+
+    /* read user css from zathura/epub.css */
+    char* xdg_path = girara_get_xdg_path(XDG_CONFIG);
+    if (xdg_path != NULL) {
+      char* css_path = g_build_filename(xdg_path, "zathura", "epub.css", NULL);
+      char* user_css = girara_file_read(css_path);
+      g_free(css_path);
+
+      if (user_css != NULL) {
+        fz_set_user_css(mupdf_document->ctx, user_css);
+        g_free(user_css);
+      }
+      g_free(xdg_path);
+    }
 
     mupdf_document->document = fz_open_document(mupdf_document->ctx, path);
   }
@@ -127,7 +142,7 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document, void* data, c
 girara_list_t* pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error) {
   mupdf_document_t* mupdf_document = data;
 
-  if (document == NULL || mupdf_document == NULL || error == NULL) {
+  if (document == NULL || mupdf_document == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_INVALID_ARGUMENTS;
     }
@@ -171,7 +186,7 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document, void* 
         continue;
       }
 
-      char* str_value = pdf_to_str_buf(mupdf_document->ctx, value);
+      const char* str_value = pdf_to_text_string(mupdf_document->ctx, value);
       if (str_value == NULL || strlen(str_value) == 0) {
         continue;
       }
@@ -195,7 +210,7 @@ girara_list_t* pdf_document_get_information(zathura_document_t* document, void* 
         continue;
       }
 
-      char* str_value = pdf_to_str_buf(mupdf_document->ctx, value);
+      const char* str_value = pdf_to_text_string(mupdf_document->ctx, value);
       if (str_value == NULL || strlen(str_value) == 0) {
         continue;
       }

@@ -7,7 +7,9 @@
 #include "plugin.h"
 #include "utils.h"
 
-static void pdf_zathura_image_free(zathura_image_t* image);
+static void pdf_zathura_image_free(void* image) {
+  g_free(image);
+}
 
 girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_error_t* error) {
   mupdf_page_t* mupdf_page = data;
@@ -28,7 +30,7 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_err
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
 
   /* Setup image list */
-  list = girara_list_new();
+  list = girara_list_new_with_free(pdf_zathura_image_free);
   if (list == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;
@@ -36,14 +38,13 @@ girara_list_t* pdf_page_images_get(zathura_page_t* page, void* data, zathura_err
     goto error_free;
   }
 
-  girara_list_set_free_function(list, (girara_free_function_t)pdf_zathura_image_free);
-
   /* Extract images */
   g_mutex_lock(&mupdf_document->mutex);
-  mupdf_page_extract_text(mupdf_document, mupdf_page);
+  if (!mupdf_page->extracted_text) {
+    mupdf_page_extract_text(mupdf_document, mupdf_page);
+  }
 
-  fz_stext_block* block;
-  for (block = mupdf_page->text->first_block; block; block = block->next) {
+  for (fz_stext_block* block = mupdf_page->text->first_block; block; block = block->next) {
     if (block->type == FZ_STEXT_BLOCK_IMAGE) {
       zathura_image_t* zathura_image = g_malloc(sizeof(zathura_image_t));
 
@@ -123,7 +124,7 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* data, zath
       guchar* p = surface_data + y * rowstride + x * 4;
 
       // RGB
-      if (n == 4) {
+      if (n == 3) {
         p[0] = s[2];
         p[1] = s[1];
         p[2] = s[0];
@@ -156,12 +157,4 @@ error_free:
 error_ret:
 
   return NULL;
-}
-
-static void pdf_zathura_image_free(zathura_image_t* image) {
-  if (image == NULL) {
-    return;
-  }
-
-  g_free(image);
 }

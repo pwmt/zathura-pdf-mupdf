@@ -10,14 +10,11 @@ void mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mup
   fz_device* volatile text_device = NULL;
 
   fz_try(mupdf_page->ctx) {
-    text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, NULL);
+    fz_stext_options stext_options;
+    stext_options.flags = FZ_STEXT_PRESERVE_IMAGES;
+    text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, &stext_options);
 
-    /* Disable FZ_DONT_INTERPOLATE_IMAGES to collect image blocks */
-    fz_disable_device_hints(mupdf_page->ctx, text_device, FZ_DONT_INTERPOLATE_IMAGES);
-
-    fz_matrix ctm;
-    ctm = fz_scale(1.0, 1.0);
-    fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, ctm, NULL);
+    fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, fz_identity, NULL);
   }
   fz_always(mupdf_document->ctx) {
     fz_close_device(mupdf_page->ctx, text_device);
