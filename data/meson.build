@@ -27,10 +27,10 @@ if desktop_file_validate.found()
   )
 endif
 
-appstream_util = find_program('appstream-util', required: get_option('tests'), native: true)
+appstream_util = find_program('appstreamcli', required: get_option('tests'), native: true)
 if appstream_util.found()
   test('validate-appdata',
     appstream_util,
-    args: ['validate-relax', '--nonet', join_paths(meson.current_source_dir(), 'org.pwmt.zathura-pdf-mupdf.metainfo.xml')]
+    args: ['validate', '--no-net', join_paths(meson.current_source_dir(), 'org.pwmt.zathura-pdf-mupdf.metainfo.xml')]
   )
 endif
