@@ -42,13 +42,12 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
     char* xdg_path = girara_get_xdg_path(XDG_CONFIG);
     if (xdg_path != NULL) {
       char* css_path = g_build_filename(xdg_path, "zathura", "epub.css", NULL);
-      char* user_css = girara_file_read(css_path);
-      g_free(css_path);
-
-      if (user_css != NULL) {
+      gchar* user_css = NULL;
+      if (g_file_get_contents(css_path, &user_css, NULL, NULL) == TRUE) {
         fz_set_user_css(mupdf_document->ctx, user_css);
         g_free(user_css);
       }
+      g_free(css_path);
       g_free(xdg_path);
     }
 
