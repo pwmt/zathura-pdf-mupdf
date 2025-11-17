@@ -12,7 +12,7 @@ void mupdf_page_extract_text(mupdf_document_t* mupdf_document, mupdf_page_t* mup
   fz_try(mupdf_page->ctx) {
     fz_stext_options stext_options;
     stext_options.flags = FZ_STEXT_PRESERVE_IMAGES;
-    text_device = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, &stext_options);
+    text_device         = fz_new_stext_device(mupdf_page->ctx, mupdf_page->text, &stext_options);
 
     fz_run_page(mupdf_page->ctx, mupdf_page->page, text_device, fz_identity, NULL);
   }
