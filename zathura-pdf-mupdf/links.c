@@ -22,7 +22,7 @@ girara_list_t* pdf_page_links_get(zathura_page_t* page, void* data, zathura_erro
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
   ;
 
-  girara_list_t* list = girara_list_new2((girara_free_function_t)zathura_link_free);
+  girara_list_t* list = girara_list_new_with_free((girara_free_function_t)zathura_link_free);
   if (list == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;

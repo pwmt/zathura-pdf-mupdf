@@ -24,7 +24,7 @@ girara_list_t* pdf_page_search_text(zathura_page_t* page, void* data, const char
   mupdf_document_t* mupdf_document = zathura_document_get_data(document);
   ;
 
-  girara_list_t* list = girara_list_new2(g_free);
+  girara_list_t* list = girara_list_new_with_free(g_free);
   if (list == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;
