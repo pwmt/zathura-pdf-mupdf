@@ -75,7 +75,7 @@ flags = [
   '-Werror=implicit-function-declaration',
   '-Werror=vla',
   '-Werror=int-conversion',
-  '-Werror=maybe-unintialized'
+  '-Werror=maybe-uninitialized'
 ]
 flags = cc.get_supported_arguments(flags)
 
