@@ -10,7 +10,7 @@ Requirements
 
 The following dependencies are required:
 
-* `zathura` (>= 0.2.0)
+* `zathura` (>= 2026.01.30)
 * `girara`
 * `mupdf` (>= 1.26)
 
