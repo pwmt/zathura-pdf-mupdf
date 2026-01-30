@@ -67,7 +67,7 @@ girara_list_t* pdf_page_get_selection(zathura_page_t* page, void* data, zathura_
   fz_point a = {rectangle.x1, rectangle.y1};
   fz_point b = {rectangle.x2, rectangle.y2};
 
-  girara_list_t* list = girara_list_new2(g_free);
+  girara_list_t* list = girara_list_new_with_free(g_free);
   if (list == NULL) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_OUT_OF_MEMORY;

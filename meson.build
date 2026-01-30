@@ -1,5 +1,5 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '0.4.6',
+  version: '2026.01.30',
   meson_version: '>=1',
   default_options: ['c_std=c17', 'warning_level=3']
 )
@@ -19,7 +19,7 @@ desktopdir = join_paths(datadir, 'applications')
 mupdf_required_version_major = 1
 mupdf_required_version_minor = 26
 
-zathura = dependency('zathura', version: '>=0.5.2')
+zathura = dependency('zathura', version: '>=2026.01.30')
 girara = dependency('girara-gtk3')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
@@ -74,6 +74,8 @@ endif
 flags = [
   '-Werror=implicit-function-declaration',
   '-Werror=vla',
+  '-Werror=int-conversion',
+  '-Werror=maybe-uninitialized'
 ]
 flags = cc.get_supported_arguments(flags)
 

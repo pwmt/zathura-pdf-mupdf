@@ -41,7 +41,7 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
     /* read user css from zathura/epub.css */
     char* xdg_path = girara_get_xdg_path(XDG_CONFIG);
     if (xdg_path != NULL) {
-      char* css_path = g_build_filename(xdg_path, "zathura", "epub.css", NULL);
+      char* css_path  = g_build_filename(xdg_path, "zathura", "epub.css", NULL);
       gchar* user_css = NULL;
       if (g_file_get_contents(css_path, &user_css, NULL, NULL) == TRUE) {
         fz_set_user_css(mupdf_document->ctx, user_css);
