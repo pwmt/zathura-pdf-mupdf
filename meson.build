@@ -20,7 +20,7 @@ mupdf_required_version_major = 1
 mupdf_required_version_minor = 26
 
 zathura = dependency('zathura', version: '>=2026.01.30')
-girara = dependency('girara-gtk3')
+girara = dependency('girara')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
