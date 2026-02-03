@@ -1,5 +1,5 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '2026.01.30',
+  version: '2026.02.03',
   meson_version: '>=1',
   default_options: ['c_std=c17', 'warning_level=3']
 )
@@ -20,7 +20,7 @@ mupdf_required_version_major = 1
 mupdf_required_version_minor = 26
 
 zathura = dependency('zathura', version: '>=2026.01.30')
-girara = dependency('girara-gtk3')
+girara = dependency('girara')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
