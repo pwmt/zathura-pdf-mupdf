@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  VERBOSE: 1
+
+jobs:
+  clang-format:
+    name: Check clang-format output
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pwmt/github-actions-debian:forky
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/girara
+          path: girara
+      - name: Install girara
+        run: |
+          mkdir girara/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu girara/build girara
+          ninja --verbose -C girara/build install
+          rm -rf girara
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/zathura
+          path: zathura
+      - name: Install zathura
+        run: |
+          mkdir zathura/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu zathura/build zathura
+          ninja --verbose -C zathura/build install
+          rm -rf zathura
+      - name: Build and test
+        run: |
+          mkdir build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu build .
+          ninja -C build clang-format-check
+
+  build-test-debian-trixie:
+    name: Test on Debian trixie
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pwmt/github-actions-debian:trixie
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/girara
+          path: girara
+      - name: Install girara
+        run: |
+          mkdir girara/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu girara/build girara
+          ninja --verbose -C girara/build install
+          rm -rf girara
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/zathura
+          path: zathura
+      - name: Install zathura
+        run: |
+          mkdir zathura/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu zathura/build zathura
+          ninja --verbose -C zathura/build install
+          rm -rf zathura
+      - name: Build and test
+        run: |
+          mkdir build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu build .
+          ninja -C build --verbose
+          ninja -C build test --verbose
+
+  build-test-debian-forky:
+    name: Test on Debian forky
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pwmt/github-actions-debian:forky
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/girara
+          path: girara
+      - name: Install girara
+        run: |
+          mkdir girara/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu girara/build girara
+          ninja --verbose -C girara/build install
+          rm -rf girara
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/zathura
+          path: zathura
+      - name: Install zathura
+        run: |
+          mkdir zathura/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu zathura/build zathura
+          ninja --verbose -C zathura/build install
+          rm -rf zathura
+      - name: Build and test
+        run: |
+          mkdir build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu build .
+          ninja -C build --verbose
+          ninja -C build test --verbose
+
+  build-test-ubuntu-noble:
+    name: Test on Ubuntu noble
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pwmt/github-actions-ubuntu:noble
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/girara
+          path: girara
+      - name: Install girara
+        run: |
+          mkdir girara/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu girara/build girara
+          ninja --verbose -C girara/build install
+          rm -rf girara
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/zathura
+          path: zathura
+      - name: Install zathura
+        run: |
+          mkdir zathura/build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu zathura/build zathura
+          ninja --verbose -C zathura/build install
+          rm -rf zathura
+      - name: Build and test
+        run: |
+          mkdir build
+          meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu build .
+          ninja -C build --verbose
+          ninja -C build test --verbose
+
+  build-test-archlinux:
+    name: Test on Archlinux
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pwmt/github-actions-archlinux:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/girara
+          path: girara
+      - name: Install girara
+        run: |
+          mkdir girara/build
+          meson setup --prefix /usr girara/build girara
+          ninja --verbose -C girara/build install
+          rm -rf girara
+      - uses: actions/checkout@v6
+        with:
+          repository: pwmt/zathura
+          path: zathura
+      - name: Install zathura
+        run: |
+          mkdir zathura/build
+          meson setup --prefix /usr zathura/build zathura
+          ninja --verbose -C zathura/build install
+          rm -rf zathura
+      - name: Build and test
+        run: |
+          mkdir build
+          meson setup --prefix /usr build .
+          ninja -C build --verbose
+          ninja -C build test --verbose
