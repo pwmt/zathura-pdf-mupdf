@@ -1,7 +1,7 @@
 project('zathura-pdf-mupdf', 'c',
   version: '2026.02.03',
   meson_version: '>=1',
-  default_options: ['c_std=c17', 'warning_level=3']
+  default_options: ['c_std=c23', 'warning_level=3']
 )
 
 version = meson.project_version()
