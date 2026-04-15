@@ -55,7 +55,7 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
   }
   fz_catch(mupdf_document->ctx) {
     error = ZATHURA_ERROR_UNKNOWN;
-    return error;
+    goto error_free;
   }
 
   if (mupdf_document->document == NULL) {
