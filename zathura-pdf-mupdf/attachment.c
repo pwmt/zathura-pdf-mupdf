@@ -40,6 +40,7 @@ girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* 
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
     }
+    g_mutex_unlock(&mupdf_document->mutex);
     goto error_free;
   }
   g_mutex_unlock(&mupdf_document->mutex);
@@ -86,6 +87,7 @@ zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void*
     }
   }
   fz_catch(mupdf_document->ctx) {
+    g_mutex_unlock(&mupdf_document->mutex);
     return ZATHURA_ERROR_UNKNOWN;
   }
   g_mutex_unlock(&mupdf_document->mutex);
