@@ -120,7 +120,8 @@ girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* 
  * @return ZATHURA_ERROR_OK when no error occurred, otherwise see
  *    zathura_error_t
  */
-zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* name, const char* file);
+zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void* data, const char* name,
+                                             const char* file);
 
 /**
  * Returns a list of images included on the zathura page
