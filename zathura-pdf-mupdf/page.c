@@ -80,7 +80,7 @@ zathura_error_t pdf_page_clear(zathura_page_t* page, void* data) {
   }
   g_mutex_unlock(&mupdf_document->mutex);
 
-  return ZATHURA_ERROR_UNKNOWN;
+  return ZATHURA_ERROR_OK;
 }
 
 zathura_error_t pdf_page_get_label(zathura_page_t* page, void* data, char** label) {
