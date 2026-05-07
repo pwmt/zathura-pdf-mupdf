@@ -64,14 +64,27 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
   }
 
   /* authenticate if password is required and given */
-  if (fz_needs_password(mupdf_document->ctx, mupdf_document->document) != 0) {
-    if (password == NULL || fz_authenticate_password(mupdf_document->ctx, mupdf_document->document, password) == 0) {
-      error = ZATHURA_ERROR_INVALID_PASSWORD;
-      goto error_free;
+  fz_try(mupdf_document->ctx) {
+    if (fz_needs_password(mupdf_document->ctx, mupdf_document->document) != 0) {
+      if (password == NULL || fz_authenticate_password(mupdf_document->ctx, mupdf_document->document, password) == 0) {
+        error = ZATHURA_ERROR_INVALID_PASSWORD;
+      }
     }
   }
+  fz_catch(mupdf_document->ctx) {
+    error = ZATHURA_ERROR_UNKNOWN;
+  }
+  if (error != ZATHURA_ERROR_OK) {
+    goto error_free;
+  }
 
-  zathura_document_set_number_of_pages(document, fz_count_pages(mupdf_document->ctx, mupdf_document->document));
+  fz_try(mupdf_document->ctx) {
+    zathura_document_set_number_of_pages(document, fz_count_pages(mupdf_document->ctx, mupdf_document->document));
+  }
+  fz_catch(mupdf_document->ctx) {
+    error = ZATHURA_ERROR_UNKNOWN;
+    goto error_free;
+  }
   zathura_document_set_data(document, mupdf_document);
 
   return ZATHURA_ERROR_OK;

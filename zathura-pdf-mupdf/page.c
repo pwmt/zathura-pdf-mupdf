@@ -25,17 +25,15 @@ zathura_error_t pdf_page_init(zathura_page_t* page) {
   /* load page */
   fz_try(mupdf_page->ctx) {
     mupdf_page->page = fz_load_page(mupdf_document->ctx, mupdf_document->document, index);
+    mupdf_page->bbox = fz_bound_page(mupdf_document->ctx, (fz_page*)mupdf_page->page);
+    mupdf_page->text = fz_new_stext_page(mupdf_page->ctx, mupdf_page->bbox);
   }
   fz_catch(mupdf_page->ctx) {
     goto error_free;
   }
 
-  mupdf_page->bbox = fz_bound_page(mupdf_document->ctx, (fz_page*)mupdf_page->page);
-
-  /* setup text */
   mupdf_page->extracted_text = false;
 
-  mupdf_page->text = fz_new_stext_page(mupdf_page->ctx, mupdf_page->bbox);
   if (mupdf_page->text == NULL) {
     goto error_free;
   }
