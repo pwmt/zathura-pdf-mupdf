@@ -34,12 +34,14 @@ girara_list_t* pdf_document_attachments_get(zathura_document_t* document, void* 
         pdf_get_filespec_params(mupdf_document->ctx, obj, &fs_params);
         girara_list_append(list, g_strdup(fs_params.filename));
       }
+      pdf_drop_obj(mupdf_document->ctx, obj);
     }
   }
   fz_catch(mupdf_document->ctx) {
     if (error != NULL) {
       *error = ZATHURA_ERROR_UNKNOWN;
     }
+    g_mutex_unlock(&mupdf_document->mutex);
     goto error_free;
   }
   g_mutex_unlock(&mupdf_document->mutex);
@@ -78,14 +80,19 @@ zathura_error_t pdf_document_attachment_save(zathura_document_t* document, void*
       pdf_obj* obj = pdf_load_object(mupdf_document->ctx, pdf_doc, i);
       if (pdf_is_embedded_file(mupdf_document->ctx, obj)) {
         pdf_get_filespec_params(mupdf_document->ctx, obj, &fs_params);
-        if (strcmp(fs_params.filename, name) != 0) {
-          continue;
+        if (strcmp(fs_params.filename, name) == 0) {
+          fz_buffer* buf = pdf_load_embedded_file_contents(mupdf_document->ctx, obj);
+          fz_save_buffer(mupdf_document->ctx, buf, file);
+          fz_drop_buffer(mupdf_document->ctx, buf);
+          pdf_drop_obj(mupdf_document->ctx, obj);
+          break;
         }
-        fz_save_buffer(mupdf_document->ctx, pdf_load_embedded_file_contents(mupdf_document->ctx, obj), file);
       }
+      pdf_drop_obj(mupdf_document->ctx, obj);
     }
   }
   fz_catch(mupdf_document->ctx) {
+    g_mutex_unlock(&mupdf_document->mutex);
     return ZATHURA_ERROR_UNKNOWN;
   }
   g_mutex_unlock(&mupdf_document->mutex);

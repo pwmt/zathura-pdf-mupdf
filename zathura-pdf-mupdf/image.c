@@ -106,8 +106,11 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* data, zath
     goto error_free;
   }
 
-  surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, mupdf_image->w, mupdf_image->h);
-  if (surface == NULL) {
+  const int width  = fz_pixmap_width(mupdf_page->ctx, pixmap);
+  const int height = fz_pixmap_height(mupdf_page->ctx, pixmap);
+
+  surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
+  if (surface == NULL || cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
     goto error_free;
   }
 
@@ -117,8 +120,6 @@ cairo_surface_t* pdf_page_image_get_cairo(zathura_page_t* page, void* data, zath
   unsigned char* s = fz_pixmap_samples(mupdf_page->ctx, pixmap);
   unsigned int n   = fz_pixmap_components(mupdf_page->ctx, pixmap);
 
-  const int height = fz_pixmap_height(mupdf_page->ctx, pixmap);
-  const int width  = fz_pixmap_width(mupdf_page->ctx, pixmap);
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       guchar* p = surface_data + y * rowstride + x * 4;
