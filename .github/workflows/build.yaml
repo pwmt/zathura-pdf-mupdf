@@ -17,8 +17,8 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: pwmt/girara
           path: girara
@@ -28,7 +28,7 @@ jobs:
           meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu girara/build girara
           ninja --verbose -C girara/build install
           rm -rf girara
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: pwmt/zathura
           path: zathura
@@ -53,8 +53,8 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: pwmt/girara
           path: girara
@@ -64,7 +64,7 @@ jobs:
           meson setup --prefix /usr --libdir=lib/x86_64-linux-gnu girara/build girara
           ninja --verbose -C girara/build install
           rm -rf girara
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: pwmt/zathura
           path: zathura
@@ -90,8 +90,8 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: pwmt/girara
           path: girara
@@ -101,7 +101,7 @@ jobs:
           meson setup --prefix /usr girara/build girara
           ninja --verbose -C girara/build install
           rm -rf girara
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: pwmt/zathura
           path: zathura
