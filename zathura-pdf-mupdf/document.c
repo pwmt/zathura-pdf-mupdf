@@ -6,6 +6,7 @@
 #include <glib-2.0/glib.h>
 
 #include "plugin.h"
+#include <girara/log.h>
 #include <girara/utils.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
