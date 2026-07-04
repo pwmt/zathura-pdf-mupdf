@@ -10,6 +10,18 @@
 
 #define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
+/* route mupdf warnings to the girara log instead of raw stderr */
+static void mupdf_warning_callback(void* user, const char* message) {
+  (void)user;
+  girara_debug("mupdf: %s", message);
+}
+
+/* route mupdf errors to the girara log instead of raw stderr */
+static void mupdf_error_callback(void* user, const char* message) {
+  (void)user;
+  girara_error("mupdf: %s", message);
+}
+
 zathura_error_t pdf_document_open(zathura_document_t* document) {
   zathura_error_t error = ZATHURA_ERROR_OK;
   if (document == NULL) {
@@ -30,6 +42,9 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
     error = ZATHURA_ERROR_UNKNOWN;
     goto error_free;
   }
+
+  fz_set_warning_callback(mupdf_document->ctx, mupdf_warning_callback, NULL);
+  fz_set_error_callback(mupdf_document->ctx, mupdf_error_callback, NULL);
 
   /* open document */
   const char* path     = zathura_document_get_path(document);
