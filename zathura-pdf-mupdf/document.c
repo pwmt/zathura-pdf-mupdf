@@ -12,14 +12,12 @@
 #define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
 /* route mupdf warnings to the girara log instead of raw stderr */
-static void mupdf_warning_callback(void* user, const char* message) {
-  (void)user;
+static void mupdf_warning_callback(void* GIRARA_UNUSED(user), const char* message) {
   girara_debug("mupdf: %s", message);
 }
 
 /* route mupdf errors to the girara log instead of raw stderr */
-static void mupdf_error_callback(void* user, const char* message) {
-  (void)user;
+static void mupdf_error_callback(void* GIRARA_UNUSED(user), const char* message) {
   girara_error("mupdf: %s", message);
 }
 
