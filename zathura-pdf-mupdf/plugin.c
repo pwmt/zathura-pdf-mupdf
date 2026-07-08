@@ -8,7 +8,7 @@
 #define PDF_MIMETYPE
 #endif
 
-ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION_MAJOR, VERSION_MINOR, VERSION_REV,
+ZATHURA_PLUGIN_REGISTER_WITH_FUNCTIONS("pdf-mupdf", VERSION,
                                        ZATHURA_PLUGIN_FUNCTIONS({
                                            .document_open            = pdf_document_open,
                                            .document_free            = pdf_document_free,

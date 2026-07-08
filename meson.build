@@ -5,7 +5,6 @@ project('zathura-pdf-mupdf', 'c',
 )
 
 version = meson.project_version()
-version_array = version.split('.')
 
 cc = meson.get_compiler('c')
 
@@ -61,9 +60,7 @@ endif
 
 # defines
 defines = [
-  '-DVERSION_MAJOR=@0@'.format(version_array[0]),
-  '-DVERSION_MINOR=@0@'.format(version_array[1]),
-  '-DVERSION_REV=@0@'.format(version_array[2]),
+  '-DVERSION="@0@"'.format(version),
   '-D_DEFAULT_SOURCE',
 ]
 if get_option('pdf').allowed()
