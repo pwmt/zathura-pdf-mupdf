@@ -3,11 +3,6 @@ option('plugindir',
   value: '',
   description: 'Install to a different location than Zathura\'s plugin directory'
 )
-option('tests',
-  type: 'feature',
-  value: 'auto',
-  description: 'run tests'
-)
 option('pdf',
   type: 'feature',
   value: 'auto',

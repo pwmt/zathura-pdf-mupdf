@@ -6,9 +6,20 @@
 #include <glib-2.0/glib.h>
 
 #include "plugin.h"
+#include <girara/log.h>
 #include <girara/utils.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof((x)[0]))
+
+/* route mupdf warnings to the girara log instead of raw stderr */
+static void mupdf_warning_callback(void* GIRARA_UNUSED(user), const char* message) {
+  girara_debug("mupdf: %s", message);
+}
+
+/* route mupdf errors to the girara log instead of raw stderr */
+static void mupdf_error_callback(void* GIRARA_UNUSED(user), const char* message) {
+  girara_error("mupdf: %s", message);
+}
 
 zathura_error_t pdf_document_open(zathura_document_t* document) {
   zathura_error_t error = ZATHURA_ERROR_OK;
@@ -30,6 +41,9 @@ zathura_error_t pdf_document_open(zathura_document_t* document) {
     error = ZATHURA_ERROR_UNKNOWN;
     goto error_free;
   }
+
+  fz_set_warning_callback(mupdf_document->ctx, mupdf_warning_callback, NULL);
+  fz_set_error_callback(mupdf_document->ctx, mupdf_error_callback, NULL);
 
   /* open document */
   const char* path     = zathura_document_get_path(document);

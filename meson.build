@@ -1,11 +1,10 @@
 project('zathura-pdf-mupdf', 'c',
-  version: '2026.05.10',
+  version: '2026.07.18',
   meson_version: '>=1',
   default_options: ['c_std=c23', 'warning_level=3']
 )
 
 version = meson.project_version()
-version_array = version.split('.')
 
 cc = meson.get_compiler('c')
 
@@ -16,14 +15,11 @@ metainfodir = join_paths(datadir, 'metainfo')
 desktopdir = join_paths(datadir, 'applications')
 
 # required dependencies
-mupdf_required_version_major = 1
-mupdf_required_version_minor = 26
 
-zathura = dependency('zathura', version: '>=2026.01.30')
+zathura = dependency('zathura', version: '>=2026.07.18')
 girara = dependency('girara')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
-mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
 
 build_dependencies = [
   zathura,
@@ -32,6 +28,9 @@ build_dependencies = [
   cairo,
 ]
 
+mupdf_required_version_major = 1
+mupdf_required_version_minor = 26
+mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
 if not mupdf.found()
   # normal build of mupdf
   mupdf = cc.find_library('mupdf', has_headers: ['mupdf/fitz/version.h', 'mupdf/fitz.h', 'mupdf/pdf.h'], required: true)
@@ -61,9 +60,7 @@ endif
 
 # defines
 defines = [
-  '-DVERSION_MAJOR=@0@'.format(version_array[0]),
-  '-DVERSION_MINOR=@0@'.format(version_array[1]),
-  '-DVERSION_REV=@0@'.format(version_array[2]),
+  '-DVERSION="@0@"'.format(version),
   '-D_DEFAULT_SOURCE',
 ]
 if get_option('pdf').allowed()
