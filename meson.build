@@ -15,14 +15,11 @@ metainfodir = join_paths(datadir, 'metainfo')
 desktopdir = join_paths(datadir, 'applications')
 
 # required dependencies
-mupdf_required_version_major = 1
-mupdf_required_version_minor = 26
 
 zathura = dependency('zathura', version: '>=2026.01.30')
 girara = dependency('girara')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
-mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
 
 build_dependencies = [
   zathura,
@@ -31,6 +28,9 @@ build_dependencies = [
   cairo,
 ]
 
+mupdf_required_version_major = 1
+mupdf_required_version_minor = 26
+mupdf = dependency('mupdf', required: false, version: '>=@0@.@1@'.format(mupdf_required_version_major, mupdf_required_version_minor))
 if not mupdf.found()
   # normal build of mupdf
   mupdf = cc.find_library('mupdf', has_headers: ['mupdf/fitz/version.h', 'mupdf/fitz.h', 'mupdf/pdf.h'], required: true)
