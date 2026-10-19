@@ -167,6 +167,17 @@ girara_list_t* pdf_page_get_selection(zathura_page_t* page, void* mupdf_page, za
                                       zathura_error_t* error);
 
 /**
+ * Get the text layout of a page
+ *
+ * @param page Page
+ * @param mupdf_page The mupdf page
+ * @param layout Set to the page text and the bounding box of each character
+ * @return ZATHURA_ERROR_OK when no error occurred, otherwise see
+ *    zathura_error_t
+ */
+zathura_error_t pdf_page_get_text_layout(zathura_page_t* page, void* mupdf_page, zathura_text_layout_t* layout);
+
+/**
  * Returns a list of document information entries of the document
  *
  * @param document Zathura document
