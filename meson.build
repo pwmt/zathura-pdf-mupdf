@@ -100,4 +100,16 @@ pdf = shared_module('pdf-mupdf',
   gnu_symbol_visibility: 'hidden'
 )
 
+# the plugin sources are linked into the tests together with a few stand-ins for the zathura functions they call
+test_annotations = executable('test_annotations',
+  sources + files('tests/test_annotations.c', 'tests/zathura-stubs.c'),
+  dependencies: build_dependencies + [cc.find_library('m', required: false)],
+  include_directories: include_directories('zathura-pdf-mupdf', 'tests'),
+  c_args: defines + flags
+)
+test('annotations', test_annotations,
+  protocol: 'tap',
+  timeout: 120
+)
+
 subdir('data')
