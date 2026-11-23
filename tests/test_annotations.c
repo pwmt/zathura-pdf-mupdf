@@ -21,7 +21,7 @@ typedef struct {
 
 /* a one page PDF with two lines of text */
 static char* make_pdf(void) {
-  const char* content = "BT /F1 24 Tf 72 700 Td (Hello annotation world) Tj 0 -40 Td (Second line of text) Tj ET";
+  const char* content     = "BT /F1 24 Tf 72 700 Td (Hello annotation world) Tj 0 -40 Td (Second line of text) Tj ET";
   g_autofree char* stream = g_strdup_printf("<< /Length %zu >>\nstream\n%s\nendstream", strlen(content), content);
   const char* objects[]   = {
       "<< /Type /Catalog /Pages 2 0 R >>",
@@ -32,7 +32,7 @@ static char* make_pdf(void) {
   };
   const size_t n = G_N_ELEMENTS(objects);
 
-  GString* pdf   = g_string_new("%PDF-1.7\n");
+  GString* pdf = g_string_new("%PDF-1.7\n");
   size_t offsets[G_N_ELEMENTS(objects)];
   for (size_t i = 0; i < n; ++i) {
     offsets[i] = pdf->len;
@@ -52,7 +52,7 @@ static void fixture_set_up(fixture_t* fixture, gconstpointer UNUSED_data) {
   g_autoptr(GError) error = NULL;
   fixture->dir            = g_dir_make_tmp("zathura-pdf-mupdf-XXXXXX", &error);
   g_assert_no_error(error);
-  fixture->file = g_build_filename(fixture->dir, "document.pdf", NULL);
+  fixture->file        = g_build_filename(fixture->dir, "document.pdf", NULL);
   g_autofree char* pdf = make_pdf();
   g_assert_true(g_file_set_contents(fixture->file, pdf, -1, &error));
 }
@@ -99,9 +99,9 @@ static int count_yellow(opened_t* opened) {
   g_assert_cmpint(pdf_page_render_cairo(opened->page, opened->page->data, cairo, false), ==, ZATHURA_ERROR_OK);
   cairo_surface_flush(surface);
 
-  int yellow          = 0;
+  int yellow                = 0;
   const unsigned char* data = cairo_image_surface_get_data(surface);
-  const int stride    = cairo_image_surface_get_stride(surface);
+  const int stride          = cairo_image_surface_get_stride(surface);
   for (int y = 0; y < PAGE_HEIGHT; ++y) {
     for (int x = 0; x < PAGE_WIDTH; ++x) {
       const unsigned char* pixel = data + y * stride + x * 4; /* BGRA */
@@ -149,7 +149,7 @@ static void add_highlight(opened_t* opened, zathura_rectangle_t box, const char*
 
 static void test_empty(fixture_t* fixture, gconstpointer UNUSED_data) {
   (void)UNUSED_data;
-  opened_t opened = open_document(fixture->file);
+  opened_t opened               = open_document(fixture->file);
   g_autoptr(girara_list_t) list = annotations(&opened);
   g_assert_cmpuint(girara_list_size(list), ==, 0);
   g_assert_cmpint(count_yellow(&opened), ==, 0);
@@ -158,12 +158,15 @@ static void test_empty(fixture_t* fixture, gconstpointer UNUSED_data) {
 
 static void test_add_and_list(fixture_t* fixture, gconstpointer UNUSED_data) {
   (void)UNUSED_data;
-  opened_t opened = open_document(fixture->file);
+  opened_t opened               = open_document(fixture->file);
   const zathura_rectangle_t box = first_word_box(&opened, 5);
 
   add_highlight(&opened, box, "my comment");
-  zathura_annotation_t note = {.type = ZATHURA_ANNOTATION_TEXT, .rect = {300, 100, 320, 120}, .has_color = true,
-                               .color = {1, 0, 0}, .contents = "a note"};
+  zathura_annotation_t note = {.type      = ZATHURA_ANNOTATION_TEXT,
+                               .rect      = {300, 100, 320, 120},
+                               .has_color = true,
+                               .color     = {1, 0, 0},
+                               .contents  = "a note"};
   g_assert_cmpint(pdf_page_annotation_add(opened.page, opened.page->data, &note), ==, ZATHURA_ERROR_OK);
 
   g_autoptr(girara_list_t) list = annotations(&opened);
@@ -205,10 +208,10 @@ static void test_invalid_arguments(fixture_t* fixture, gconstpointer UNUSED_data
   g_assert_null(pdf_page_annotations_get(NULL, NULL, &error));
   g_assert_cmpint(error, ==, ZATHURA_ERROR_INVALID_ARGUMENTS);
 
-  zathura_rectangle_t box = {0, 0, 10, 10};
-  zathura_annotation_t other = {.type = ZATHURA_ANNOTATION_OTHER};
+  zathura_rectangle_t box       = {0, 0, 10, 10};
+  zathura_annotation_t other    = {.type = ZATHURA_ANNOTATION_OTHER};
   zathura_annotation_t no_quads = {.type = ZATHURA_ANNOTATION_UNDERLINE};
-  zathura_annotation_t valid = {.type = ZATHURA_ANNOTATION_UNDERLINE, .quads = &box, .n_quads = 1};
+  zathura_annotation_t valid    = {.type = ZATHURA_ANNOTATION_UNDERLINE, .quads = &box, .n_quads = 1};
   g_assert_cmpint(pdf_page_annotation_add(opened.page, opened.page->data, NULL), ==, ZATHURA_ERROR_INVALID_ARGUMENTS);
   g_assert_cmpint(pdf_page_annotation_add(opened.page, opened.page->data, &other), ==, ZATHURA_ERROR_NOT_IMPLEMENTED);
   g_assert_cmpint(pdf_page_annotation_add(opened.page, opened.page->data, &no_quads), ==,
@@ -232,8 +235,7 @@ static void test_set_contents_and_delete(fixture_t* fixture, gconstpointer UNUSE
   add_highlight(&opened, first_word_box(&opened, 5), "one");
   add_highlight(&opened, first_word_box(&opened, 3), "two");
 
-  g_assert_cmpint(pdf_page_annotation_set_contents(opened.page, opened.page->data, 1, "changed"), ==,
-                  ZATHURA_ERROR_OK);
+  g_assert_cmpint(pdf_page_annotation_set_contents(opened.page, opened.page->data, 1, "changed"), ==, ZATHURA_ERROR_OK);
   {
     g_autoptr(girara_list_t) list = annotations(&opened);
     g_assert_cmpuint(girara_list_size(list), ==, 2);
@@ -262,7 +264,7 @@ static void test_save_to_new_file(fixture_t* fixture, gconstpointer UNUSED_data)
   g_assert_cmpint(pdf_document_save_as(opened.document, opened.document->data, copy), ==, ZATHURA_ERROR_OK);
   close_document(&opened);
 
-  opened_t reopened = open_document(copy);
+  opened_t reopened             = open_document(copy);
   g_autoptr(girara_list_t) list = annotations(&reopened);
   g_assert_cmpuint(girara_list_size(list), ==, 1);
   g_assert_cmpstr(((zathura_annotation_t*)girara_list_nth(list, 0))->contents, ==, "kept");
@@ -270,7 +272,7 @@ static void test_save_to_new_file(fixture_t* fixture, gconstpointer UNUSED_data)
   close_document(&reopened);
 
   /* the original is untouched */
-  opened_t original = open_document(fixture->file);
+  opened_t original             = open_document(fixture->file);
   g_autoptr(girara_list_t) none = annotations(&original);
   g_assert_cmpuint(girara_list_size(none), ==, 0);
   close_document(&original);
@@ -304,7 +306,7 @@ static void test_save_over_opened_file(fixture_t* fixture, gconstpointer UNUSED_
   }
   close_document(&opened);
 
-  opened_t reopened = open_document(fixture->file);
+  opened_t reopened             = open_document(fixture->file);
   g_autoptr(girara_list_t) list = annotations(&reopened);
   g_assert_cmpuint(girara_list_size(list), ==, 2);
   g_assert_cmpstr(((zathura_annotation_t*)girara_list_nth(list, 0))->contents, ==, "first");
@@ -325,7 +327,7 @@ static void test_not_a_pdf(fixture_t* fixture, gconstpointer UNUSED_data) {
   g_autoptr(girara_list_t) list = annotations(&opened);
   g_assert_cmpuint(girara_list_size(list), ==, 0);
 
-  zathura_rectangle_t box = {0, 0, 10, 10};
+  zathura_rectangle_t box         = {0, 0, 10, 10};
   zathura_annotation_t annotation = {.type = ZATHURA_ANNOTATION_HIGHLIGHT, .quads = &box, .n_quads = 1};
   g_assert_cmpint(pdf_page_annotation_add(opened.page, opened.page->data, &annotation), ==,
                   ZATHURA_ERROR_NOT_IMPLEMENTED);

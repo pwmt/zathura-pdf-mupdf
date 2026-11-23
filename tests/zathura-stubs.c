@@ -94,8 +94,9 @@ girara_list_t* zathura_document_information_entry_list_new(void) {
   return girara_list_new();
 }
 
-zathura_document_information_entry_t* zathura_document_information_entry_new(zathura_document_information_type_t GIRARA_UNUSED(type),
-                                                                             const char* GIRARA_UNUSED(value)) {
+zathura_document_information_entry_t*
+zathura_document_information_entry_new(zathura_document_information_type_t GIRARA_UNUSED(type),
+                                       const char* GIRARA_UNUSED(value)) {
   return NULL;
 }
 
@@ -108,5 +109,4 @@ zathura_link_t* zathura_link_new(zathura_link_type_t GIRARA_UNUSED(type), zathur
   return NULL;
 }
 
-void zathura_link_free(zathura_link_t* GIRARA_UNUSED(link)) {
-}
+void zathura_link_free(zathura_link_t* GIRARA_UNUSED(link)) {}

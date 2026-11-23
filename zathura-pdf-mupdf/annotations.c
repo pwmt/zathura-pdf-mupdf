@@ -78,7 +78,7 @@ girara_list_t* pdf_page_annotations_get(zathura_page_t* page, void* data, zathur
 
   g_mutex_lock(&mupdf_document->mutex);
   fz_try(mupdf_page->ctx) {
-    pdf_page* ppage = pdf_page_from_fz_page(mupdf_page->ctx, mupdf_page->page);
+    pdf_page* ppage    = pdf_page_from_fz_page(mupdf_page->ctx, mupdf_page->page);
     unsigned int index = 0;
     for (pdf_annot* annot = ppage != NULL ? pdf_first_annot(mupdf_page->ctx, ppage) : NULL; annot != NULL;
          annot            = pdf_next_annot(mupdf_page->ctx, annot), ++index) {
@@ -255,8 +255,8 @@ zathura_error_t pdf_page_annotation_delete(zathura_page_t* page, void* data, uns
   fz_context* ctx = mupdf_page->ctx;
   fz_var(result);
   fz_try(ctx) {
-    pdf_page* ppage = pdf_page_from_fz_page(ctx, mupdf_page->page);
-    pdf_annot* annot   = ppage != NULL ? annotation_nth(ctx, ppage, index) : NULL;
+    pdf_page* ppage  = pdf_page_from_fz_page(ctx, mupdf_page->page);
+    pdf_annot* annot = ppage != NULL ? annotation_nth(ctx, ppage, index) : NULL;
     if (annot == NULL) {
       result = ZATHURA_ERROR_INVALID_ARGUMENTS;
     } else {
@@ -295,8 +295,8 @@ zathura_error_t pdf_page_annotation_set_contents(zathura_page_t* page, void* dat
   fz_context* ctx = mupdf_page->ctx;
   fz_var(result);
   fz_try(ctx) {
-    pdf_page* ppage = pdf_page_from_fz_page(ctx, mupdf_page->page);
-    pdf_annot* annot   = ppage != NULL ? annotation_nth(ctx, ppage, index) : NULL;
+    pdf_page* ppage  = pdf_page_from_fz_page(ctx, mupdf_page->page);
+    pdf_annot* annot = ppage != NULL ? annotation_nth(ctx, ppage, index) : NULL;
     if (annot == NULL) {
       result = ZATHURA_ERROR_INVALID_ARGUMENTS;
     } else {
