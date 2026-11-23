@@ -4,6 +4,8 @@
 #include <mupdf/pdf.h>
 
 #include <glib-2.0/glib.h>
+#include <glib/gstdio.h>
+#include <unistd.h>
 
 #include "plugin.h"
 #include <girara/log.h>
@@ -152,30 +154,64 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document, void* data, c
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
-  /* saving over the opened file must not rewrite it while it is being read, so append the changes instead */
   g_autofree char* source_path = g_canonicalize_filename(zathura_document_get_path(document), NULL);
   g_autofree char* target_path = g_canonicalize_filename(path, NULL);
   const bool same_file         = g_strcmp0(source_path, target_path) == 0;
 
   g_mutex_lock(&mupdf_document->mutex);
-  fz_try(mupdf_document->ctx) {
-    pdf_document* pdf = pdf_document_from_fz_document(mupdf_document->ctx, mupdf_document->document);
-    if (pdf == NULL) {
-      fz_throw(mupdf_document->ctx, FZ_ERROR_ARGUMENT, "not a PDF document");
-    }
-    pdf_write_options opts = pdf_default_write_options;
-    if (same_file == true && pdf_can_be_saved_incrementally(mupdf_document->ctx, pdf) != 0) {
-      opts.do_incremental = 1;
-    }
-    pdf_save_document(mupdf_document->ctx, pdf, path, &opts);
-  }
-  fz_catch(mupdf_document->ctx) {
+  pdf_document* pdf = pdf_document_from_fz_document(mupdf_document->ctx, mupdf_document->document);
+  if (pdf == NULL) {
     g_mutex_unlock(&mupdf_document->mutex);
     return ZATHURA_ERROR_UNKNOWN;
   }
+
+  /* The opened file is still being read, so it must not be rewritten in place. Changes are appended to it, which
+   * only works once: a second append from the same document writes a broken file. After that, or when the document
+   * cannot be appended to, a complete new file is written next to it and replaces it. */
+  pdf_write_options opts = pdf_default_write_options;
+  const bool append      = same_file == true && mupdf_document->appended == false &&
+                           pdf_can_be_saved_incrementally(mupdf_document->ctx, pdf) != 0;
+  opts.do_incremental    = append == true ? 1 : 0;
+
+  g_autofree char* temporary_path = NULL;
+  if (same_file == true && append == false) {
+    temporary_path = g_strdup_printf("%s.XXXXXX", path);
+    const int fd   = g_mkstemp(temporary_path);
+    if (fd == -1) {
+      g_mutex_unlock(&mupdf_document->mutex);
+      return ZATHURA_ERROR_UNKNOWN;
+    }
+    close(fd);
+  }
+
+  bool saved = true;
+  fz_try(mupdf_document->ctx) {
+    pdf_save_document(mupdf_document->ctx, pdf, temporary_path != NULL ? temporary_path : path, &opts);
+  }
+  fz_catch(mupdf_document->ctx) {
+    saved = false;
+  }
+
+  if (temporary_path != NULL) {
+    GStatBuf file_stat;
+    if (saved == true) {
+      /* keep the permissions of the file that is replaced */
+      if (g_stat(path, &file_stat) == 0) {
+        g_chmod(temporary_path, file_stat.st_mode & 07777);
+      }
+      saved = g_rename(temporary_path, path) == 0;
+    }
+    if (saved == false) {
+      g_unlink(temporary_path);
+    }
+  }
+
+  if (saved == true && append == true) {
+    mupdf_document->appended = true;
+  }
   g_mutex_unlock(&mupdf_document->mutex);
 
-  return ZATHURA_ERROR_OK;
+  return saved == true ? ZATHURA_ERROR_OK : ZATHURA_ERROR_UNKNOWN;
 }
 
 girara_list_t* pdf_document_get_information(zathura_document_t* document, void* data, zathura_error_t* error) {

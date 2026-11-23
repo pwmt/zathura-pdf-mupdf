@@ -14,6 +14,7 @@ typedef struct mupdf_document_s {
   fz_context* ctx;       /**< Context */
   fz_document* document; /**< mupdf document */
   GMutex mutex;
+  bool appended; /**< Changes were appended to the opened file by an earlier save */
 } mupdf_document_t;
 
 typedef struct mupdf_page_s {

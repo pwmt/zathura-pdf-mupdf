@@ -297,20 +297,38 @@ static void test_save_over_opened_file(fixture_t* fixture, gconstpointer UNUSED_
     g_assert_cmpint(memcmp(before, after, before_length), ==, 0);
   }
 
-  /* saving again after more changes works as well, and the document stays usable */
+  /* Saving again after more changes works as well, and the document stays usable. Appending a second time from the
+   * same document would write a broken file, so the file is replaced by a complete new one. */
+  g_assert_cmpint(g_chmod(fixture->file, 0640), ==, 0);
   add_highlight(&opened, first_word_box(&opened, 3), "second");
+  g_assert_cmpint(pdf_document_save_as(opened.document, opened.document->data, fixture->file), ==, ZATHURA_ERROR_OK);
+  add_highlight(&opened, first_word_box(&opened, 2), "third");
   g_assert_cmpint(pdf_document_save_as(opened.document, opened.document->data, fixture->file), ==, ZATHURA_ERROR_OK);
   {
     g_autoptr(girara_list_t) list = annotations(&opened);
-    g_assert_cmpuint(girara_list_size(list), ==, 2);
+    g_assert_cmpuint(girara_list_size(list), ==, 3);
   }
   close_document(&opened);
 
+  /* the replacement keeps the permissions and leaves no temporary file behind */
+  GStatBuf file_stat;
+  g_assert_cmpint(g_stat(fixture->file, &file_stat), ==, 0);
+  g_assert_cmpuint(file_stat.st_mode & 07777, ==, 0640);
+  {
+    g_autoptr(GDir) dir = g_dir_open(fixture->dir, 0, NULL);
+    unsigned int files  = 0;
+    while (g_dir_read_name(dir) != NULL) {
+      ++files;
+    }
+    g_assert_cmpuint(files, ==, 1);
+  }
+
   opened_t reopened             = open_document(fixture->file);
   g_autoptr(girara_list_t) list = annotations(&reopened);
-  g_assert_cmpuint(girara_list_size(list), ==, 2);
+  g_assert_cmpuint(girara_list_size(list), ==, 3);
   g_assert_cmpstr(((zathura_annotation_t*)girara_list_nth(list, 0))->contents, ==, "first");
   g_assert_cmpstr(((zathura_annotation_t*)girara_list_nth(list, 1))->contents, ==, "second");
+  g_assert_cmpstr(((zathura_annotation_t*)girara_list_nth(list, 2))->contents, ==, "third");
   close_document(&reopened);
 }
 
