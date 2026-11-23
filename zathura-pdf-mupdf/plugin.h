@@ -207,4 +207,25 @@ zathura_error_t pdf_page_get_label(zathura_page_t* page, void* data, char** labe
  */
 zathura_error_t pdf_page_render_cairo(zathura_page_t* page, void* mupdf_page, cairo_t* cairo, bool printing);
 
+/**
+ * Get the annotations of a page (list of zathura_annotation_t)
+ */
+girara_list_t* pdf_page_annotations_get(zathura_page_t* page, void* mupdf_page, zathura_error_t* error);
+
+/**
+ * Add an annotation to a page
+ */
+zathura_error_t pdf_page_annotation_add(zathura_page_t* page, void* mupdf_page, const zathura_annotation_t* annotation);
+
+/**
+ * Delete the annotation with the given index from a page
+ */
+zathura_error_t pdf_page_annotation_delete(zathura_page_t* page, void* mupdf_page, unsigned int index);
+
+/**
+ * Set the contents of the annotation with the given index
+ */
+zathura_error_t pdf_page_annotation_set_contents(zathura_page_t* page, void* mupdf_page, unsigned int index,
+                                                 const char* contents);
+
 #endif // PDF_H

@@ -152,9 +152,22 @@ zathura_error_t pdf_document_save_as(zathura_document_t* document, void* data, c
     return ZATHURA_ERROR_INVALID_ARGUMENTS;
   }
 
+  /* saving over the opened file must not rewrite it while it is being read, so append the changes instead */
+  g_autofree char* source_path = g_canonicalize_filename(zathura_document_get_path(document), NULL);
+  g_autofree char* target_path = g_canonicalize_filename(path, NULL);
+  const bool same_file         = g_strcmp0(source_path, target_path) == 0;
+
   g_mutex_lock(&mupdf_document->mutex);
   fz_try(mupdf_document->ctx) {
-    pdf_save_document(mupdf_document->ctx, (pdf_document*)mupdf_document->document, path, NULL);
+    pdf_document* pdf = pdf_document_from_fz_document(mupdf_document->ctx, mupdf_document->document);
+    if (pdf == NULL) {
+      fz_throw(mupdf_document->ctx, FZ_ERROR_ARGUMENT, "not a PDF document");
+    }
+    pdf_write_options opts = pdf_default_write_options;
+    if (same_file == true && pdf_can_be_saved_incrementally(mupdf_document->ctx, pdf) != 0) {
+      opts.do_incremental = 1;
+    }
+    pdf_save_document(mupdf_document->ctx, pdf, path, &opts);
   }
   fz_catch(mupdf_document->ctx) {
     g_mutex_unlock(&mupdf_document->mutex);

@@ -77,6 +77,7 @@ flags = [
 flags = cc.get_supported_arguments(flags)
 
 sources = files(
+  'zathura-pdf-mupdf/annotations.c',
   'zathura-pdf-mupdf/document.c',
   'zathura-pdf-mupdf/image.c',
   'zathura-pdf-mupdf/attachment.c',
